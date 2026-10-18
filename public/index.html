@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="it" data-modo="vetrina">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-ap-titolo="{nome} · Auto usate">Auto usate</title>
+<meta name="description" content="Auto usate controllate, prezzi chiari. Guarda le auto in vetrina e prenota una visita scegliendo giorno e ora.">
+<meta name="theme-color" content="#f5f4ef">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="css/vetrina.css">
+<script src="js/ap-config.js" data-root="./"></script>
+</head>
+<body>
+<a class="skip" href="#auto">Vai alle auto</a>
+
+<header class="top" id="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#" aria-label="Inizio pagina" data-ap="logo" data-su-scuro data-h="30"></a>
+    <nav class="nav" aria-label="Principale">
+      <a href="#auto">Auto</a>
+      <a href="#prenota" data-modulo="visite">Prenota una visita</a>
+      <a href="#dove">Dove siamo</a>
+    </nav>
+    <a class="btn btn-acc" data-ap="telefono" href="#dove"></a>
+  </div>
+</header>
+
+<main>
+<section class="hero" aria-labelledby="titolo">
+  <div class="wrap hero-in">
+    <div class="hero-txt">
+      <h1 id="titolo" data-ap="slogan"></h1>
+      <p class="hero-sub"><span class="live" id="stato-oggi"></span><span data-ap="indirizzo"></span></p>
+      <div class="hero-cta">
+        <a class="btn btn-acc" href="#auto">Guarda le auto</a>
+        <a class="btn btn-line" href="#prenota" data-modulo="visite">Prenota una visita</a>
+      </div>
+    </div>
+    <aside class="tagliando" id="tagliando" aria-labelledby="tg-t" data-modulo="visite" hidden>
+      <div class="tg-testa"><h2 id="tg-t">Prossime visite libere</h2><p>Scegli un orario, ti aspettiamo in sede.</p></div>
+      <div class="tg-corpo" id="tg-corpo"></div>
+    </aside>
+  </div>
+</section>
+
+<section class="sec" id="auto" aria-labelledby="t-auto">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="t-auto">Le auto in vetrina</h2><p id="auto-intro">Tutte controllate prima della consegna. Il prezzo che vedi è quello che paghi, più il passaggio di proprietà.</p></div>
+    <div class="filtri" id="filtri" hidden>
+      <div class="chips" id="chips" role="group" aria-label="Marca"></div>
+      <div class="sel">
+        <label>Alimentazione <select id="f-alim"><option value="">Tutte</option></select></label>
+        <label>Ordina per <select id="f-ord"><option value="recenti">Più recenti</option><option value="prezzo-asc">Prezzo più basso</option><option value="prezzo-desc">Prezzo più alto</option><option value="km-asc">Meno chilometri</option></select></label>
+        <span class="conta" id="conteggio" role="status"></span>
+      </div>
+    </div>
+    <div class="griglia" id="griglia"></div>
+    <p class="vuoto" id="vuoto" hidden>Nessuna auto corrisponde ai filtri. Prova a cambiarli o chiamaci: potremmo averne una in arrivo.</p>
+  </div>
+</section>
+
+<section class="sec prenota" id="prenota" aria-labelledby="t-prenota" data-modulo="visite">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="t-prenota">Vieni a vedere l’auto di persona</h2><p>Scegli il giorno e l’ora in cui puoi passare. Non è un impegno: puoi cambiare idea o annullare quando vuoi.</p></div>
+    <div class="mia" id="mia" hidden></div>
+    <div class="pr-grid" id="pr-grid">
+      <div class="pr-cal">
+        <div class="pr-mese"><button type="button" id="pr-prec" aria-label="Mese precedente">‹</button><b id="pr-mese" aria-live="polite"></b><button type="button" id="pr-succ" aria-label="Mese successivo">›</button></div>
+        <div class="cal" id="pr-cal" role="group" aria-label="Giorni"></div>
+        <p class="pr-leg" id="pr-leg">Il puntino segna i giorni con orari liberi.</p>
+        <h3 class="pr-ore-t" id="pr-ore-t" hidden>Scegli l’ora</h3>
+        <div class="pr-ore" id="pr-ore" role="group" aria-label="Orari liberi"></div>
+        <p class="pr-vuoto" id="pr-vuoto" hidden></p>
+      </div>
+      <form class="pr-form" id="pr-form" novalidate autocomplete="on">
+        <h3>I tuoi dati</h3>
+        <div class="pr-scelta vuota" id="pr-scelta" aria-live="polite">Scegli giorno e ora dal calendario</div>
+        <div class="due">
+          <label>Nome e cognome<input name="nome" autocomplete="name" required maxlength="80"></label>
+          <label>Telefono<input name="telefono" type="tel" inputmode="tel" autocomplete="tel" required maxlength="24"></label>
+        </div>
+        <label>Email <small>(facoltativa, per ricevere la conferma)</small><input name="email" type="email" autocomplete="email" maxlength="254"></label>
+        <label>Quale auto vuoi vedere? <select name="auto_id" id="pr-auto"><option value="">Non ho ancora scelto</option></select></label>
+        <label>Note <small>(facoltative)</small><textarea name="note" rows="2" maxlength="500" placeholder="Ad esempio: porto l’auto da dare in permuta"></textarea></label>
+        <div class="trappola" aria-hidden="true"><label>Non compilare questo campo<input name="sito" tabindex="-1" autocomplete="off"></label></div>
+        <label class="chk"><input type="checkbox" name="privacy" required><span>Ho letto l’<a href="privacy.html" target="_blank" rel="noopener">informativa sulla privacy</a>: usate i miei dati solo per organizzare la visita.</span></label>
+        <label class="chk"><input type="checkbox" name="marketing"><span>Voglio ricevere ogni tanto offerte e novità sulle auto. <small>(facoltativo: la visita si prenota anche senza)</small></span></label>
+        <p class="pr-err" id="pr-err" role="alert" hidden></p>
+        <button type="submit" class="btn btn-ink" id="pr-invia">Richiedi la visita</button>
+        <p class="pr-nota">Il garage ti conferma l’orario al numero o all’email che lasci. Finché non ricevi la conferma, la visita è una richiesta.</p>
+      </form>
+    </div>
+    <div class="pr-ok" id="pr-ok" hidden></div>
+    <div class="pr-chiuso" id="pr-chiuso" hidden></div>
+  </div>
+</section>
+
+<section class="sec" id="dove" aria-labelledby="t-dove">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="t-dove">Dove siamo</h2></div>
+    <div class="dove-g">
+      <div class="contatti" id="contatti">
+        <address>
+          <div class="riga"><span>Indirizzo</span><b data-ap="indirizzo"></b></div>
+        </address>
+        <div class="riga"><span>Telefono</span><a data-ap="telefono" href="#dove"></a></div>
+        <div class="riga" id="r-mail"><span>Email</span><a data-ap="email" href="#dove"></a></div>
+        <div class="dove-btn" id="dove-btn"></div>
+      </div>
+      <div>
+        <h3>Orari di apertura</h3>
+        <table class="orari" id="orari"></table>
+        <p class="orari-n" id="orari-n" hidden></p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <p><span data-ap="ragione"></span><span data-ap-gruppo> · P.IVA <span data-ap="piva"></span></span></p>
+    <nav aria-label="Informazioni"><a href="privacy.html">Informativa sulla privacy</a><a href="#top">Torna su</a></nav>
+  </div>
+</footer>
+
+<dialog id="scheda" aria-labelledby="scheda-titolo"></dialog>
+
+<script src="js/comune.js"></script>
+<script src="js/visite-core.js"></script>
+<script src="js/prenota.js"></script>
+<script src="js/vetrina.js"></script>
+</body>
+</html>

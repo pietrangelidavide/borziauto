@@ -1,0 +1,56 @@
+/* AutoProfit · base comune a gestionale, vetrina e informativa.
+   I valori qui sotto sono quelli di AutoProfit; ogni garage li sostituisce con il proprio tema (vedi tema/tema.js e garage.json). */
+
+:root{
+  /* area di lavoro del dealer (sempre scura) */
+  --night:#101216; --garage:#171a20; --garage-2:#20242c;
+  --chrome:#f1f2ee; --fog:#9aa0a8; --fog-d:#6c727b;
+  --line-d:rgba(241,242,238,.14);
+  /* colori del garage: accento e testo sull'accento */
+  --xeno:#f2d22e; --xeno-2:#ffe466; --ink:#17140a;
+  --acc-rgb:242,210,46; --acc2-rgb:255,228,102;
+  /* colori di stato: uguali per tutti */
+  --tail:#ff4d5e; --ok:#59d49a;
+  --display:"Barlow Condensed","Arial Narrow",ui-sans-serif,system-ui,sans-serif;
+  --text:"Hanken Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--night);color:var(--chrome);font:400 1rem/1.55 var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img,svg{max-width:100%}
+a{color:inherit}
+h1,h2,h3,p,ul,dl,address{margin:0}
+ul{padding:0;list-style:none}
+address{font-style:normal}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--xeno-2);outline-offset:3px}
+.muted{color:var(--fog)}
+.eur{font:700 .85em/1 var(--text);margin-right:.35em;vertical-align:.04em}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--xeno);color:var(--ink);padding:.6em 1em;font-weight:700}
+.skip:focus{top:12px}
+
+/* pulsanti: pieno (azione principale) e a contorno */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.6em;padding:.9em 1.5em;border:0;border-radius:3px;cursor:pointer;font:650 .95rem/1 var(--text);text-decoration:none;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
+.btn-light{background:var(--xeno);color:var(--ink)}
+.btn-light:hover{background:var(--xeno-2)}
+.btn-light:disabled{opacity:.45;cursor:not-allowed}
+.btn-line{background:transparent;color:var(--chrome);border:1.5px solid rgba(var(--acc-rgb),.42)}
+.btn-line:hover{border-color:var(--xeno);background:rgba(var(--acc-rgb),.08)}
+
+/* finestre */
+dialog{border:0;padding:0;background:transparent;color:var(--chrome);width:min(1000px,94vw);max-width:none;max-height:92vh;overflow:visible}
+dialog::backdrop{background:rgba(5,6,9,.74);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+dialog[open]{animation:pop .3s var(--ease)}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
+/* nome del garage quando non c'è un logo */
+.ap-marchio{font:var(--dw,700) 1.15rem/1 var(--display);letter-spacing:.02em;text-transform:var(--dt,none);white-space:nowrap}
+.gt-brand .ap-marchio{font-size:1.05rem;color:var(--chrome)}

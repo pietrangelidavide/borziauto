@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it" data-modo="vetrina">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-ap-titolo="Informativa sulla privacy · {nome}">Informativa sulla privacy</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/vetrina.css">
+<style>
+.doc{padding-block:clamp(32px,6vw,72px) clamp(48px,8vw,96px)}
+.doc-in{width:min(760px,100% - 32px);margin-inline:auto;display:grid;gap:28px}
+.doc h1{font-size:calc(clamp(2rem,5vw,3.2rem) * var(--v-ds));line-height:1}
+.doc h2{font-size:1.5rem;line-height:1.1;margin-bottom:8px}
+.doc p,.doc li{max-width:68ch}
+.doc ul{display:grid;gap:6px;padding-left:1.1em;list-style:disc}
+.doc .breve{padding:20px 22px;background:var(--v-surf);border-left:5px solid var(--v-acc);display:grid;gap:8px}
+.doc .breve ul{margin:0}
+.doc .avviso{padding:14px 18px;border:2px dashed var(--err);color:var(--err);font-weight:600;background:rgba(179,38,30,.06)}
+.doc table{width:100%;border-collapse:collapse;font-size:.94rem}
+.doc th,.doc td{padding:.7em .8em;text-align:left;vertical-align:top;border-bottom:1px solid var(--v-line)}
+.doc th{font-weight:650;background:var(--v-surf2)}
+.doc .tab{overflow-x:auto}
+.doc .tab table{min-width:560px}
+.doc .agg{color:var(--v-ink2);font-size:.9rem}
+</style>
+<script src="js/ap-config.js" data-root="./"></script>
+</head>
+<body>
+<header class="top"><div class="wrap top-in"><a class="brand" href="./" aria-label="Torna al sito" data-ap="logo" data-su-scuro data-h="30"></a><a class="btn btn-acc" href="./">Torna al sito</a></div></header>
+<main class="doc">
+<article class="doc-in">
+  <h1>Come trattiamo i tuoi dati</h1>
+  <p class="avviso" id="p-modello" hidden>Questo testo è un modello. Prima di usarlo sul tuo sito fallo controllare da un consulente (legale o responsabile della privacy) e poi imposta «verificata» in garage.json.</p>
+  <section class="breve" aria-label="In breve">
+    <h2>In breve</h2>
+    <ul>
+      <li>Ci dai nome e telefono solo per prenotare una visita: li usiamo per quello.</li>
+      <li>Non vendiamo i tuoi dati e non facciamo pubblicità mirata.</li>
+      <li>Cancelliamo le visite dopo <b data-p="visite_mesi"></b> mesi.</li>
+      <li>Puoi chiederci di vedere, correggere o cancellare i tuoi dati scrivendo a <b data-p="email"></b>.</li>
+    </ul>
+  </section>
+
+  <section><h2>Chi decide come usare i dati</h2>
+    <p>Il titolare del trattamento è <b data-p="titolare"></b>, <span data-p="indirizzo"></span>. Per qualsiasi domanda sulla privacy scrivi a <b data-p="email"></b>.</p>
+    <p id="p-dpo" hidden>Responsabile della protezione dei dati: <b data-p="responsabileDati"></b>.</p>
+  </section>
+
+  <section><h2>Quali dati raccogliamo</h2>
+    <p>Quando prenoti una visita ci lasci: nome e cognome, numero di telefono, l’email (se vuoi), l’auto che vuoi vedere, giorno e ora, le note che scrivi e le tue scelte sulla privacy. Il giorno stesso della prenotazione conserviamo anche un codice ricavato dal tuo indirizzo IP (non l’indirizzo in sé), per al massimo due ore: serve solo a fermare chi invia richieste in massa.</p>
+    <p>Non chiediamo documenti, dati di pagamento né dati sensibili. Se ne scrivi nelle note, non servono e ti chiediamo di non farlo.</p>
+  </section>
+
+  <section><h2>Perché li usiamo e su quale base</h2>
+    <div class="tab"><table>
+      <thead><tr><th>Per cosa</th><th>Base giuridica</th><th>Se non li dai</th></tr></thead>
+      <tbody>
+        <tr><td>Organizzare la visita che hai chiesto, confermarla e avvisarti di cambiamenti</td><td>Misure precontrattuali prese su tua richiesta (art. 6, par. 1, lett. b, GDPR)</td><td>Non possiamo fissare la visita: nome, telefono, giorno e ora sono necessari</td></tr>
+        <tr><td>Difendere il sito da richieste automatiche e abusi</td><td>Interesse legittimo del titolare (art. 6, par. 1, lett. f)</td><td>Non è un dato che dai tu</td></tr>
+        <tr><td>Inviarti offerte e novità sulle auto</td><td>Il tuo consenso, facoltativo (art. 6, par. 1, lett. a)</td><td>Non cambia nulla: la visita si prenota lo stesso</td></tr>
+      </tbody></table></div>
+    <p>Se poi compri un’auto, i dati del contratto seguono le regole di legge e l’informativa del contratto. Non prendiamo decisioni automatiche su di te e non facciamo profilazione.</p>
+  </section>
+
+  <section><h2>Chi li vede</h2>
+    <ul>
+      <li>Il personale di <b data-p="titolare"></b> che gestisce le visite.</li>
+      <li><b data-p="fornitore"></b>, che fornisce il programma di gestione e lo ospita per conto del garage (responsabile del trattamento).</li>
+      <li>Cloudflare, che ospita il sito e il database. Può trattare i dati fuori dall’Unione europea; in quel caso valgono le garanzie previste dal GDPR (artt. 44 e seguenti).</li>
+      <li id="p-font" hidden>Google, perché questo sito carica i caratteri da Google Fonts: Google riceve il tuo indirizzo IP quando apri la pagina.</li>
+    </ul>
+    <p>Non cediamo i dati ad altre aziende.</p>
+  </section>
+
+  <section><h2>Per quanto tempo</h2>
+    <ul>
+      <li>Visite: <b data-p="visite_mesi"></b> mesi dalla data della visita, poi si cancellano.</li>
+      <li>Contatti commerciali: finché c’è una trattativa e comunque non oltre <b data-p="contatti_mesi"></b> mesi dall’ultimo contatto.</li>
+      <li>Consenso alle offerte: finché non lo ritiri.</li>
+      <li>Codice anti-abuso ricavato dall’IP: al massimo due ore.</li>
+    </ul>
+  </section>
+
+  <section><h2>Cookie e strumenti simili</h2>
+    <p>Non usiamo cookie di profilazione né strumenti di statistica. Il sito salva nel tuo browser solo il codice della visita che hai richiesto, per permetterti di annullarla: resta sul tuo dispositivo e puoi cancellarlo quando vuoi dalle impostazioni del browser.</p>
+  </section>
+
+  <section><h2>I tuoi diritti</h2>
+    <p>Puoi chiederci in ogni momento di sapere quali dati abbiamo su di te, di correggerli, di cancellarli, di limitarne l’uso, di riceverli in un formato leggibile e di opporti al loro uso. Se hai dato il consenso alle offerte, puoi ritirarlo quando vuoi senza spiegazioni, e ritirarlo non cambia ciò che è stato fatto prima. Scrivi a <b data-p="email"></b>: rispondiamo entro un mese.</p>
+    <p>Se pensi che non abbiamo rispettato i tuoi diritti puoi fare reclamo al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">garanteprivacy.it</a>).</p>
+  </section>
+
+  <p class="agg">Versione <span data-p="versione"></span>, aggiornata il <span data-p="aggiornata"></span>.</p>
+</article>
+</main>
+<footer class="foot"><div class="wrap foot-in"><p><span data-ap="ragione"></span><span data-ap-gruppo> · P.IVA <span data-ap="piva"></span></span></p><nav aria-label="Informazioni"><a href="./">Torna al sito</a></nav></div></footer>
+<script src="js/visite-core.js"></script>
+<script>
+AP.pronto.then(function (cfg) {
+  var p = cfg.privacy || {}, c = cfg.contatti || {}, k = p.conservazione || {};
+  var v = {
+    titolare: p.titolare || c.ragioneSociale || cfg.nome, indirizzo: p.indirizzo || [c.indirizzo, c.citta].filter(Boolean).join(", "), email: p.email || c.email || "",
+    fornitore: p.fornitore || "il fornitore del programma", responsabileDati: p.responsabileDati || "", visite_mesi: k.visite_mesi || 12, contatti_mesi: k.contatti_mesi || 24,
+    versione: AP.Visite.VERSIONE_PRIVACY, aggiornata: p.aggiornata ? p.aggiornata.split("-").reverse().join("/") : ""
+  };
+  document.querySelectorAll("[data-p]").forEach(function (el) { el.textContent = v[el.getAttribute("data-p")]; });
+  document.getElementById("p-dpo").hidden = !v.responsabileDati;
+  document.getElementById("p-modello").hidden = p.verificata === true;
+  document.getElementById("p-font").hidden = !document.querySelector("link[data-ap-font]");
+});
+</script>
+</body>
+</html>

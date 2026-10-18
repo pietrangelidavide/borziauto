@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="it" data-modo="gestionale">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#101216">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AutoProfit">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gestionale auto · AutoProfit</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="gestionale.css">
+</head>
+<body class="gt">
+<header class="gt-top">
+  <a class="gt-brand" href="../" aria-label="Torna al sito" data-ap="logo" data-h="24"></a>
+  <h1>Gestionale auto</h1>
+  <button type="button" class="pill" id="sync" role="status" disabled></button>
+  <a class="btn btn-line sm" href="../" id="b-sito">Vai al sito</a>
+  <button type="button" class="btn btn-line sm" id="b-esci" hidden>Esci</button>
+</header>
+
+<main class="gt-main">
+  <section class="gt-intro">
+    <p id="intro-t">Qui gestisci le auto, le loro foto e i contatti dei clienti. Tutto resta <strong>in questo browser</strong>: sul sito va solo quello che pubblichi, e mai i dati riservati.</p>
+    <button type="button" class="btn btn-light" id="b-pubblica">Pubblica sul sito</button>
+  </section>
+
+  <div class="kpis" id="kpi" aria-label="Riepilogo della flotta"></div>
+
+  <div class="tabs" role="tablist" aria-label="Elenco">
+    <button type="button" role="tab" id="tab-disp" aria-selected="true">In vendita <b id="n-disp">0</b></button>
+    <button type="button" role="tab" id="tab-vend" aria-selected="false">Vendute <b id="n-vend">0</b></button>
+    <button type="button" role="tab" id="tab-crm" aria-selected="false">Contatti <b id="n-crm">0</b></button>
+    <button type="button" role="tab" id="tab-visite" aria-selected="false">Visite <b id="n-visite" hidden>0</b></button>
+    <button type="button" role="tab" id="tab-flotta" aria-selected="false">Flotta</button>
+  </div>
+
+  <div class="gt-bar" id="barra">
+    <input type="search" id="q" placeholder="Cerca marca, modello, targa…" aria-label="Cerca">
+    <div class="gt-actions">
+      <button type="button" class="btn btn-light sm" id="b-nuova">Aggiungi auto</button>
+      <button type="button" class="btn btn-line sm" id="b-pagare">Quanto pagare</button>
+      <button type="button" class="btn btn-line sm" id="b-importa">Importa CSV o Excel</button>
+      <details class="gt-menu" id="menu-esporta">
+        <summary class="btn btn-line sm">Esporta</summary>
+        <div class="gt-pop">
+          <button type="button" data-exp="tab-csv"></button>
+          <button type="button" data-exp="tab-xlsx"></button>
+          <hr>
+          <button type="button" data-exp="all-xlsx">Tutto in un file Excel (auto e contatti)</button>
+          <button type="button" data-exp="all-csv">Tutte le auto in un file CSV</button>
+          <hr>
+          <button type="button" data-exp="backup">Backup completo (con foto)</button>
+          <button type="button" data-exp="modello">Modello Excel vuoto da compilare</button>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div id="vista-auto">
+    <div class="tbl-wrap" id="tbl-wrap"><table id="tabella"><thead></thead><tbody></tbody></table></div>
+    <ul class="cards" id="cards" aria-label="Auto"></ul>
+    <p class="gt-empty" id="vuoto" hidden></p>
+  </div>
+
+  <section id="crm" hidden aria-label="Contatti e trattative">
+    <div class="gd-nota priv-scad" id="crm-scad" role="status" hidden><span id="crm-scad-t"></span> <button type="button" class="lnk" id="crm-scad-del">Elimina questi contatti</button></div>
+    <div class="crm-bar">
+      <div class="seg" role="group" aria-label="Vista">
+        <button type="button" id="cv-pipe" aria-pressed="true">Pipeline</button>
+        <button type="button" id="cv-list" aria-pressed="false">Elenco</button>
+      </div>
+      <label class="inl">Auto <select id="crm-auto"></select></label>
+      <label class="inl chk" hidden><input type="checkbox" id="crm-chiusi"> Mostra anche i chiusi</label>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="tbl-wrap" id="crm-list" hidden><table id="crm-tab"></table></div>
+    <p class="gt-empty" id="crm-vuoto" hidden></p>
+  </section>
+
+  <section id="agenda" hidden aria-label="Agenda delle visite">
+    <div class="kpis" id="av-kpi"></div>
+    <div class="crm-bar">
+      <div class="seg" role="group" aria-label="Vista">
+        <button type="button" id="av-elenco" aria-pressed="true">Elenco</button>
+        <button type="button" id="av-sett" aria-pressed="false">Settimana</button>
+      </div>
+      <div class="av-nav" id="av-nav" hidden>
+        <button type="button" class="btn btn-line sm" id="av-prec" aria-label="Settimana precedente">‹</button>
+        <button type="button" class="btn btn-line sm" id="av-oggi">Oggi</button>
+        <button type="button" class="btn btn-line sm" id="av-succ" aria-label="Settimana successiva">›</button>
+        <span id="av-intervallo" class="muted"></span>
+      </div>
+      <label class="inl chk"><input type="checkbox" id="av-chiuse"> Mostra anche le chiuse</label>
+    </div>
+    <div id="av-lista"></div>
+    <div id="av-settimana" class="sett" hidden></div>
+    <p class="gt-empty" id="av-vuoto" hidden></p>
+  </section>
+
+  <section id="flotta" hidden aria-label="Ottimizzazione della flotta">
+    <div class="fl-imp">
+      <h2>Il tuo garage</h2>
+      <div class="fl-campi">
+        <label>Posti nel garage<input id="fl-posti" inputmode="numeric" placeholder="Es. 24"></label>
+        <label>Giorni dall’acquisto alla vetrina<input id="fl-ritardo" inputmode="numeric"></label>
+        <label>Tienilo pieno al (%)<input id="fl-obiettivo" inputmode="numeric"></label>
+        <label>Acquisti al massimo per settimana<input id="fl-max" inputmode="numeric"></label>
+        <label>Giorni di preparazione<input id="fl-prep" inputmode="numeric"></label>
+      </div>
+    </div>
+
+    <div class="kpis" id="fl-kpi" aria-label="Cifre della flotta"></div>
+
+    <div class="fl-box" id="fl-g-box" hidden>
+      <h2>Auto in garage nelle prossime settimane</h2>
+      <p class="fl-sub" id="fl-g-sub"></p>
+      <ul class="lg" aria-label="Legenda">
+        <li><i class="lg-l1"></i>Con gli acquisti consigliati</li>
+        <li><i class="lg-l2"></i>Senza nuovi acquisti</li>
+        <li><i class="lg-cap"></i>Posti del garage</li>
+      </ul>
+      <div class="fl-chart"><div id="fl-graf"></div><div class="tt" id="fl-tip" hidden></div></div>
+    </div>
+
+    <div class="fl-box">
+      <h2>Quando comprare</h2>
+      <div id="fl-piano"></div>
+    </div>
+
+    <div class="fl-2">
+      <div class="fl-box">
+        <div class="fl-h"><h2>Su cosa puntare</h2>
+          <label class="inl">Per <select id="fl-seg-per"><option value="marca">Marca</option><option value="marca_modello">Modello</option><option value="alimentazione">Alimentazione</option><option value="carrozzeria">Carrozzeria</option><option value="fascia">Fascia di prezzo</option></select></label></div>
+        <div id="fl-seg"></div>
+      </div>
+      <div class="fl-box">
+        <h2>Auto da spingere</h2>
+        <p class="muted small">Ferme da più del normale: ecco cosa succede al margine se abbassi il prezzo.</p>
+        <div id="fl-push"></div>
+      </div>
+    </div>
+
+    <div class="fl-box" id="fl-vend-box" hidden>
+      <h2>Vendite al mese</h2>
+      <p class="muted small" id="fl-stag"></p>
+      <div class="fl-chart"><div id="fl-vend"></div><div class="tt" id="fl-tip2" hidden></div></div>
+    </div>
+
+    <div class="fl-box fl-sto">
+      <h2>Storico delle vendite</h2>
+      <p id="fl-sto-info"></p>
+      <p class="muted small">Più storico dai (almeno un anno), più le previsioni sono affidabili. Serve un file CSV o Excel con una riga per ogni auto venduta: contano soprattutto la data di vendita e quella di acquisto.</p>
+      <div class="fl-azioni">
+        <button type="button" class="btn btn-light sm" id="fl-sto-importa">Importa storico (CSV o Excel)</button>
+        <button type="button" class="btn btn-line sm" id="fl-sto-modello">Scarica il modello CSV</button>
+        <button type="button" class="btn btn-line sm" id="fl-sto-esporta">Esporta lo storico importato</button>
+        <button type="button" class="lnk d" id="fl-sto-svuota">Elimina lo storico importato</button>
+        <button type="button" class="lnk d" id="fl-esempio" hidden>Elimina lo storico di esempio</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="gt-foot">
+    <button type="button" class="lnk" id="b-esempi" hidden>Elimina i dati di esempio (auto, contatti e storico)</button>
+    <button type="button" class="lnk" id="b-titolare">Nome e foto del titolare sul sito</button>
+    <button type="button" class="lnk" id="b-reset">Annulla le modifiche alle auto e riparti dai dati del sito</button>
+  </p>
+</main>
+
+<!-- aggiungi / modifica -->
+<dialog id="d-form" aria-labelledby="f-titolo"><form class="gd" method="dialog" id="form">
+  <h2 id="f-titolo">Aggiungi auto</h2>
+  <div class="fg">
+    <label>Marca *<input name="marca" list="l-marche" required autocomplete="off"></label>
+    <label>Modello *<input name="modello" required></label>
+    <label class="w2">Allestimento<input name="allestimento"></label>
+    <label>Anno<input name="anno" inputmode="numeric" placeholder="2021"></label>
+    <label>Chilometri<input name="km" inputmode="numeric" placeholder="48000"></label>
+    <label>Alimentazione<select name="alimentazione"><option value=""></option><option>Benzina</option><option>Diesel</option><option>Ibrida</option><option>Elettrica</option><option>GPL</option><option>Metano</option></select></label>
+    <label>Cambio<select name="cambio"><option value=""></option><option>Manuale</option><option>Automatico</option></select></label>
+    <label>Potenza (CV)<input name="cv" inputmode="numeric"></label>
+    <label>Colore<input name="colore" placeholder="Blu, Nero…"></label>
+    <label>Carrozzeria<select name="carrozzeria"><option value=""></option><option>Berlina</option><option>SUV</option><option>Citycar</option><option>Coupé</option><option>Station wagon</option><option>Cabrio</option><option>Monovolume</option></select></label>
+    <label>Prezzo (€)<input name="prezzo" inputmode="numeric" placeholder="24900"></label>
+    <label>Stato<select name="stato"><option value="disponibile">In vendita</option><option value="venduta">Venduta</option></select></label>
+    <label>Data vendita<input name="data_vendita" type="date"></label>
+    <div class="w2 fotobox"><span class="fl">Foto</span><input type="hidden" name="foto"><div id="fotoed" class="fotoed"></div></div>
+    <label class="w2">Link AutoScout24<input name="autoscout_url" type="url" placeholder="https://…"></label>
+    <label class="w2">Descrizione per il sito<textarea name="descrizione" rows="2"></textarea></label>
+  </div>
+  <fieldset class="priv"><legend>Flotta, riservato: non va sul sito</legend>
+    <div class="fg">
+      <label>Targa<input name="targa" autocomplete="off"></label>
+      <label>Data di acquisto<input name="data_acquisto" type="date"></label>
+      <label>Costo di acquisto (€)<input name="costo_acquisto" inputmode="numeric"></label>
+      <label>Costi extra, ricondizionamento (€)<input name="costi_extra" inputmode="numeric"></label>
+      <label>Revisione entro il<input name="scad_revisione" type="date"></label>
+      <label>Prezzo di vendita (€)<input name="prezzo_vendita" inputmode="numeric"></label>
+      <label class="w2">Note interne<textarea name="note_interne" rows="2"></textarea></label>
+    </div>
+  </fieldset>
+  <p class="gd-err" id="f-err" role="alert" hidden></p>
+  <div class="gd-btns c-btns">
+    <button type="button" class="btn btn-line sm" id="f-stima">Stima il prezzo</button>
+    <button type="button" class="btn btn-line sm" id="f-check">Controlli prima della vendita</button><span class="grow"></span>
+    <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button>
+  </div>
+</form></dialog>
+<datalist id="l-marche"><option>BMW</option><option>Audi</option><option>Mercedes-Benz</option><option>smart</option><option>MINI</option><option>Volkswagen</option></datalist>
+
+<!-- contatto del CRM -->
+<dialog id="d-contatto" aria-labelledby="c-titolo"><form class="gd" method="dialog" id="form-c">
+  <h2 id="c-titolo">Nuovo contatto</h2>
+  <div class="fg">
+    <label>Nome *<input name="nome" required autocomplete="off"></label>
+    <label>Telefono<input name="telefono" inputmode="tel" autocomplete="off"></label>
+    <label>Email<input name="email" type="email" autocomplete="off"></label>
+    <label>Come ci ha trovato<select name="fonte"></select></label>
+    <label class="w2">Auto di interesse<select name="auto_id"></select></label>
+    <label class="w2">Oppure cosa cerca<input name="auto_testo" placeholder="Es. SUV diesel, massimo 25.000 €"></label>
+    <label>Fase<select name="stato"></select></label>
+    <label>Budget (€)<input name="budget" inputmode="numeric"></label>
+    <label>Ricontattare il<input name="prossimo" type="date"></label>
+    <div class="fu-q"><button type="button" class="lnk" data-fu="1">domani</button><button type="button" class="lnk" data-fu="3">tra 3 giorni</button><button type="button" class="lnk" data-fu="7">tra una settimana</button><button type="button" class="lnk" data-fu="0">nessuna data</button></div>
+    <label class="w2">Note<textarea name="note" rows="2"></textarea></label>
+  </div>
+  <fieldset class="priv att"><legend>Storico dei contatti</legend>
+    <div class="att-add"><select id="c-tipo" aria-label="Tipo"></select><input id="c-att-x" placeholder="Cosa vi siete detti" autocomplete="off"><button type="button" class="btn btn-line sm" id="c-att-add">Aggiungi</button></div>
+    <ul id="c-att"></ul>
+  </fieldset>
+  <p class="gd-err" id="c-err" role="alert" hidden></p>
+  <div class="gd-btns c-btns">
+    <button type="button" class="lnk d" id="c-del">Elimina</button><span class="grow"></span>
+    <a class="btn btn-line sm" id="c-tel" href="#" hidden>Chiama</a><a class="btn btn-line sm" id="c-wa" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a><a class="btn btn-line sm" id="c-mail" href="#" hidden>Email</a>
+    <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button>
+  </div>
+</form></dialog>
+
+<!-- visita in agenda -->
+<dialog id="d-visita" aria-labelledby="vi-titolo"><form class="gd" method="dialog" id="form-vi">
+  <h2 id="vi-titolo">Nuova visita</h2>
+  <div class="fg">
+    <label>Nome *<input name="nome" autocomplete="off"></label>
+    <label>Telefono<input name="telefono" inputmode="tel" autocomplete="off"></label>
+    <label>Email<input name="email" type="email" autocomplete="off"></label>
+    <label>Stato<select name="stato"></select></label>
+    <label>Giorno<input name="data" type="date" required></label>
+    <label>Ora<input name="ora" type="time" step="300" required></label>
+    <label>Durata<select name="durata"></select></label>
+    <label class="w2">Auto da vedere<select name="auto_id"></select></label>
+    <label class="w2">Oppure cosa vuole vedere<input name="auto_testo" placeholder="Es. un SUV diesel"></label>
+    <label class="w2">Note<textarea name="note" rows="2"></textarea></label>
+  </div>
+  <p class="gd-nota" id="vi-avviso" role="status" hidden></p>
+  <p class="small muted" id="vi-consenso" hidden></p>
+  <p class="gd-err" id="vi-err" role="alert" hidden></p>
+  <div class="gd-btns c-btns">
+    <button type="button" class="lnk d" id="vi-del">Elimina</button><button type="button" class="lnk d" id="vi-anon">Cancella i dati personali</button><span class="grow"></span>
+    <a class="btn btn-line sm" id="vi-tel" href="#" hidden>Chiama</a><a class="btn btn-line sm" id="vi-wa" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a>
+    <button type="button" class="btn btn-line sm" id="vi-crm" hidden>Aggiungi ai contatti</button><button type="button" class="btn btn-line sm" id="vi-ics" hidden>File calendario</button>
+    <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button>
+  </div>
+</form></dialog>
+
+<!-- segna come venduta -->
+<dialog id="d-venduta" aria-labelledby="v-titolo"><form class="gd" method="dialog" id="form-v">
+  <h2 id="v-titolo">Segna come venduta</h2>
+  <p id="v-auto" class="muted"></p>
+  <div class="fg">
+    <label>Data di vendita<input name="data_vendita" type="date" required></label>
+    <label>Prezzo di vendita (€), riservato<input name="prezzo_vendita" inputmode="numeric"></label>
+  </div>
+  <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Segna come venduta</button></div>
+</form></dialog>
+
+<!-- importa -->
+<dialog id="d-importa" aria-labelledby="i-titolo"><div class="gd" id="imp">
+  <h2 id="i-titolo">Importa da CSV o Excel</h2>
+  <div id="i-1">
+    <label class="drop" id="drop" for="file">
+      <input type="file" id="file" accept=".csv,.txt,.xlsx,.zip,text/csv">
+      <strong>Scegli un file o trascinalo qui</strong>
+      <span>CSV o Excel (.xlsx) con le auto (almeno <em>Marca</em> e <em>Modello</em>) o con i contatti (almeno <em>Nome</em> e <em>Telefono</em>). Anche un backup .zip.</span>
+    </label>
+    <p class="muted small">Non hai un file? <button type="button" class="lnk" data-exp="modello">Scarica il modello Excel</button>. Un file esportato da qui si può reimportare così com’è.</p>
+  </div>
+  <div id="i-2" hidden>
+    <p id="i-riepilogo"></p>
+    <p class="small muted" id="i-colonne"></p>
+    <div class="tbl-wrap small-t"><table id="i-anteprima"></table></div>
+    <ul class="problemi" id="i-problemi"></ul>
+    <fieldset class="modo" id="i-modo">
+      <label><input type="radio" name="modo" value="aggiungi" checked> Aggiungi le nuove e aggiorna quelle già presenti</label>
+      <label><input type="radio" name="modo" value="sostituisci"> <span id="i-sost">Sostituisci l’elenco</span></label>
+    </fieldset>
+  </div>
+  <p class="gd-err" id="i-err" role="alert" hidden></p>
+  <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Chiudi</button><button type="button" class="btn btn-light" id="i-ok" hidden>Importa</button></div>
+</div></dialog>
+
+<!-- pubblica -->
+<dialog id="d-pubblica" aria-labelledby="p-titolo"><div class="gd">
+  <h2 id="p-titolo">Pubblica sul sito</h2>
+  <p id="p-conteggio"></p>
+  <ol class="passi">
+    <li><button type="button" class="btn btn-light sm" id="p-zip">Scarica il pacchetto del sito (.zip)</button> <span class="muted small">Contiene <code>data/auto.json</code> e le foto in <code>img/auto/</code>. Targa, costi, prezzo di vendita, note interne e contatti restano fuori.</span></li>
+    <li>Decomprimi lo zip. Sul repository GitHub del sito apri la cartella <code>public</code> → <em>Add file</em> → <em>Upload files</em> e trascina dentro le cartelle <code>data</code> e <code>img</code>. Si uniscono a quelle esistenti e i file con lo stesso nome vengono sostituiti → <em>Commit changes</em>.</li>
+    <li>Cloudflare ripubblica il sito da solo in un paio di minuti. Poi ricarica questa pagina: in alto comparirà «Allineato al sito».</li>
+  </ol>
+  <p class="muted small">Hai cambiato solo i dati e nessuna foto? Basta <button type="button" class="lnk" id="p-scarica">solo auto.json</button> da caricare in <code>public/data</code>.</p>
+  <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Chiudi</button></div>
+</div></dialog>
+
+<!-- controlli prima della vendita -->
+<dialog id="d-check" aria-labelledby="k-titolo"><div class="gd ck">
+  <div class="ck-head">
+    <div><h2 id="k-titolo">Controlli prima della vendita</h2><p class="muted" id="k-auto"></p></div>
+    <span class="ck-prog" id="k-prog" role="status"></span>
+  </div>
+  <p class="small muted">Per ogni voce scegli <b>A posto</b>, <b>Da fare</b> (con il costo del lavoro) o <b>Non c’è</b>. I costi dei lavori entrano nel calcolo del margine. Le voci «indispensabili» (documenti e sicurezza) vanno risolte prima di mettere l’auto in vendita. Resta tutto riservato: non va sul sito.</p>
+  <div class="ck-tools"><button type="button" class="btn btn-line sm" id="k-tutto">Segna tutto a posto</button></div>
+  <div id="k-lista" class="ck-lista"></div>
+  <div class="ck-nuova"><input id="k-nuova" placeholder="Aggiungi un’altra voce (es. Sostituire il paraurti)" autocomplete="off" aria-label="Altra voce"><button type="button" class="btn btn-line sm" id="k-add">Aggiungi</button></div>
+  <p class="ck-sum" id="k-sum"></p>
+  <fieldset class="modo ck-st">
+    <label><input type="radio" name="k-st" value="pronta" checked> <span><b>Pronta per la vendita</b>: compare sul sito</span></label>
+    <label><input type="radio" name="k-st" value="prep"> <span><b>In preparazione</b>: resta nascosta dal sito finché i lavori non sono fatti</span></label>
+  </fieldset>
+  <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi id="k-salta">Chiudi</button><button type="button" class="btn btn-light" id="k-salva">Salva i controlli</button></div>
+</div></dialog>
+
+<!-- stima del prezzo -->
+<dialog id="d-stima" aria-labelledby="s-titolo" data-modo="vendi"><div class="gd st-w">
+  <div class="st-head"><div><h2 id="s-titolo">Stima del prezzo di vendita</h2><p class="muted" id="s-auto"></p></div>
+    <div class="seg" role="group" aria-label="Cosa vuoi sapere"><button type="button" id="s-m-vendi" aria-pressed="true">Quanto vendere</button><button type="button" id="s-m-compra" aria-pressed="false">Quanto pagare</button></div></div>
+  <div class="st-cols">
+    <div class="st-in">
+      <div class="fg st-f">
+        <label>Marca<input id="s-marca" autocomplete="off"></label>
+        <label>Modello<input id="s-modello" autocomplete="off"></label>
+        <label>Anno<input id="s-anno" inputmode="numeric"></label>
+        <label>Chilometri<input id="s-km" inputmode="numeric"></label>
+        <label id="s-acq-l">Costo di acquisto (€)<input id="s-acq" inputmode="numeric"></label>
+        <label id="s-extra-l">Costi extra (€)<input id="s-extra" inputmode="numeric"></label>
+      </div>
+      <div class="st-fonte" id="s-fonte" role="status" aria-live="polite"></div>
+      <div class="st-az"><button type="button" class="btn btn-line sm" id="s-ricarica" hidden>Aggiorna i prezzi</button></div>
+      <details id="s-manuale" class="st-man"><summary>Aggiungi o sostituisci con annunci tuoi</summary>
+        <ol class="st-passi">
+          <li><a class="btn btn-line sm" id="s-link" href="https://www.autoscout24.it/" target="_blank" rel="noopener">Apri la ricerca su AutoScout24</a><span class="muted small">marca, modello e anni sono già impostati</span></li>
+          <li><label>Copia la pagina dei risultati e incollala qui<textarea id="s-incolla" rows="3" placeholder="Incolla qui il testo della pagina: legge prezzo, km e anno di ogni annuncio"></textarea></label>
+            <div class="st-az"><button type="button" class="btn btn-light sm" id="s-leggi">Aggiungi questi annunci</button>
+              <label class="btn btn-line sm st-file">Oppure carica un file<input type="file" id="s-file" accept=".csv,.txt,.xlsx,text/csv"></label></div></li>
+        </ol>
+        <p class="small muted">Gli annunci che inserisci tu restano salvati su questo dispositivo e si sommano a quelli della fonte automatica.</p>
+      </details>
+      <p class="small" id="s-conta" role="status"></p>
+      <details id="s-det" hidden><summary>Annunci usati</summary><div class="tbl-wrap small-t"><table id="s-tab"></table></div><button type="button" class="lnk d" id="s-svuota">Cancella gli annunci inseriti a mano per questo modello</button></details>
+      <p class="small muted">È una stima sui prezzi degli annunci, non una valutazione ufficiale: i prezzi di vendita veri sono di solito più bassi.</p>
+      <fieldset class="priv st-imp"><legend>Costi e margine, riservati</legend>
+        <div class="fg">
+          <label>Sconto in trattativa (%)<input id="s-trat" inputmode="decimal"></label>
+          <label>Costi di vendita per auto (€)<input id="s-cvend" inputmode="numeric" placeholder="Passaggio, pulizia…"></label>
+          <label>Costo di tenere l’auto, al giorno (€)<input id="s-cgiorno" inputmode="numeric" placeholder="Assicurazione, interessi…"></label>
+          <label>Guadagno minimo che vuoi (€)<input id="s-mmin" inputmode="numeric"></label>
+        </div>
+      </fieldset>
+    </div>
+    <div class="st-out">
+      <div id="s-vuoto" class="st-vuoto" hidden></div>
+      <div id="s-ris">
+        <p class="st-q" id="s-q-lbl">Scegli come vuoi vendere</p>
+        <div class="st-cards" id="s-cards"></div>
+        <label class="st-slider">Più in fretta<input type="range" id="s-q" min="10" max="90" step="1" value="50" aria-label="Da vendere in fretta a margine massimo"><span>Più margine</span></label>
+        <p id="s-qtxt" class="small"></p>
+        <div id="s-compra-box" hidden><div id="s-compra"></div></div>
+        <div id="s-grafico" class="st-graf"></div>
+        <p class="small muted" id="s-note"></p>
+        <div id="s-vendi-box">
+          <h3 class="st-h">Costi e guadagno</h3>
+          <dl class="st-conti" id="s-conti"></dl>
+        </div>
+      </div>
+      <p id="s-miei" class="small st-miei" hidden></p>
+    </div>
+  </div>
+  <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Chiudi</button><button type="button" class="btn btn-light" id="s-usa" hidden>Usa questo prezzo</button></div>
+</div></dialog>
+
+<!-- importa lo storico delle vendite -->
+<dialog id="d-storico" aria-labelledby="sto-titolo"><div class="gd">
+  <h2 id="sto-titolo">Importa lo storico delle vendite</h2>
+  <div id="sto-1">
+    <label class="drop" id="sto-drop" for="sto-file">
+      <input type="file" id="sto-file" accept=".csv,.txt,.xlsx,text/csv">
+      <strong>Scegli un file o trascinalo qui</strong>
+      <span>CSV o Excel con una riga per ogni auto venduta. Serve la <em>Data vendita</em>; per i giorni in garage anche la <em>Data acquisto</em>; per il margine <em>Costo acquisto</em> e <em>Prezzo vendita</em>.</span>
+    </label>
+    <p class="muted small">Non hai un file? Dalla scheda Flotta puoi scaricare il modello CSV da compilare.</p>
+  </div>
+  <div id="sto-2" hidden>
+    <p id="sto-riep"></p>
+    <ul class="problemi" id="sto-prob"></ul>
+    <fieldset class="modo">
+      <label><input type="radio" name="sto-modo" value="aggiungi" checked> Aggiungi le vendite nuove allo storico (quelle già presenti non si duplicano)</label>
+      <label><input type="radio" name="sto-modo" value="sostituisci"> Sostituisci tutto lo storico importato con questo file</label>
+    </fieldset>
+  </div>
+  <p class="gd-err" id="sto-err" role="alert" hidden></p>
+  <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Chiudi</button><button type="button" class="btn btn-light" id="sto-ok" hidden>Importa</button></div>
+</div></dialog>
+
+<!-- accesso all'archivio online -->
+<dialog id="d-accesso" aria-labelledby="a-titolo"><form class="gd" id="form-accesso" method="dialog">
+  <h2 id="a-titolo">Accedi al gestionale</h2>
+  <p class="muted">Scrivi la password per aprire le tue auto da questo dispositivo. Dopo l’accesso resti collegato per 30 giorni.</p>
+  <input type="text" class="vh" name="username" value="titolare" autocomplete="username" tabindex="-1" aria-hidden="true">
+  <label>Password<input type="password" id="a-pw" name="password" autocomplete="current-password" required></label>
+  <p class="gd-err" id="a-err" role="alert" hidden></p>
+  <div class="gd-btns"><button type="submit" class="btn btn-light" id="a-ok">Entra</button></div>
+</form></dialog>
+
+<!-- titolare sul sito -->
+<dialog id="d-titolare" aria-labelledby="t-titolo"><form class="gd" id="form-t" method="dialog">
+  <h2 id="t-titolo">Il titolare sul sito</h2>
+  <p class="muted small">Nome e foto della sezione «Ci mettiamo la faccia» del sito. Le foto sono facoltative: senza foto la sezione mostra solo le recensioni.</p>
+  <label>Nome e cognome<input name="nome" autocomplete="off" placeholder="Es. Mario Rossi"></label>
+  <div class="fotobox"><span class="fl">Foto (fino a 2: la prima è la più grande)</span><input type="hidden" name="foto"><div id="t-foto" class="fotoed"></div></div>
+  <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button></div>
+</form></dialog>
+
+<button type="button" class="fab" id="fab" hidden>+ Aggiungi auto</button>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="../js/ap-config.js" data-root="../"></script>
+<script src="../js/visite-core.js"></script>
+<script src="../vendor/jszip.min.js"></script>
+<script src="../js/comune.js"></script>
+<script src="../js/tabelle.js"></script>
+<script src="foto.js"></script>
+<script src="crm.js"></script>
+<script src="agenda.js"></script>
+<script src="unione.js"></script>
+<script src="calcoli.js"></script>
+<script src="mercato.js"></script>
+<script src="checklist.js"></script>
+<script src="stima.js"></script>
+<script src="flotta.js"></script>
+<script src="server.js"></script>
+<script src="gestionale.js"></script>
+</body>
+</html>
