@@ -23,14 +23,16 @@ Altre cose da sistemare:
 - **Dati legali**: ragione sociale esatta, sede legale e numero REA vanno nel piè di pagina (c'è un commento HTML in `index.html`).
 - **Dominio**: quando c'è, aggiungi in `index.html` `og:url`, `og:image` (immagine 1200×630) e il link canonico, e la riga `Sitemap` in `robots.txt`.
 - **Titolare**: nome, ruolo e fino a 2 foto si impostano dal gestionale (voce «Titolare»). Senza foto la sezione mostra solo le recensioni e i pulsanti disponibili.
-- **Auto e recensioni di esempio**: `public/data/auto.json` (20 auto) e `public/data/recensioni.json` sono dati **di esempio**, etichettati «Esempio» sul sito. Si sostituiscono con le auto vere dal gestionale e con le recensioni vere di Google.
+- **Auto e recensioni di esempio**: `public/data/auto.json` (11 auto in vetrina, con le foto in `public/img/auto/`, più alcune vendute di esempio) e le schede di `public/data/recensioni.json` sono dati **di esempio**: modelli riconosciuti dalle foto, ma anno, chilometri, allestimento e prezzo sono inventati, e sul sito sono etichettati «Esempio». Il voto (5,0) e il numero di recensioni (364) vengono invece dal profilo Google e si aggiornano a mano in `recensioni.json` finché non si collega il Worker. Si sostituiscono con le auto vere dal gestionale e con le recensioni vere di Google.
 - Il logo (`public/img/borzi-bianco.svg` e `borzi-nero.svg`) e le icone vengono dal progetto precedente; il rosso del marchio è `#e11d2e` (variabile `--accent` in `public/style.css`).
 
 ## Cosa c'è
 
 | Percorso | Cosa fa |
 |---|---|
-| `public/index.html` | Il sito: vetrina auto, «Già vendute», **Chi siamo** (titolare + recensioni Google), servizi, contatti, orari |
+| `public/index.html` | Il sito: vetrina auto, «Già vendute», recensioni Google, **Il nostro salone** (carosello di foto), servizi, contatti, orari |
+| `public/js/salone.js` | Il carosello del salone: scorre da solo, si ferma al passaggio del mouse o fuori schermo, si comanda con frecce, pallini, tastiera e swipe; con «riduci animazioni» non parte da solo |
+| `public/img/salone/` | Le foto del carosello, ognuna in due ritagli: `nome-w.jpg` (orizzontale 16:10, schermi larghi) e `nome-t.jpg` (verticale 4:5, telefono) |
 | `public/style.css` | Tutto lo stile del sito (in cima i colori dei due temi) |
 | `public/js/sito.js` | `CONFIG` con i dati dell'azienda, vetrina, filtri, scheda auto, recensioni, dati per Google |
 | `public/gestionale/` | Pagina riservata (non linkata, `noindex`, esclusa da `robots.txt`): auto, foto, contatti/CRM, **Flotta**, **Stima del prezzo**, **Controlli prima della vendita** |
@@ -113,3 +115,7 @@ Il repository è già collegato al progetto `autoprofit-borziauto` (stesso `name
 - Excel: lettura/scrittura `.xlsx` con codice proprio sopra JSZip (`public/vendor/jszip.min.js`, licenza MIT); i vecchi `.xls` si salvano prima come `.xlsx`. CSV: riconosce `;` `,` tab, BOM e Windows-1252; l'esportazione usa `;` e BOM.
 - Calcoli (stima, flotta, previsioni) in `public/gestionale/calcoli.js`, la logica di unione tra dispositivi in `unione.js`.
 - Movimento ridotto (`prefers-reduced-motion`) rispettato; sezioni e schede navigabili da tastiera.
+
+## Cambiare le foto del salone
+
+Le foto del carosello sono le `<figure class="reel-slide">` dentro `<section id="salone">` in `public/index.html`: per ognuna servono due file in `public/img/salone/` (`nome-w.jpg` 1320×825 e `nome-t.jpg` 960×1200). Per aggiungerne una, copia una `<figure>` intera, cambia i nomi dei file, il testo `alt` e «N di M» in `aria-label`. Il carosello si adatta da solo al numero di foto (minimo 3).

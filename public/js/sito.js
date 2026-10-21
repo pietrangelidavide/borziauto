@@ -8,21 +8,21 @@
   const CONFIG = {
     nome: "Borzi Auto",
     ragioneSociale: "",            // es. "Borzi Auto S.r.l." (se vuoto, nel piè di pagina compare il nome)
-    tel: "",                       // numero da chiamare, con prefisso: "+390612345678"
-    telVisibile: "",               // come lo leggono i clienti: "06 1234 5678" (se vuoto si usa tel)
-    whatsapp: "",                  // numero senza + e senza spazi: "393331234567"
+    tel: "+393398893539",          // numero da chiamare, con prefisso: "+390612345678"
+    telVisibile: "339 889 3539",   // come lo leggono i clienti: "06 1234 5678" (se vuoto si usa tel)
+    whatsapp: "393398893539",      // numero senza + e senza spazi: "393331234567"
     email: "",
-    indirizzo: "",                 // via e numero civico: "Via Roma 1"
-    cap: "", citta: "", provincia: "",   // "00100", "Roma", "RM"
+    indirizzo: "Via dei Legatori, 74/76",   // via e numero civico: "Via Roma 1"
+    cap: "00128", citta: "Roma", provincia: "RM",   // "00100", "Roma", "RM"
     piva: "",                      // solo le cifre: "01234567890"
     mappa: "",                     // facoltativo: link alla posizione su Google Maps (se vuoto si usa l'indirizzo)
     instagram: "",                 // link completo: "https://www.instagram.com/nomepagina/"
     autoscout: "",                 // link alla pagina del concessionario su AutoScout24
-    google: "",                    // link alla scheda Google (recensioni e indicazioni)
+    google: "https://share.google/WuTIHVY3SAZBkdLh1",   // link alla scheda Google (recensioni e indicazioni)
     orari: [                       // giorni: 0 = domenica … 6 = sabato. Nessuna riga = nessun orario sul sito.
-      // { giorni: [1, 2, 3, 4, 5], nome: "Lunedì – Venerdì", fasce: "9:00–13:00 · 15:30–19:00" },
-      // { giorni: [6], nome: "Sabato", fasce: "9:00–13:00" },
-      // { giorni: [0], nome: "Domenica", fasce: "Chiuso" },
+      { giorni: [1, 2, 3, 4, 5], nome: "Lunedì – Venerdì", fasce: "10:00–19:30" },
+      { giorni: [6], nome: "Sabato", fasce: "10:30–13:00" },
+      { giorni: [0], nome: "Domenica", fasce: "Chiuso" },
     ],
     // Titolare: nome e foto si impostano dal gestionale (voce «Titolare»). Qui restano i valori di riserva.
     titolare: { nome: "", ruolo: "Titolare", foto: [] },   // foto: ["img/nome-file.jpg", …] (prima grande, seconda piccola)
