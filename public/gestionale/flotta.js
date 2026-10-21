@@ -20,25 +20,68 @@
   let SEG = "marca";
 
   const storia = () => Calc().storia(X.S.auto, X.S.storico);
+  const Cat = () => AP.Catalogo;
+  const Fl = () => GT.Crm.Flotta;
+  /* il logo vero della marca (cartella img/marche); per «Fiat Panda» cerca la marca nelle prime parole */
+  const marcaDa = (testo) => { const w = String(testo || "").trim().split(/\s+/); for (let n = Math.min(3, w.length); n >= 1; n--) { const m = Cat().marca(w.slice(0, n).join(" ")); if (m) return m; } return null; };
+  const logo = (testo, cls) => { const m = marcaDa(testo); return m ? `<img class="${cls || "mlogo"}" src="${esc(Cat().logo(m, "../"))}" alt="" loading="lazy" width="30" height="30">` : `<span class="${cls || "mlogo"} vuoto" aria-hidden="true"></span>`; };
+  const eurKH = (n) => (n == null || !isFinite(n) ? "–" : '<span class="eur">€</span>' + (Math.abs(n) >= 100000 ? Math.round(n / 1000) + "k" : Math.abs(n) >= 10000 ? (n / 1000).toFixed(1).replace(".", ",") + "k" : Math.round(n).toLocaleString("it-IT")));
+  const eurK = (n) => (n == null || !isFinite(n) ? "–" : Math.abs(n) >= 100000 ? Math.round(n / 1000) + "k\u00a0€" : Math.abs(n) >= 10000 ? (n / 1000).toFixed(1).replace(".", ",") + "k\u00a0€" : eur(n));
 
   /* ---------- impostazioni (una riga sopra tutto) ---------- */
   const CAMPI = [["fl-posti", "posti", null], ["fl-ritardo", "ritardo", 14], ["fl-obiettivo", "obiettivo", 100], ["fl-max", "max_ingressi", 4], ["fl-prep", "giorni_prep", 7]];
   function leggiImp() { CAMPI.forEach(([id, k]) => { const v = X.S.imp[k]; $("#" + id).value = v == null ? "" : v; }); }
 
   /* ---------- schede delle cifre ---------- */
+  /* fotografia di oggi: capitale fermo, margine in attesa, tempo in garage, prezzi rispetto al mercato */
+  function oggi() {
+    const disp = X.S.auto.filter((a) => a.stato === "disponibile"), o = { disp };
+    o.vetrina = disp.reduce((t, a) => t + (a.prezzo || 0), 0);
+    const conCosto = disp.filter((a) => a.costo_acquisto != null);
+    o.capitale = conCosto.reduce((t, a) => t + a.costo_acquisto + (a.costi_extra || 0), 0); o.nCosto = conCosto.length;
+    const cm = disp.filter((a) => Fl().margine(a) != null);
+    o.margine = cm.reduce((t, a) => t + Fl().margine(a), 0); o.nMargine = cm.length;
+    o.margPct = o.capitale > 0 && o.nMargine === o.nCosto ? o.margine / o.capitale : null;
+    const gg = disp.map((a) => Fl().giorniStock(a)).filter((g) => g != null);
+    o.giorniMedi = gg.length ? Math.round(gg.reduce((t, g) => t + g, 0) / gg.length) : null; o.lunghe = gg.filter((g) => g > 60).length; o.capFermo = disp.filter((a) => Fl().giorniStock(a) > 60 && a.costo_acquisto != null).reduce((t, a) => t + a.costo_acquisto + (a.costi_extra || 0), 0);
+    o.rif = disp.map((a) => GT.Stima.riferimento(a)).filter((r) => r && r.diff != null);
+    o.sopra = o.rif.filter((r) => r.stato === "sopra").length; o.sotto = o.rif.filter((r) => r.stato === "sotto").length; o.linea = o.rif.length - o.sopra - o.sotto;
+    return o;
+  }
   function kpi(p, g, mg, st) {
-    const posti = X.S.imp.posti, att = p.attuali, liberi = posti ? Math.max(0, posti - att) : null;
+    const o = oggi(), posti = X.S.imp.posti, att = p.attuali, liberi = posti ? Math.max(0, posti - att) : null;
     const K = (l, v, s, extra) => `<div class="kpi ${extra || ""}"><span class="kpi-l">${l}</span><b class="kpi-v">${v}</b><small>${s}</small></div>`;
     const occ = posti ? Math.min(100, Math.round((att / posti) * 100)) : null;
     const senza = p.senzaStorico;
-    return [
-      K("Auto in garage", posti ? `${att} <span class="eur">/ ${posti}</span>` : String(att), posti ? `<span class="meter" aria-hidden="true"><i style="width:${occ}%"></i></span>${liberi === 0 ? "garage pieno" : un(liberi, "posto libero", "posti liberi")}` : "Imposta i posti per i consigli sugli acquisti", !posti ? "warn" : ""),
+    const dal = X.oggi(), ult90 = st.filter((r) => r.data_vendita && Math.round((Date.parse(dal) - Date.parse(r.data_vendita)) / 864e5) <= 90 && r.data_vendita <= dal).length;
+    const adesso = [
+      K("Auto in garage", posti ? `${att} <span class="eur">/ ${posti}</span>` : String(att), posti ? `<span class="meter" aria-hidden="true"><i style="width:${occ}%"></i></span>${liberi === 0 ? "garage pieno" : un(liberi, "posto libero", "posti liberi")}` : "scrivi i posti del garage nelle impostazioni"),
+      K("Capitale fermo nelle auto", o.nCosto ? eurKH(o.capitale) : "–", o.nCosto ? `costo di acquisto e lavori di ${un(o.nCosto, "auto", "auto")}${o.lunghe && o.capFermo ? ` · <b class="late">${eurK(o.capFermo)} in auto ferme da oltre 60 giorni</b>` : ""}` : "scrivi il costo di acquisto delle auto"),
+      K("Margine in attesa", o.nMargine ? eurH(o.margine) : "–", o.nMargine ? `se vendi tutto ai prezzi di oggi${o.margPct != null ? ` · ${(o.margPct * 100).toFixed(0)}% sul costo` : ""}` : "servono costo di acquisto e prezzo", o.nMargine && o.margine < 0 ? "warn" : ""),
+      K("Giorni medi in garage", o.giorniMedi == null ? "–" : String(o.giorniMedi), o.giorniMedi == null ? "scrivi la data di acquisto" : o.lunghe ? `<b class="late">${un(o.lunghe, "auto ferma", "auto ferme")} da oltre 60 giorni</b>` : "nessuna ferma da molto", o.lunghe ? "warn" : ""),
+      K("Prezzi rispetto al mercato", o.rif.length ? `${o.linea} <span class="eur">/ ${o.rif.length} in linea</span>` : "–", o.rif.length ? `${o.sopra ? `<b class="late">${o.sopra} sopra</b>` : "0 sopra"} · ${o.sotto} sotto, secondo la stima di riferimento` : "servono prezzo e anno delle auto", o.sopra ? "warn" : ""),
+      K("Vendute negli ultimi 90 giorni", st.length ? String(ult90) : "–", st.length ? (ult90 ? `circa ${(ult90 / 3).toFixed(1).replace(".", ",")} al mese` : "nessuna negli ultimi tre mesi") : "segna le auto vendute o importa lo storico"),
+    ].join("");
+    const dopo = [
       K("Escono nei prossimi 30 giorni", senza ? "–" : `≈ ${Math.round(p.usciteAttuali30)}`, senza ? "serve lo storico delle vendite" : "dalle auto già in garage"),
       K("Da comprare", senza || !posti ? "–" : String(p.ingressiTot), senza || !posti ? "servono posti e storico" : p.daComprareSubito ? `${p.daComprareSubito} entro 7 giorni · ${p.settimane.length} settimane in tutto` : `nelle prossime ${p.settimane.length} settimane`),
-      K("Tempo in garage", g.n ? `${Math.round(g.mediana)} <span class="eur">giorni</span>` : "–", g.n ? `la metà delle auto si vende prima · su ${g.n} vendite` : "mancano le date di acquisto e vendita"),
+      K("Tempo di vendita", g.n ? `${Math.round(g.mediana)} <span class="eur">giorni</span>` : "–", g.n ? `la metà delle auto si vende prima · su ${g.n} vendite` : "mancano le date di acquisto e vendita"),
       K("Margine per auto-giorno", mg != null ? eurH(mg) : "–", mg != null ? "quanto frutta ogni giorno un’auto in garage" : "servono costi e prezzi di vendita"),
-      K("Affidabilità delle previsioni", { buona: "Buona", media: "Media", bassa: "Bassa", nessuna: "Nessuna" }[p.affidabilita], senza ? "importa lo storico delle vendite" : `${st.length} vendite${p.stagionalita.mesiDati ? " in " + p.stagionalita.mesiDati + " mesi" : ""}${p.stagionalita.affidabile ? ", con stagionalità" : ""}`, p.affidabilita === "bassa" || p.affidabilita === "nessuna" ? "warn" : ""),
+      K("Affidabilità delle previsioni", { buona: "Buona", media: "Media", bassa: "Bassa", nessuna: "Nessuna" }[p.affidabilita], senza ? "importa lo storico delle vendite" : `${st.length} vendite${p.stagionalita.mesiDati ? " in " + p.stagionalita.mesiDati + " mesi" : ""}`),
     ].join("");
+    return `<h2 class="fl-h2">Il garage adesso</h2><div class="kpis k6">${adesso}</div><h2 class="fl-h2">Cosa succederà</h2><div class="kpis k5">${dopo}</div>`;
+  }
+
+  /* ---------- le marche in garage, con il loro logo ---------- */
+  function marche() {
+    const disp = X.S.auto.filter((a) => a.stato === "disponibile"); if (!disp.length) return '<p class="gt-empty">Nessuna auto in garage.</p>';
+    const per = new Map();
+    disp.forEach((a) => { const m = Cat().marca(a.marca), k = m ? m.nome : (a.marca || "Altre").trim() || "Altre"; const r = per.get(k) || { nome: k, n: 0, valore: 0, gg: [], marg: 0, nm: 0, sopra: 0 }; r.n++; r.valore += a.prezzo || 0; const g = Fl().giorniStock(a); if (g != null) r.gg.push(g); const mm = Fl().margine(a); if (mm != null) { r.marg += mm; r.nm++; } const rf = GT.Stima.riferimento(a); if (rf && rf.stato === "sopra") r.sopra++; per.set(k, r); });
+    const l = [...per.values()].sort((a, b) => b.n - a.n || b.valore - a.valore), max = l[0].n, tot = disp.length;
+    return `<ul class="fl-marche">${l.slice(0, 18).map((r) => { const g = r.gg.length ? Math.round(r.gg.reduce((t, x) => t + x, 0) / r.gg.length) : null; return `<li><button type="button" data-marca="${esc(r.nome)}" aria-label="Mostra le ${esc(r.nome)} in vendita">
+  ${logo(r.nome, "mlogo grande")}<span class="fm-n"><b>${esc(r.nome)}</b><small>${un(r.n, "auto", "auto")} · ${Math.round((r.n / tot) * 100)}% del garage</small></span>
+  <span class="fm-bar" aria-hidden="true"><i style="width:${Math.max(6, (r.n / max) * 100)}%"></i></span>
+  <span class="fm-d"><span>${r.valore ? eurK(r.valore) + " in vetrina" : "senza prezzi"}</span><span class="${g != null && g > 60 ? "late" : ""}">${g != null ? g + " giorni medi" : "–"}</span>${r.nm ? `<span class="${r.marg < 0 ? "late" : ""}">margine ${eurK(r.marg)}</span>` : ""}${r.sopra ? `<span class="late">${r.sopra} sopra il mercato</span>` : ""}</span></button></li>`; }).join("")}</ul>${l.length > 18 ? `<p class="small muted">… e altre ${l.length - 18} marche.</p>` : ""}`;
   }
 
   /* ---------- grafico: auto in garage nelle prossime settimane ---------- */
@@ -135,7 +178,7 @@
     if (!buoni.length) return `<p class="gt-empty">Servono almeno 3 vendite con date e prezzi per ogni gruppo. Importa lo storico con costi e prezzi di vendita.</p>`;
     let frase = "";
     if (buoni.length >= 2) { const a = buoni[0], b = buoni[buoni.length - 1]; frase = `<p class="fl-sub">In media ${esc(a.nome)} frutta <b>${eur(a.margineGiorno)}</b> al giorno per auto in garage, ${esc(b.nome)} <b>${eur(b.margineGiorno)}</b>. Il margine per giorno premia chi si vende in fretta oltre a chi rende di più.</p>`; }
-    return frase + `<div class="tbl-wrap"><table><thead><tr><th>${{ marca: "Marca", marca_modello: "Modello", alimentazione: "Alimentazione", carrozzeria: "Carrozzeria", fascia: "Fascia di prezzo" }[SEG]}</th><th class="num">Vendute</th><th class="num">Giorni</th><th class="num">Margine</th><th class="num">Al giorno</th></tr></thead><tbody>${righe.slice(0, 12).map((r, i) => `<tr class="${r.pochiDati ? "off" : ""}"><td><b>${esc(r.nome)}</b>${i === 0 && !r.pochiDati ? ' <span class="tag ok">Punta su</span>' : ""}${r.pochiDati ? ' <span class="tag">pochi dati</span>' : ""}</td><td class="num">${r.n}</td><td class="num">${r.giorniMedi != null ? Math.round(r.giorniMedi) : "–"}</td><td class="num">${eur(r.margineMedio)}</td><td class="num">${eur(r.margineGiorno)}</td></tr>`).join("")}</tbody></table></div>`;
+    return frase + `<div class="tbl-wrap"><table><thead><tr><th>${{ marca: "Marca", marca_modello: "Modello", alimentazione: "Alimentazione", carrozzeria: "Carrozzeria", fascia: "Fascia di prezzo" }[SEG]}</th><th class="num">Vendute</th><th class="num">Giorni</th><th class="num">Margine</th><th class="num">Al giorno</th></tr></thead><tbody>${righe.slice(0, 12).map((r, i) => `<tr class="${r.pochiDati ? "off" : ""}"><td class="seg-n"><div class="seg-c">${SEG === "marca" || SEG === "marca_modello" ? logo(r.nome) : ""}<span class="seg-t"><b>${esc(r.nome)}</b>${i === 0 && !r.pochiDati ? '<span class="tag ok">Punta su</span>' : ""}${r.pochiDati ? '<span class="tag">pochi dati</span>' : ""}</span></div></td><td class="num">${r.n}</td><td class="num">${r.giorniMedi != null ? Math.round(r.giorniMedi) : "–"}</td><td class="num">${eur(r.margineMedio)}</td><td class="num">${eur(r.margineGiorno)}</td></tr>`).join("")}</tbody></table></div>`;
   }
 
   /* ---------- auto da spingere ---------- */
@@ -144,9 +187,11 @@
     if (!l.length) return `<p class="gt-empty">Nessuna auto è ferma da più del normale.</p>`;
     return `<ul class="fl-spingi">${l.slice(0, 8).map((x) => {
       const a = X.S.auto.find((y) => y.id === x.id); if (!a) return "";
-      return `<li data-id="${esc(a.id)}"><div><b>${esc(X.titolo(a))}</b><small>ferma da ${x.eta} giorni${x.vsMediana ? ` (${x.vsMediana.toFixed(1).replace(".", ",")}× il tempo normale)` : ""} · prezzo ${eur(x.prezzo)}</small>
+      const f0 = GT.Foto.lista(a.foto)[0], rf = GT.Stima.riferimento(a);
+      const mer = rf && rf.diff != null ? ` · <b class="${rf.stato === "sopra" ? "late" : ""}">${rf.stato === "sopra" ? "sopra" : rf.stato === "sotto" ? "sotto" : "in linea con"} il mercato${rf.stato === "in linea" ? "" : " (" + (rf.diff > 0 ? "+" : "−") + Math.abs(Math.round(rf.diff * 100)) + "%)"}</b>` : "";
+      return `<li data-id="${esc(a.id)}"><div class="fp-m">${f0 ? `<img class="thumb grande" src="${esc(GT.Foto.src(f0, "../"))}" alt="" loading="lazy">` : logo(a.marca, "mlogo grande")}</div><div><b>${esc(X.titolo(a))}</b><small>ferma da ${x.eta} giorni${x.vsMediana ? ` (${x.vsMediana.toFixed(1).replace(".", ",")}× il tempo normale)` : ""} · prezzo ${eur(x.prezzo)}${mer}</small>
 <ul class="fl-rib" aria-label="Se abbassi il prezzo">${x.ribassi.map((r) => `<li><b>−${Math.round(r.r * 100)}%</b> ${eur(r.prezzo)}${r.margine != null ? ` <span class="${r.margine < 0 ? "late" : ""}">margine ${eur(r.margine)}</span>` : ""}</li>`).join("")}</ul></div>
-<div class="fl-az"><button type="button" class="btn btn-line sm" data-az="stima">Stima il prezzo</button><button type="button" class="lnk" data-az="modifica">Modifica</button></div></li>`;
+<div class="fl-az"><button type="button" class="btn btn-line sm" data-az="stima">Rivedi il prezzo</button><button type="button" class="lnk" data-az="modifica">Modifica</button></div></li>`;
     }).join("")}</ul>`;
   }
 
@@ -170,6 +215,7 @@
     U = p;
     const g = Calc().giacenza(st), mg = Calc().margineGiorno(st);
     $("#fl-kpi").innerHTML = kpi(p, g, mg, st);
+    $("#fl-marche").innerHTML = marche();
     const puoi = !p.senzaStorico && imp.posti;
     $("#fl-g-box").hidden = !puoi;
     if (puoi) {
@@ -247,6 +293,7 @@
       e.target.value = X.S.imp[k] == null ? "" : X.S.imp[k];
       X.salva(); disegna();
     }));
+    $("#fl-marche").addEventListener("click", (e) => { const b = e.target.closest("[data-marca]"); if (!b) return; X.S.q = b.dataset.marca; $("#q").value = b.dataset.marca; X.vai("disponibile"); });
     $("#fl-seg-per").addEventListener("change", (e) => { SEG = e.target.value; $("#fl-seg").innerHTML = segmenti(storia()); });
     $("#fl-push").addEventListener("click", (e) => {
       const b = e.target.closest("[data-az]"); if (!b) return;

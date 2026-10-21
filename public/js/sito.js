@@ -25,10 +25,15 @@
       { giorni: [0], nome: "Domenica", fasce: "Chiuso" },
     ],
     // Titolare: nome e foto si impostano dal gestionale (voce «Titolare»). Qui restano i valori di riserva.
-    titolare: { nome: "", ruolo: "Titolare", foto: [] },   // foto: ["img/nome-file.jpg", …] (prima grande, seconda piccola)
+    titolare: { nome: "Flavio Borzi", ruolo: "Titolare", foto: [] },   // foto: ["img/nome-file.jpg", …] (prima grande, seconda piccola)
+    venduteTotale: 5000,           // «più di N auto vendute» nella prima schermata (0 = il numero non compare)
   };
   const MARCHE_ORDINE = [];        // facoltativo: marche da mostrare per prime nei filtri
   const $ = (s, r) => (r || document).querySelector(s);
+  // dati che servono alla prima schermata (js/hero.js): window.BORZI + evento «borzi:<nome>»
+  const emit = (k, v) => { (window.BORZI = window.BORZI || {})[k] = v; document.dispatchEvent(new CustomEvent("borzi:" + k, { detail: v })); };
+  emit("titolare", { nome: CONFIG.titolare.nome, ruolo: CONFIG.titolare.ruolo });
+  emit("vendute", CONFIG.venduteTotale);
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ---------- dati dell'azienda sulla pagina ---------- */
@@ -47,6 +52,7 @@
     piva: CONFIG.piva,
     instagram: CONFIG.instagram,
     instagramTesto: CONFIG.instagram ? "Instagram @" + CONFIG.instagram.replace(/[?#].*$/, "").replace(/\/+$/, "").split("/").pop() : "",
+    citta: CONFIG.citta,
     anno: String(new Date().getFullYear()),
   };
   const HREF = {
@@ -83,6 +89,7 @@
       if (m) spec.push({ "@type": "OpeningHoursSpecification", dayOfWeek: r.giorni.map((g) => giorni[g]), opens: hh(m[1], m[2]), closes: hh(m[3], m[4]) });
     }));
     if (spec.length) o.openingHoursSpecification = spec;
+    if (CONFIG.titolare.nome) o.founder = { "@type": "Person", name: CONFIG.titolare.nome, jobTitle: CONFIG.titolare.ruolo || "Titolare" };
     const sa = [CONFIG.instagram, CONFIG.google, CONFIG.autoscout].filter(Boolean);
     if (sa.length) o.sameAs = sa;
     const t = document.createElement("script");
@@ -266,6 +273,7 @@
     t = t || {};
     const nome = String(t.nome || CONFIG.titolare.nome || "").trim();
     const ruolo = CONFIG.titolare.ruolo || "Titolare";
+    emit("titolare", { nome, ruolo });
     $("#o-nome").textContent = nome || "Il " + ruolo.toLowerCase();
     $("#o-sub").textContent = (nome ? ruolo + " di " : "") + CONFIG.nome + (CONFIG.citta ? " · " + CONFIG.citta + (CONFIG.provincia ? " (" + CONFIG.provincia + ")" : "") : "");
     if (CONFIG.whatsapp) $("#o-wa").href = "https://wa.me/" + CONFIG.whatsapp;
@@ -355,6 +363,7 @@
       const tutte = https(d.tutte || d.mappa || CONFIG.google);
       if (tutte) { const a = $("#rate-all"); a.href = tutte; a.hidden = false; }
       $("#rate").hidden = false;
+      emit("voto", { voto: +d.voto, totale: +d.totale > 0 ? +d.totale : 0 });
     }
     $("#rate-demo").hidden = !demo;
     const scrivi = https(d.scrivi || CONFIG.google);
@@ -379,6 +388,7 @@
       renderGriglia();
     }
     renderVendute();
+    emit("auto", { n: DISP.length, marche: [...new Set(DISP.map((a) => a.marca))] });
   }).catch(() => {
     $("#griglia").innerHTML = `<p class="empty" style="grid-column:1/-1">Non riesco a caricare l’elenco delle auto.${V.tel ? ` Chiamaci al <a href="${HREF.tel}">${TG.esc(V.tel)}</a>.` : ""}</p>`;
     $("#vendute").hidden = true;

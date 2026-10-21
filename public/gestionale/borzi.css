@@ -1,0 +1,8 @@
+/* Borzi Auto · gestionale: angoli arrotondati in stile Apple al posto dei tagli diagonali dell'originale. */
+.gt{--taglio:none;--taglio-s:none;--rad:20px;--rad-s:14px}
+.gt .pubbar,.gt .hm-box,.gt .fl-box,.gt .fl-imp,.gt .kpi,.gt .hm-k,.gt .card-auto,.gt .kcol,.gt .st-vuoto,.gt .tbl-wrap,.gt .gd,.gt .hm-testa{border-radius:var(--rad)}
+.gt .fa-sug,.gt .fa-prev,.gt .st-big,.gt .st-card,.gt .fl-marche li button,.gt .fl-spingi>li,.gt .hm-conf,.gt #fa-logo,.gt .st-logo,.gt .mlogo{border-radius:var(--rad-s)}
+.gt .btn{border-radius:980px}
+.gt .tabs button{border-radius:14px}
+.gt .tabs button[aria-selected="true"]{clip-path:none}
+.gt dialog>*{border-radius:var(--rad)}

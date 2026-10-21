@@ -1,0 +1,189 @@
+{
+  "id": "borziauto",
+  "nome": "Borzi Auto",
+  "nomeBreve": "Borzi Auto",
+  "slogan": "Auto usate a Roma.",
+  "fuso": "Europe/Rome",
+  "_da_controllare": "ragione sociale, P.IVA ed e-mail (oggi vuote), costi di vendita e margine minimo (valori di partenza), orari delle visite",
+  "tema": {
+    "accento": "#f5f5f7",
+    "accento2": "#ffffff",
+    "testoSuAccento": "#0a0a0b",
+    "sfondo": "#000000",
+    "superficie": "#111113",
+    "superficie2": "#1b1b1e",
+    "testo": "#f5f5f7",
+    "testo2": "#a1a1a6",
+    "linea": "rgba(255,255,255,.16)",
+    "sfondoHero": "#000000",
+    "testoHero": "#f5f5f7",
+    "fontTitoli": {
+      "css": "-apple-system,BlinkMacSystemFont,\"SF Pro Display\",\"SF Pro Text\",\"Inter\",\"Helvetica Neue\",Arial,sans-serif",
+      "google": "Inter",
+      "locale": true
+    },
+    "fontTesto": {
+      "css": "-apple-system,BlinkMacSystemFont,\"SF Pro Display\",\"SF Pro Text\",\"Inter\",\"Helvetica Neue\",Arial,sans-serif",
+      "google": "Inter",
+      "locale": true
+    },
+    "pesoTitoli": "700",
+    "maiuscoloTitoli": false,
+    "scalaTitoli": "1",
+    "raggio": 12,
+    "logo": "img/borzi-bianco.svg",
+    "logoSuScuro": "img/borzi-bianco.svg",
+    "accentoLavoro": "#f5f5f7",
+    "accentoLavoro2": "#ffffff",
+    "lavoro": {
+      "sfondo": "#000000",
+      "superficie": "#111113",
+      "superficie2": "#1b1b1e",
+      "testo": "#f5f5f7",
+      "testoSoft": "#d2d2d7",
+      "testo2": "#a1a1a6",
+      "testo3": "#6e6e73",
+      "linea": "rgba(255,255,255,.14)",
+      "campo": "#0a0a0b",
+      "campo2": "#121214",
+      "campo3": "#18181b",
+      "raggio": 12,
+      "scalaTitoli": 1
+    }
+  },
+  "contatti": {
+    "ragioneSociale": "Borzi Auto",
+    "telefono": "339 889 3539",
+    "whatsapp": "393398893539",
+    "email": "",
+    "indirizzo": "Via dei Legatori, 74/76",
+    "citta": "00128 Roma (RM)",
+    "piva": "",
+    "mappa": "",
+    "link": [
+      {
+        "etichetta": "Google",
+        "url": "https://share.google/WuTIHVY3SAZBkdLh1"
+      }
+    ]
+  },
+  "orari": {
+    "0": [],
+    "1": [
+      [
+        "10:00",
+        "19:30"
+      ]
+    ],
+    "2": [
+      [
+        "10:00",
+        "19:30"
+      ]
+    ],
+    "3": [
+      [
+        "10:00",
+        "19:30"
+      ]
+    ],
+    "4": [
+      [
+        "10:00",
+        "19:30"
+      ]
+    ],
+    "5": [
+      [
+        "10:00",
+        "19:30"
+      ]
+    ],
+    "6": [
+      [
+        "10:30",
+        "13:00"
+      ]
+    ]
+  },
+  "visite": {
+    "durata": 30,
+    "passo": 30,
+    "posti": 1,
+    "anticipoOre": 3,
+    "giorniMax": 30,
+    "chiusure": [],
+    "orari": {
+      "0": [],
+      "1": [
+        [
+          "10:00",
+          "19:00"
+        ]
+      ],
+      "2": [
+        [
+          "10:00",
+          "19:00"
+        ]
+      ],
+      "3": [
+        [
+          "10:00",
+          "19:00"
+        ]
+      ],
+      "4": [
+        [
+          "10:00",
+          "19:00"
+        ]
+      ],
+      "5": [
+        [
+          "10:00",
+          "19:00"
+        ]
+      ],
+      "6": [
+        [
+          "10:30",
+          "12:30"
+        ]
+      ]
+    },
+    "_nota": "Orari di partenza per l'agenda delle visite (dentro l'orario di apertura): il titolare li cambia dal gestionale, Visite › Orari delle visite."
+  },
+  "regole": {
+    "trattativa": 3,
+    "costi_vendita": 300,
+    "costo_giorno": 10,
+    "margine_min": 1500
+  },
+  "moduli": {
+    "vetrina": true,
+    "visite": false,
+    "recensioni": true,
+    "flotta": true,
+    "acquisto": true,
+    "vendi": false
+  },
+  "mercato": {
+    "fonte": "auto",
+    "urlFeed": "../api/admin/mercato"
+  },
+  "privacy": {
+    "titolare": "Borzi Auto",
+    "indirizzo": "Via dei Legatori, 74/76, 00128 Roma (RM)",
+    "email": "",
+    "fornitore": "ENA ONE STUDIO",
+    "responsabileDati": "",
+    "conservazione": {
+      "visite_mesi": 12,
+      "contatti_mesi": 24,
+      "richieste_mesi": 6
+    },
+    "aggiornata": "2026-10-22",
+    "verificata": false
+  }
+}

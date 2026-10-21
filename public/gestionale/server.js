@@ -1,5 +1,5 @@
 /* Borzi Auto · collegamento all'archivio online (Worker + database D1).
-   Se il sito ha l'archivio attivo, il gestionale chiede la password e tiene auto, contatti, storico, foto e impostazioni
+   Se il sito ha l'archivio attivo, il gestionale chiede la password e tiene auto, contatti, storico, visite, foto e impostazioni
    allineati tra telefono e computer. Se l'archivio non c'è (sito statico, file aperto dal disco), non cambia nulla:
    il gestionale resta «locale», con i dati nel browser e la pubblicazione con il pacchetto .zip.
    Le modifiche si salvano sempre prima in questo dispositivo e poi si inviano: se manca la rete restano in coda. */
@@ -9,14 +9,14 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const API = "../api/admin/";
   const SK = "borziauto.sync.v1";
-  const COLL = ["auto", "contatti", "storico"];
+  const COLL = ["auto", "contatti", "storico", "visite", "richieste"];
   const ID = /^[A-Za-z0-9_-]{1,64}$/;
   const NOME_FOTO = /^[a-z0-9][a-z0-9._-]{2,90}\.(?:jpe?g|png|webp)$/;
   const MAX_FOTO = 880 * 1024;
   const U = () => GT.Unione;
   let X = null;                                  // contesto fornito dal gestionale
 
-  const St = { modo: "locale", busy: false, again: false, err: "", fase: "", sporco: false, haBase: false, base: { auto: {}, contatti: {}, storico: {}, titolare: undefined, flotta: undefined }, subite: new Set(), ultimo: 0, timer: null, ver: 0 };
+  const St = { modo: "locale", busy: false, again: false, err: "", fase: "", sporco: false, haBase: false, base: { auto: {}, contatti: {}, storico: {}, visite: {}, richieste: {}, titolare: undefined, flotta: undefined, vimp: undefined }, subite: new Set(), ultimo: 0, timer: null, ver: 0 };
 
   /* ---------- memoria dello stato di sincronizzazione (solo in questo browser) ---------- */
   function leggiSt() {
@@ -24,7 +24,7 @@
       const j = JSON.parse(localStorage.getItem(SK));
       if (j && j.base && typeof j.base === "object") {
         COLL.forEach((t) => (St.base[t] = j.base[t] && typeof j.base[t] === "object" ? j.base[t] : {}));
-        St.base.titolare = j.base.titolare == null ? undefined : j.base.titolare; St.base.flotta = j.base.flotta == null ? undefined : j.base.flotta;
+        St.base.titolare = j.base.titolare == null ? undefined : j.base.titolare; St.base.flotta = j.base.flotta == null ? undefined : j.base.flotta; St.base.vimp = j.base.vimp == null ? undefined : j.base.vimp;
         St.subite = new Set(Array.isArray(j.subite) ? j.subite : []); St.haBase = !!j.haBase; St.sporco = !!j.sporco; St.ultimo = +j.ultimo || 0;
         return true;
       }
@@ -124,6 +124,16 @@
     if (primo && esempi && locF) { locF = null; ripartiF = true; }          // le impostazioni di esempio non vanno nell'archivio
     const sF = U().singolo({ locale: locF, remoto: remF, base: St.base.flotta, primo });
 
+    // orari delle visite scelti dal titolare: «nessuna scelta» è un oggetto vuoto. Se qui si torna agli orari di partenza e l'archivio ha ancora
+    // le scelte che questo dispositivo aveva già allineato, si svuota anche l'archivio (e viceversa, se è stato svuotato da un altro dispositivo).
+    const dV = d.impostazioni && d.impostazioni.visite, nV = X.norm.vimp;
+    const remV = dV && Object.keys(nV(dV)).length ? nV(dV) : null, locV = Object.keys(nV(snap.vimp)).length ? nV(snap.vimp) : null;
+    let sV = U().singolo({ locale: locV, remoto: remV, base: St.base.vimp, primo });
+    if (!primo && St.base.vimp !== undefined) {
+      if (locV == null && remV != null && U().h(remV) === St.base.vimp) sV = { azione: "invia", valore: {}, base: undefined };
+      else if (remV == null && locV != null && U().h(locV) === St.base.vimp) sV = { azione: "applica", valore: {}, base: undefined };
+    }
+
     // 1) foto da caricare prima dei documenti che le usano
     const daCaricare = new Set();
     m.auto.invia.set.forEach((a) => nomiFoto(a).forEach((n) => daCaricare.add(n)));
@@ -152,6 +162,7 @@
     const imp = {};
     if (sT.azione === "invia") imp.titolare = { nome: sT.valore.nome, foto: sT.valore.foto };
     if (sF.azione === "invia") imp.flotta = sF.valore;
+    if (sV.azione === "invia") imp.visite = sV.valore;
     if (Object.keys(imp).length) pezzi.push({ impostazioni: imp });
     if (!d.inizializzato && m.auto.invia.set.length && pezzi.length) pezzi[pezzi.length - 1].inizializza = true;
     for (let i = 0; i < pezzi.length; i++) {
@@ -161,7 +172,7 @@
     St.fase = "";
 
     // 3) novità arrivate dall'archivio, applicate qui (solo dove nel frattempo non è cambiato nulla)
-    const ora = X.leggi(), saltati = { auto: new Set(), contatti: new Set(), storico: new Set() };
+    const ora = X.leggi(), saltati = { auto: new Set(), contatti: new Set(), storico: new Set(), visite: new Set(), richieste: new Set() };
     const hLoc = (t, id) => { const x = ora[t].find((y) => y.id === id); return x ? U().h(N[t](x)) : null; };
     const hSnap = (t, id) => { const x = snap[t].find((y) => y.id === id); return x ? U().h(N[t](x)) : null; };
     const finale = {};
@@ -174,11 +185,12 @@
     });
     const appT = sT.azione === "applica" ? (sT.valore || N.titolare({})) : null;
     const appF = sF.azione === "applica" ? sF.valore : ripartiF ? predF : null;
-    X.applica({ auto: finale.auto, contatti: finale.contatti, storico: finale.storico, titolare: appT, flotta: appF });
-    if (appT || appF) novita++;
+    const appV = sV.azione === "applica" ? sV.valore : null;
+    X.applica({ auto: finale.auto, contatti: finale.contatti, storico: finale.storico, visite: finale.visite, richieste: finale.richieste, titolare: appT, flotta: appF, vimp: appV });
+    if (appT || appF || appV) novita++;
 
     COLL.forEach((t) => (St.base[t] = m[t].base));
-    St.base.titolare = sT.base == null ? undefined : sT.base; St.base.flotta = sF.base == null ? undefined : sF.base;
+    St.base.titolare = sT.base == null ? undefined : sT.base; St.base.flotta = sF.base == null ? undefined : sF.base; St.base.vimp = sV.base == null ? undefined : sV.base;
     St.haBase = true; St.sporco = St.ver !== v0; St.ultimo = Date.now(); scriviSt();
     const conflitti = COLL.reduce((n, t) => n + m[t].conflitti, 0);
     return { novita, conflitti, primo };

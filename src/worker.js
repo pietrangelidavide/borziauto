@@ -2,14 +2,18 @@
    Risponde solo a /api/* e /foto/*; pagine, stili e immagini del sito li serve la cartella public/ senza passare di qui.
      /api/recensioni   recensioni di Google Maps della sede (Places API)
      /api/auto, /foto  auto e foto pubblicate dal gestionale (archivio online, vedi archivio.js)
-     /api/admin/*      area riservata del gestionale (password)
+     /api/visite       prenotazione delle visite da parte dei clienti (vedi visite.js)
+     /api/vendi        «Vendi la tua auto»: richiesta di valutazione con foto (vedi richieste.js)
+     /api/admin/*      area riservata del gestionale (password), compresi i prezzi di mercato da feed autorizzato
 
    Per attivarlo servono due valori (vedi README, «Recensioni di Google»):
      GOOGLE_PLACE_ID   Place ID della scheda Google (non è segreto: sta in wrangler.jsonc)
      GOOGLE_PLACES_KEY chiave API di Google Cloud, con «Places API (New)» attiva (segreta: si aggiunge da Cloudflare)
-   Finché mancano, risponde 503 e il sito usa data/recensioni.json. */
+   Finché mancano, risponde 200 con «attivo: false» e il sito usa data/recensioni.json. */
 
 import { admin, autoPubbliche, serviFoto, json as jsonA } from "./archivio.js";
+import { visite } from "./visite.js";
+import { vendi } from "./richieste.js";
 
 const API = "https://places.googleapis.com/v1/places/";
 const CAMPI = "displayName,rating,userRatingCount,googleMapsUri,reviews";
@@ -28,6 +32,8 @@ export default {
     const url = new URL(request.url), p = url.pathname;
     if (p === "/api/recensioni") return recensioni(request, env, ctx, url);
     if (p === "/api/auto" && (request.method === "GET" || request.method === "HEAD")) return autoPubbliche(env);
+    if (p === "/api/visite" || p.startsWith("/api/visite/")) return visite(request, env, ctx, url);
+    if (p === "/api/vendi") return vendi(request, env, ctx, url);
     if (p.startsWith("/api/admin/")) return admin(request, env, ctx, url);
     if (p.startsWith("/foto/") && (request.method === "GET" || request.method === "HEAD")) return serviFoto(request, env, ctx, url);
     if (p.startsWith("/api/")) return jsonA({ errore: "non_trovato" }, 404);
@@ -41,7 +47,7 @@ async function recensioni(request, env, ctx, url) {
 
   const id = String(env.GOOGLE_PLACE_ID || "").trim();
   const chiave = String(env.GOOGLE_PLACES_KEY || "").trim();
-  if (!id || !chiave) return json({ errore: "non_configurato" }, 503);
+  if (!id || !chiave) return json({ attivo: false, motivo: "non_configurato" }, 200, "public, max-age=300");        // non è un errore: il sito usa data/recensioni.json
   if (!/^[A-Za-z0-9_-]{10,200}$/.test(id)) return json({ errore: "place_id_non_valido" }, 503);
 
   // Google chiede di non conservare a lungo i suoi dati: si tengono poche ore (CACHE_ORE, da 1 a 24, predefinito 6).

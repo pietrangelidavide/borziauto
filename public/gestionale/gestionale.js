@@ -1,11 +1,12 @@
 /* Borzi Auto · gestionale auto e CRM della flotta.
    I dati stanno nel browser (localStorage per auto e contatti, IndexedDB per le foto).
    Per pubblicare si scarica il pacchetto .zip (auto.json + foto) e lo si carica nel repository del sito. */
-(function () {
+AP.pronto.then(function () {
   "use strict";
   const $ = (s, r) => (r || document).querySelector(s);
   const GT = (window.GT = window.GT || {});
   const LS = "borziauto.gestionale.v1";
+  AP.Config.base = AP.Config.cfg;                      // configurazione del file; AP.Config.cfg = base + orari scelti dal titolare (applicaImp)
 
   /* ---------- colonne dei file CSV / Excel ---------- */
   const COLS = [
@@ -131,7 +132,8 @@
 
   /* ---------- stato ---------- */
   /* impostazioni di flotta, stima e previsioni (riservate) */
-  const IMP_DEF = { posti: null, ritardo: 14, obiettivo: 100, max_ingressi: 4, giorni_prep: 7, costo_giorno: 0, costi_vendita: 0, margine_min: 0, trattativa: 3 };
+  const REG = AP.Config.cfg.regole || {};     // valori di partenza dal file di configurazione del garage
+  const IMP_DEF = { posti: REG.posti || null, ritardo: 14, obiettivo: 100, max_ingressi: 4, giorni_prep: 7, costo_giorno: +REG.costo_giorno || 0, costi_vendita: +REG.costi_vendita || 0, margine_min: +REG.margine_min || 0, trattativa: REG.trattativa == null ? 3 : +REG.trattativa };
   const normImp = (o) => {
     const r = Object.assign({}, IMP_DEF);
     if (o && typeof o === "object") for (const k in IMP_DEF) { const n = o[k] == null || o[k] === "" ? NaN : +o[k]; if (isFinite(n) && n >= 0) r[k] = n; }
@@ -148,12 +150,15 @@
   });
   const FOTO_OK = /^(?:[a-z0-9][a-z0-9._-]{2,90}\.(?:jpe?g|png|webp)|https:\/\/\S+)$/;
   const normTitolare = (t) => ({ nome: String((t && t.nome) || "").trim().slice(0, 80), foto: String((t && t.foto) || "").split("|").map((x) => x.trim()).filter((x) => FOTO_OK.test(x)).slice(0, 2).join("|") });
-  const S = { online: false, titolare: { nome: "", foto: "" }, sitoTit: { nome: "", foto: "" }, auto: [], contatti: [], storico: [], imp: normImp(), sito: [], tab: "disponibile", q: "", sort: { disponibile: { k: "titolo", d: 1 }, venduta: { k: "data_vendita", d: -1 } } };
+  const S = { online: false, titolare: { nome: "", foto: "" }, sitoTit: { nome: "", foto: "" }, auto: [], contatti: [], storico: [], visite: [], richieste: [], vimp: {}, imp: normImp(), sito: [], tab: "riepilogo", q: "", sort: { disponibile: { k: "titolo", d: 1 }, venduta: { k: "data_vendita", d: -1 } } };
+  /* orari delle visite scelti dal titolare: la configurazione che vede il resto del gestionale è quella del file con le sue scelte sopra */
+  const applicaImp = () => { S.vimp = AP.Visite.pulisciImp(S.vimp); AP.Config.cfg = AP.Visite.conImp(AP.Config.base, S.vimp); };
   /* salva in questo dispositivo e, con l'archivio online, avvisa che c'è qualcosa da inviare */
   const salva = (senzaSync) => {
-    try { localStorage.setItem(LS, JSON.stringify({ auto: S.auto, contatti: S.contatti, storico: S.storico, imp: S.imp, titolare: S.titolare, salvato: Date.now() })); }
+    try { localStorage.setItem(LS, JSON.stringify({ auto: S.auto, contatti: S.contatti, storico: S.storico, visite: S.visite, richieste: S.richieste, vimp: S.vimp, imp: S.imp, titolare: S.titolare, salvato: Date.now() })); }
     catch (e) { toast("Attenzione: il browser non permette di salvare qui. Fai spesso il backup dal menu Esporta."); }
     if (senzaSync !== true && S.online) GT.Server.cambiato();
+    GT.Agenda.codaOut(); GT.Agenda.impOut();
   };
   let tt;
   function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 3800); }
@@ -176,16 +181,14 @@
   }
 
   function caricaDa(loc) {
-    S.auto = loc.auto.map(pieno); S.contatti = Array.isArray(loc.contatti) ? loc.contatti.map(GT.Crm.norm) : []; S.storico = normStorico(loc.storico); S.imp = normImp(loc.imp); S.titolare = normTitolare(loc.titolare);
+    S.auto = loc.auto.map(pieno); S.contatti = Array.isArray(loc.contatti) ? loc.contatti.map(GT.Crm.norm) : []; S.storico = normStorico(loc.storico); S.visite = Array.isArray(loc.visite) ? loc.visite.map(AP.Visite.norm).filter((v) => v.id) : []; S.richieste = Array.isArray(loc.richieste) ? loc.richieste.map(AP.Richieste.norm).filter((r) => r.id) : []; S.vimp = AP.Visite.pulisciImp(loc.vimp); applicaImp(); S.imp = normImp(loc.imp); S.titolare = normTitolare(loc.titolare);
   }
   /* aspetto e pulsanti secondo la modalità: locale (dati nel browser + pacchetto .zip) oppure online (archivio sul server) */
   function impostaUi() {
     document.body.classList.toggle("online", S.online);
     $("#b-pubblica").hidden = S.online; $("#b-reset").hidden = S.online; $("#b-esci").hidden = !S.online;
     $("#sync").disabled = !S.online;
-    $("#intro-t").innerHTML = S.online
-      ? "Qui gestisci le auto, le foto e i contatti dei clienti, anche dal telefono. Le modifiche si salvano <strong>online</strong> e il sito si aggiorna da solo; targa, costi e note restano riservati."
-      : "Qui gestisci le auto, le loro foto e i contatti dei clienti. Tutto resta <strong>in questo browser</strong>: sul sito va solo quello che pubblichi, e mai i dati riservati.";
+    $("#pubbar").hidden = S.online; $("#sync").hidden = !S.online;
   }
   async function avvia() {
     const modo = await GT.Server.rileva();
@@ -201,11 +204,18 @@
     else if (!S.online) {
       S.auto = S.sito.map(pieno); arricchisciDemo(S.auto);
       S.contatti = GT.Crm.demo(S.auto).map(GT.Crm.norm);
+      S.visite = GT.Agenda.demo(S.auto);
+      S.richieste = (AP.Config.cfg.moduli || {}).vendi === true && S.auto.some((a) => a.demo) ? GT.Richieste.demo(S.auto) : [];
       if (S.auto.some((a) => a.demo)) { S.storico = normStorico(GT.Calc.demoStorico(oggi())); S.imp = normImp({ posti: 28 }); }      // storico e posti di esempio, eliminabili
       S.titolare = S.sitoTit;
       if (sito) salva(true);
     }
+    applicaImp();
     pulisciFoto();
+    if (!S.online) {
+      const nv = GT.Agenda.codaIn(); if (nv) toast(nv === 1 ? "C’è una nuova richiesta di visita dal sito." : `Ci sono ${nv} nuove richieste di visita dal sito.`);
+      const nr = GT.Richieste.codaIn(); if (nr) toast(nr === 1 ? "C’è una nuova richiesta di valutazione dal sito: scheda «Valutazioni»." : `Ci sono ${nr} nuove richieste di valutazione dal sito: scheda «Valutazioni».`);
+    }
     if (!sito && !S.online) toast("Non riesco a leggere i dati del sito: parti da un file importato.");
     impostaUi();
     disegna();
@@ -229,18 +239,21 @@
   function disegna() {
     const disp = S.auto.filter((a) => a.stato === "disponibile").length, vend = S.auto.length - disp;
     $("#n-disp").textContent = disp; $("#n-vend").textContent = vend; $("#n-crm").textContent = S.contatti.filter((c) => GT.Crm.aperti().includes(c)).length;
-    ["disp:disponibile", "vend:venduta", "crm:crm", "flotta:flotta"].forEach((x) => { const [i, t] = x.split(":"); $("#tab-" + i).setAttribute("aria-selected", String(S.tab === t)); });
-    $("#kpi").innerHTML = GT.Crm.kpi();
-    const crm = S.tab === "crm", flotta = S.tab === "flotta", sold = S.tab === "venduta";
-    $("#vista-auto").hidden = crm || flotta; $("#crm").hidden = !crm; $("#flotta").hidden = !flotta; $("#barra").hidden = flotta;
-    $("#b-nuova").textContent = crm ? "Nuovo contatto" : "Aggiungi auto";
-    $("#fab").hidden = flotta; $("#fab").textContent = crm ? "+ Nuovo contatto" : "+ Aggiungi auto";
-    $("#q").placeholder = crm ? "Cerca nome, telefono, auto…" : "Cerca marca, modello, targa…";
-    if (crm) GT.Crm.disegna(); else if (flotta) { GT.Garage.leggiImp(); GT.Garage.disegna(); } else disegnaAuto(sold);
-    $("#b-esempi").hidden = !(S.auto.some((a) => a.demo) || S.contatti.some((c) => c.demo) || S.storico.some((r) => r.demo));
+    ["home:riepilogo", "disp:disponibile", "vend:venduta", "crm:crm", "visite:visite", "ric:valutazioni", "flotta:flotta"].forEach((x) => { const [i, t] = x.split(":"); $("#tab-" + i).setAttribute("aria-selected", String(S.tab === t)); });
+    const home = S.tab === "riepilogo", crm = S.tab === "crm", flotta = S.tab === "flotta", visite = S.tab === "visite", ric = S.tab === "valutazioni", sold = S.tab === "venduta";
+    $("#n-visite").textContent = GT.Agenda.daConfermare(); $("#n-visite").hidden = !GT.Agenda.daConfermare();
+    const conRic = GT.Richieste.attiva() || ric;                       // la scheda c'è se il sito ha il modulo «Vendi la tua auto» o se ci sono richieste
+    $("#tab-ric").hidden = !conRic; $("#n-ric").textContent = GT.Richieste.nuove(); $("#n-ric").hidden = !GT.Richieste.nuove();
+    $("#home").hidden = !home; $("#vista-auto").hidden = home || crm || flotta || visite || ric; $("#crm").hidden = !crm; $("#flotta").hidden = !flotta; $("#agenda").hidden = !visite; $("#ricevute").hidden = !ric; $("#barra").hidden = flotta || home; $("#barra").classList.toggle("solo-nuova", visite || ric);
+    $("#b-nuova").hidden = ric;
+    $("#b-nuova").textContent = crm ? "Nuovo contatto" : visite ? "Nuova visita" : "Aggiungi auto";
+    $("#fab").hidden = flotta || ric; $("#fab").textContent = crm ? "+ Nuovo contatto" : visite ? "+ Nuova visita" : "+ Aggiungi auto";
+    $("#q").placeholder = crm || visite || ric ? "Cerca nome, telefono, auto…" : "Cerca marca, modello, targa…";
+    if (home) GT.Home.disegna(); else if (crm) GT.Crm.disegna(); else if (visite) GT.Agenda.disegna(); else if (ric) GT.Richieste.disegna(); else if (flotta) { GT.Garage.leggiImp(); GT.Garage.disegna(); } else disegnaAuto(sold);
+    $("#b-esempi").hidden = !(S.auto.some((a) => a.demo) || S.contatti.some((c) => c.demo) || S.storico.some((r) => r.demo) || S.visite.some((v) => v.demo) || S.richieste.some((r) => r.demo));
     if (S.online) GT.Server.pill();
     else {
-      const mod = stabile(S.auto) !== stabile(S.sito.map(pieno)) || GT.Unione.h(normTitolare(S.titolare)) !== GT.Unione.h(S.sitoTit);
+      const mod = aggiornaPubbar();
       pillScrivi(mod ? "Modifiche da pubblicare" : "Allineato al sito", mod ? "mod" : "ok", "");
     }
     const nm = crm ? "Contatti" : sold ? "Vendute" : "In vendita";
@@ -251,10 +264,10 @@
   function disegnaAuto(sold) {
     const cols = sold
       ? [["titolo", "Auto"], ["anno", "Anno", 1], ["data_vendita", "Venduta il"], ["prezzo_vendita", "Prezzo vendita", 1], ["margine", "Margine", 1], ["targa", "Targa"]]
-      : [["titolo", "Auto"], ["anno", "Anno", 1], ["km", "Km", 1], ["prezzo", "Prezzo", 1], ["targa", "Targa"], ["stock", "In stock", 1], ["lead", "Contatti", 1], ["margine", "Margine", 1]];
+      : [["titolo", "Auto"], ["anno", "Anno e km", 1], ["prezzo", "Prezzo", 1], ["mer", "Vs mercato", 1], ["stock", "In stock", 1], ["lead", "Contatti", 1], ["margine", "Margine", 1], ["sito", "Sul sito", 0, 1]];
     const so = S.sort[S.tab];
-    $("#tabella thead").innerHTML = "<tr>" + cols.map((c) => `<th class="${c[2] ? "num" : ""}"><button type="button" data-sort="${c[0]}">${c[1]}<span class="ar">${so.k === c[0] ? (so.d > 0 ? "▲" : "▼") : ""}</span></button></th>`).join("") + "<th></th></tr>";
-    const val = (a, k) => k === "titolo" ? titolo(a).toLowerCase() : k === "stock" ? Fl().giorniStock(a) : k === "lead" ? GT.Crm.interessati(a.id) : k === "margine" ? (sold ? Fl().margineVenduta(a) : Fl().margine(a)) : a[k];
+    $("#tabella thead").innerHTML = "<tr>" + cols.map((c) => c[3] ? `<th class="${c[2] ? "num" : ""}">${c[1]}</th>` : `<th class="${c[2] ? "num" : ""}"><button type="button" data-sort="${c[0]}">${c[1]}<span class="ar">${so.k === c[0] ? (so.d > 0 ? "▲" : "▼") : ""}</span></button></th>`).join("") + "<th></th></tr>";
+    const val = (a, k) => k === "titolo" ? titolo(a).toLowerCase() : k === "stock" ? Fl().giorniStock(a) : k === "lead" ? GT.Crm.interessati(a.id) : k === "margine" ? (sold ? Fl().margineVenduta(a) : Fl().margine(a)) : k === "mer" ? (() => { const r = GT.Stima.riferimento(a); return r && r.diff != null ? r.diff : null; })() : a[k];
     const l = filtrate().sort((a, b) => {
       const va = val(a, so.k), vb = val(b, so.k);
       const na = va == null || va === "", nb = vb == null || vb === "";
@@ -265,6 +278,8 @@
       const r = Fl().revisione(a), g = Fl().giorniStock(a), t = [];
       if (r != null && r <= 30) t.push(`<span class="tag warn">${r < 0 ? "Revisione scaduta" : "Revisione tra " + r + " gg"}</span>`);
       if (g != null && g > 60) t.push('<span class="tag warn">Ferma da molto</span>');
+      const mr = a.stato === "disponibile" ? GT.Stima.riferimento(a) : null;
+      if (mr && mr.stato === "sopra") t.push(`<span class="tag warn">Sopra il mercato</span>`);
       const k = GT.Check.riepilogo(a);
       if (a.preparazione) t.push(`<span class="tag warn">In preparazione${k.daFare ? " · " + k.daFare + (k.daFare === 1 ? " lavoro" : " lavori") : ""}</span>`);
       else if (k.daFare) t.push(`<span class="tag warn">${k.daFare} ${k.daFare === 1 ? "lavoro" : "lavori"} da fare</span>`);
@@ -272,17 +287,18 @@
     };
     const euroC = (n) => (n == null ? "" : (n < 0 ? "−" : "") + TG.euro(Math.abs(n)));
     const cell = (a, k) => ({
-      titolo: `<td class="auto"><div class="auto-in">${miniatura(a)}<div><b>${TG.esc(titolo(a))}${a.demo ? '<span class="tag">Esempio</span>' : ""}${sold ? "" : avvisi(a)}</b><small>${TG.esc(a.allestimento)}</small></div></div></td>`,
-      anno: `<td class="num">${a.anno || ""}</td>`, km: `<td class="num">${a.km != null ? TG.num(a.km) : ""}</td>`,
+      titolo: `<td class="auto"><div class="auto-in">${miniatura(a)}<div><b>${TG.esc(titolo(a))}</b><small>${TG.esc([a.allestimento, a.targa].filter(Boolean).join(" · "))}</small>${a.demo || !sold && avvisi(a) ? `<span class="tags">${a.demo ? '<span class="tag">Esempio</span>' : ""}${sold ? "" : avvisi(a)}</span>` : ""}</div></div></td>`,
+      anno: `<td class="num ak"><b>${a.anno || ""}</b>${sold ? "" : `<small>${a.km != null ? TG.num(a.km) + " km" : ""}</small>`}</td>`, km: `<td class="num">${a.km != null ? TG.num(a.km) : ""}</td>`,
       prezzo: `<td class="num">${a.prezzo != null ? TG.euro(a.prezzo) : ""}</td>`,
       data_vendita: `<td>${TG.esc(a.data_vendita ? a.data_vendita.split("-").reverse().join("/") : "")}</td>`,
       prezzo_vendita: `<td class="num">${a.prezzo_vendita != null ? TG.euro(a.prezzo_vendita) : ""}</td>`, targa: `<td>${TG.esc(a.targa)}</td>`,
       stock: `<td class="num ${Fl().giorniStock(a) > 60 ? "late" : ""}">${Fl().giorniStock(a) != null ? Fl().giorniStock(a) + " gg" : ""}</td>`,
       lead: `<td class="num">${GT.Crm.interessati(a.id) ? `<button type="button" class="lnk" data-az="lead">${GT.Crm.interessati(a.id)}</button>` : '<span class="muted">0</span>'}</td>`,
       margine: (() => { const m = sold ? Fl().margineVenduta(a) : Fl().margine(a); return `<td class="num ${m != null && m < 0 ? "late" : ""}">${euroC(m)}</td>`; })(),
+      mer: (() => { const r = GT.Stima.riferimento(a); return r && r.diff != null ? `<td class="num"><span class="vm vm-${r.stato.replace(" ", "")}" title="Valore di riferimento ${TG.esc(TG.euro(Math.round(r.valore)))}">${r.diff > 0 ? "+" : r.diff < 0 ? "−" : ""}${Math.abs(Math.round(r.diff * 100))}%</span></td>` : '<td class="num"><span class="muted">–</span></td>'; })(),
+      sito: `<td class="num sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra ${TG.esc(titolo(a))} sul sito"><i></i></button></td>`,
     }[k]);
-    $("#tabella tbody").innerHTML = l.map((a) => `<tr data-id="${TG.esc(a.id)}">${cols.map((c) => cell(a, c[0])).join("")}<td class="act">
-<button type="button" class="lnk" data-az="modifica">Modifica</button>${sold ? '<button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : '<button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="stima">Stima</button><button type="button" class="lnk" data-az="venduta">Venduta</button>'}<button type="button" class="lnk d" data-az="elimina">Elimina</button></td></tr>`).join("");
+    $("#tabella tbody").innerHTML = l.map((a) => `<tr data-id="${TG.esc(a.id)}">${cols.map((c) => cell(a, c[0])).join("")}<td class="act"><span class="act-1"><button type="button" class="lnk" data-az="modifica">Modifica</button>${sold ? '<button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : '<button type="button" class="lnk" data-az="venduta">Venduta</button>'}</span><span class="act-2">${sold ? "" : '<button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="stima">Prezzi</button>'}<button type="button" class="lnk d" data-az="elimina">Elimina</button></span></td></tr>`).join("");
     $("#cards").innerHTML = l.map((a) => scheda(a, sold, avvisi, euroC)).join("");
     const v = $("#vuoto");
     v.hidden = l.length > 0;
@@ -298,7 +314,7 @@
     const extra = [g != null && !sold ? g + " giorni in stock" : "", m != null ? "margine " + euroC(m) : ""].filter(Boolean).join(" · ");
     return `<li class="card-auto" data-id="${TG.esc(a.id)}">
   <button type="button" class="ca-main" data-az="modifica" aria-label="Modifica ${TG.esc(titolo(a))}">${miniatura(a)}<span class="ca-t"><b>${TG.esc(titolo(a))}${a.demo ? '<span class="tag">Esempio</span>' : ""}</b><small>${TG.esc(a.allestimento)}</small><span class="ca-d">${dati.filter(Boolean).map(TG.esc).join(" · ")}</span>${extra ? `<span class="ca-e ${m != null && m < 0 ? "late" : ""}">${TG.esc(extra)}</span>` : ""}${sold ? "" : `<span class="ca-tag">${avvisi(a)}</span>`}</span></button>
-  <div class="ca-az">${sold ? '<button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : '<button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="stima">Stima</button><button type="button" class="lnk" data-az="venduta">Venduta</button>'}<button type="button" class="lnk d" data-az="elimina">Elimina</button></div>
+  <div class="ca-az">${sold ? '<button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : `<label class="ca-sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra sul sito"><i></i></button>Sul sito</label><button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="stima">Prezzi</button><button type="button" class="lnk" data-az="venduta">Venduta</button>`}<button type="button" class="lnk d" data-az="elimina">Elimina</button></div>
 </li>`;
   }
 
@@ -320,12 +336,13 @@
     $("#f-err").hidden = true;
     const v = a || { stato: S.tab, data_vendita: "" };
     Array.from(F.elements).forEach((el) => {
-      if (!el.name) return;
+      if (!el.name || el.type === "checkbox") return;
       const x = v[el.name];
       if (el.tagName === "SELECT" && x && !Array.from(el.options).some((o) => o.value === String(x) || o.text === String(x))) el.add(new Option(x, x));
       el.value = x == null ? "" : x;
     });
     fotoEd.carica(v.foto || "");
+    GT.Aggiungi.apertura(a);
     $("#f-check").hidden = !a || a.stato === "venduta";
     apri($("#d-form"));
   }
@@ -342,7 +359,7 @@
   $("#f-check").onclick = () => {
     const prev = editId ? S.auto.find((x) => x.id === editId) : null; if (!prev) return;
     const copia = JSON.parse(JSON.stringify(prev)); copia.costi_extra = numero(F.elements.costi_extra.value);
-    GT.Check.apri(copia, { dopo: (c) => { prev.checklist = c.checklist; prev.preparazione = c.preparazione; prev.costi_extra = c.costi_extra; F.elements.costi_extra.value = c.costi_extra == null ? "" : c.costi_extra; salva(); disegna(); } });
+    GT.Check.apri(copia, { dopo: (c) => { prev.checklist = c.checklist; prev.preparazione = c.preparazione; prev.costi_extra = c.costi_extra; F.elements.costi_extra.value = c.costi_extra == null ? "" : c.costi_extra; $("#fa-visibile").checked = !c.preparazione; GT.Aggiungi.aggiorna(); salva(); disegna(); } });
   };
   function apriStima(a) {
     GT.Stima.apri({ id: a.id, valori: a, lavori: GT.Calc.lavoriDaFare(a), onUsa: (p) => { a.prezzo = p; salva(); disegna(); } });
@@ -359,12 +376,12 @@
     const num = {};
     for (const k of NUMERI) { const n = numero(d[k]); num[k] = n == null ? null : Math.round(n); }
     if (d.cambio) d.cambio = cambioCanon(d.cambio);
-    const rec = pieno(Object.assign({}, prev || {}, d, num, { id: editId || "", marca: marcaCanon(d.marca), demo: prev ? prev.demo : false }));
+    const rec = pieno(Object.assign({}, prev || {}, d, num, { id: editId || "", marca: marcaCanon(d.marca), demo: prev ? prev.demo : false, preparazione: !F.elements.visibile.checked }));
     const pos = prev ? S.auto.indexOf(prev) : -1;
     if (pos >= 0) S.auto[pos] = rec; else S.auto.push(rec);
     S.tab = rec.stato;
-    salva(); disegna(); $("#d-form").close(); toast(prev ? "Auto aggiornata." : "Auto aggiunta.");
-    if (!prev && rec.stato === "disponibile") GT.Check.apri(rec, { nuova: true });          // auto nuova: subito i controlli prima della vendita
+    salva(); disegna(); $("#d-form").close();
+    toast(prev ? "Auto salvata." : rec.preparazione ? "Auto aggiunta: per ora la vedi solo tu." : "Auto aggiunta. Per vederla sul sito premi «Pubblica sul sito».");
   });
 
   /* nome e foto del titolare per il sito */
@@ -402,6 +419,7 @@
     const a = S.auto.find((x) => x.id === b.closest("[data-id]").dataset.id); if (!a) return;
     if (b.dataset.az === "lead") { GT.Crm.filtraAuto(a.id); S.tab = "crm"; disegna(); }
     else if (b.dataset.az === "modifica") apriForm(a);
+    else if (b.dataset.az === "vis") { a.preparazione = a.preparazione !== true; salva(); disegna(); toast(a.preparazione ? titolo(a) + ": nascosta dal sito (dopo «Pubblica sul sito»)." : titolo(a) + ": tornerà visibile sul sito (dopo «Pubblica sul sito»)."); }
     else if (b.dataset.az === "venduta") apriVenduta(a);
     else if (b.dataset.az === "controlli") GT.Check.apri(a, {});
     else if (b.dataset.az === "stima") apriStima(a);
@@ -410,17 +428,21 @@
   };
   $("#tabella").addEventListener("click", azioneAuto);
   $("#cards").addEventListener("click", azioneAuto);
-  $("#fab").onclick = () => (S.tab === "crm" ? GT.Crm.nuovo() : apriForm(null));
+  $("#fab").onclick = () => (S.tab === "crm" ? GT.Crm.nuovo() : S.tab === "visite" ? GT.Agenda.nuova() : apriForm(null));
+  $("#tab-home").onclick = () => { S.tab = "riepilogo"; disegna(); };
   $("#tab-disp").onclick = () => { S.tab = "disponibile"; disegna(); };
   $("#tab-vend").onclick = () => { S.tab = "venduta"; disegna(); };
   $("#tab-crm").onclick = () => { S.tab = "crm"; disegna(); };
   $("#tab-flotta").onclick = () => { S.tab = "flotta"; disegna(); };
+  $("#tab-visite").onclick = () => { S.tab = "visite"; disegna(); };
+  $("#tab-ric").onclick = () => { S.tab = "valutazioni"; disegna(); };
   $("#q").addEventListener("input", (e) => { S.q = e.target.value; disegna(); });
-  $("#b-nuova").onclick = () => (S.tab === "crm" ? GT.Crm.nuovo() : apriForm(null));
+  $("#b-pagare").onclick = () => GT.Stima.quantoPagare();
+  $("#b-nuova").onclick = () => (S.tab === "crm" ? GT.Crm.nuovo() : S.tab === "visite" ? GT.Agenda.nuova() : apriForm(null));
   $("#b-esempi").onclick = () => {
     if (!confirm("Eliminare le auto, i contatti e lo storico di esempio?")) return;
     const ids = new Set(S.auto.filter((a) => a.demo).map((a) => a.id));
-    S.auto = S.auto.filter((a) => !a.demo); S.contatti = S.contatti.filter((c) => !c.demo && !ids.has(c.auto_id)); S.storico = S.storico.filter((r) => !r.demo);
+    S.auto = S.auto.filter((a) => !a.demo); S.contatti = S.contatti.filter((c) => !c.demo && !ids.has(c.auto_id)); S.storico = S.storico.filter((r) => !r.demo); S.visite = S.visite.filter((v) => !v.demo); S.richieste.filter((r) => r.demo).forEach(GT.Richieste.togliFoto); S.richieste = S.richieste.filter((r) => !r.demo);
     pulisciFoto(); salva(); disegna(); toast("Dati di esempio eliminati.");
   };
   $("#b-reset").onclick = () => {
@@ -594,8 +616,8 @@
     const usate = new Set(); S.auto.forEach((a) => GT.Foto.lista(a.foto).forEach((n) => usate.add(n))); GT.Foto.lista(S.titolare.foto).forEach((n) => usate.add(n));
     let nf = 0;
     for (const n of usate) { const b = await GT.Foto.ottieni(n); if (b) { foto.file(n, b); nf++; } }
-    z.file("backup.json", JSON.stringify({ tipo: "borzi-auto-backup", versione: 3, creato: new Date().toISOString(), auto: S.auto, contatti: S.contatti, storico: S.storico, imp: S.imp, titolare: S.titolare }, null, 1));
-    z.file("LEGGIMI.txt", "Backup del gestionale Borzi Auto.\nPer ripristinarlo: Gestionale → Importa CSV o Excel → scegli questo file .zip.\nContiene auto (anche i dati riservati e i controlli), contatti del CRM, storico delle vendite, impostazioni di flotta e foto caricate dal gestionale.\n");
+    z.file("backup.json", JSON.stringify({ tipo: "borzi-auto-backup", versione: 3, creato: new Date().toISOString(), auto: S.auto, contatti: S.contatti, storico: S.storico, visite: S.visite, richieste: S.richieste, vimp: S.vimp, imp: S.imp, titolare: S.titolare }, null, 1));
+    z.file("LEGGIMI.txt", "Backup del gestionale " + AP.Config.cfg.nome + " (Borzi Auto).\nPer ripristinarlo: Gestionale → Importa CSV o Excel → scegli questo file .zip.\nContiene auto (anche i dati riservati e i controlli), contatti del CRM, visite, orari delle visite, richieste di valutazione (senza le loro foto), storico delle vendite, impostazioni di flotta e foto caricate dal gestionale.\n");
     TG.tab.scarica(await z.generateAsync({ type: "blob", compression: "DEFLATE" }), `borzi-auto-backup-${dataFile()}.zip`);
     toast(`Backup scaricato: ${S.auto.length} auto, ${S.contatti.length} contatti, ${nf} foto.`);
   }
@@ -603,9 +625,9 @@
     const z = await JSZip.loadAsync(file), bj = z.file("backup.json");
     if (!bj) throw new Error("Questo .zip non è un backup del gestionale (manca backup.json). Per le foto usa «Aggiungi foto» nella scheda dell’auto.");
     const d = JSON.parse(await bj.async("string"));
-    if (d.tipo !== "borzi-auto-backup" || !Array.isArray(d.auto)) throw new Error("Il file di backup non è valido.");
+    if (d.tipo !== "borzi-auto-backup" && d.tipo !== "autoprofit-backup" && d.tipo !== "top-garage-backup" || !Array.isArray(d.auto)) throw new Error("Il file di backup non è valido.");
     const foto = []; z.folder("foto").forEach((rel, f) => { if (!f.dir) foto.push([rel.replace(/^.*\//, ""), f]); });
-    IMP = { backup: { auto: d.auto, contatti: Array.isArray(d.contatti) ? d.contatti : [], storico: d.storico, imp: d.imp, titolare: d.titolare, foto, creato: d.creato || "" } };
+    IMP = { backup: { auto: d.auto, contatti: Array.isArray(d.contatti) ? d.contatti : [], visite: Array.isArray(d.visite) ? d.visite : [], richieste: Array.isArray(d.richieste) ? d.richieste : [], vimp: d.vimp, storico: d.storico, imp: d.imp, titolare: d.titolare, foto, creato: d.creato || "" } };
     $("#i-riepilogo").innerHTML = `<strong>${TG.esc(file.name)}</strong>: backup${d.creato ? " del " + TG.esc(d.creato.slice(0, 10).split("-").reverse().join("/")) : ""} con ${d.auto.length} auto, ${IMP.backup.contatti.length} contatti e ${foto.length} foto. <strong>Il ripristino sostituisce tutto quello che c’è ora in questo browser.</strong>`;
     $("#i-colonne").textContent = ""; $("#i-problemi").innerHTML = ""; $("#i-anteprima").innerHTML = "";
     $("#i-anteprima").parentElement.hidden = true; $("#i-modo").hidden = true;
@@ -617,7 +639,7 @@
     if (!confirm("Sostituire tutte le auto, i contatti e le foto di questo browser con quelli del backup?")) return;
     for (const n of GT.Foto.nomi()) await GT.Foto.elimina(n);
     for (const [nome, f] of bk.foto) await GT.Foto.ripristina(nome, await f.async("blob"));
-    S.auto = bk.auto.map(pieno); S.contatti = bk.contatti.map(GT.Crm.norm); S.storico = normStorico(bk.storico); S.imp = normImp(bk.imp); S.titolare = normTitolare(bk.titolare);
+    S.auto = bk.auto.map(pieno); S.contatti = bk.contatti.map(GT.Crm.norm); S.storico = normStorico(bk.storico); S.visite = (bk.visite || []).map(AP.Visite.norm).filter((v) => v.id); S.richieste = (bk.richieste || []).map(AP.Richieste.norm).filter((r) => r.id); S.vimp = AP.Visite.pulisciImp(bk.vimp); applicaImp(); S.imp = normImp(bk.imp); S.titolare = normTitolare(bk.titolare);
     salva(); disegna(); $("#d-importa").close(); toast(`Backup ripristinato: ${S.auto.length} auto, ${S.contatti.length} contatti.`);
     IMP = null;
   }
@@ -625,37 +647,103 @@
   /* ---------- pubblica ---------- */
   const fotoLocali = () => { const set = new Set(); S.auto.filter(inVetrina).forEach((a) => GT.Foto.lista(a.foto).forEach((n) => { if (GT.Foto.ha(n)) set.add(n); })); GT.Foto.lista(S.titolare.foto).forEach((n) => { if (GT.Foto.ha(n)) set.add(n); }); return [...set]; };
   const jsonSito = () => JSON.stringify({ versione: 1, aggiornato: oggi(), auto: S.auto.filter(inVetrina).map(pubblico), sito: { titolare: { nome: S.titolare.nome, foto: GT.Foto.lista(S.titolare.foto) } } }, null, 1);
+
+  /* cosa cambierebbe sul sito rispetto a quello che c'è ora (data/auto.json pubblicato) */
+  const ETICHETTE = { stato: "stato", marca: "marca", modello: "modello", allestimento: "versione", anno: "anno", km: "chilometri", alimentazione: "alimentazione", cambio: "cambio", cv: "potenza", colore: "colore", carrozzeria: "carrozzeria", prezzo: "prezzo", data_vendita: "data di vendita", foto: "foto", descrizione: "descrizione", autoscout_url: "link AutoScout24" };
+  const nv = (v) => (v == null ? "" : String(v));
+  function cambiamenti() {
+    const sito = new Map(S.sito.map(pieno).map((a) => [a.id, a])), vetrina = S.auto.filter(inVetrina), ids = new Set(vetrina.map((a) => a.id));
+    const nuove = [], modificate = [];
+    vetrina.forEach((a) => {
+      const o = sito.get(a.id); if (!o) return nuove.push(a);
+      const p = pubblico(a), q = pubblico(o), campi = PUBBLICI.filter((k) => k !== "id" && k !== "demo" && nv(p[k]) !== nv(q[k]));
+      if (!campi.length) return;
+      const cosa = campi.map((k) => {
+        if (k === "prezzo") return `prezzo ${q.prezzo != null ? TG.euro(q.prezzo) : "su richiesta"} → ${p.prezzo != null ? TG.euro(p.prezzo) : "su richiesta"}`;
+        if (k === "stato") return a.stato === "venduta" ? "segnata come venduta" : "rimessa in vendita";
+        if (k === "foto") { const x = GT.Foto.lista(q.foto).length, y = GT.Foto.lista(p.foto).length; return x !== y ? `foto ${x} → ${y}` : "foto cambiate"; }
+        return ETICHETTE[k] || k;
+      });
+      modificate.push({ a, cosa });
+    });
+    const tolte = [...sito.values()].filter((o) => !ids.has(o.id));
+    const titolare = GT.Unione.h(normTitolare(S.titolare)) !== GT.Unione.h(S.sitoTit);
+    return { nuove, modificate, tolte, titolare, tot: nuove.length + modificate.length + tolte.length + (titolare ? 1 : 0) };
+  }
+  const piu = (n, s, p) => `${n} ${n === 1 ? s : p}`;
+  /* la barra in alto: dice se il sito è aggiornato e, se no, cosa manca */
+  function aggiornaPubbar() {
+    const c = cambiamenti(), bar = $("#pubbar");
+    bar.classList.toggle("mod", c.tot > 0); bar.classList.toggle("ok", c.tot === 0);
+    const parti = [c.nuove.length ? piu(c.nuove.length, "auto nuova", "auto nuove") : "", c.modificate.length ? piu(c.modificate.length, "auto cambiata", "auto cambiate") : "", c.tolte.length ? piu(c.tolte.length, "auto tolta", "auto tolte") : "", c.titolare ? "titolare" : ""].filter(Boolean);
+    $("#pb-titolo").textContent = c.tot ? (c.tot === 1 ? "C’è una novità che il sito non ha ancora" : `Ci sono ${c.tot} novità che il sito non ha ancora`) : "Il sito è aggiornato";
+    $("#pb-sotto").textContent = c.tot ? parti.join(" · ") : "Quello che vedi qui è quello che vedono i clienti.";
+    $("#b-pubblica").hidden = c.tot === 0;
+    return c.tot > 0;
+  }
+  const NOME_ZIP = () => `aggiornamento-sito-${oggi()}.zip`;
+  async function costruisciZip() {
+    const z = new JSZip(), foto = fotoLocali();
+    z.file("data/auto.json", jsonSito());
+    foto.forEach((n) => z.file("img/auto/" + n, GT.Foto.blob(n)));
+    z.file("LEGGIMI.txt", "Aggiornamento per il sito " + AP.Config.cfg.nome + ".\n\nSul repository GitHub del sito apri la cartella «public», poi Add file → Upload files, e trascina qui le cartelle «data» e «img» di questo zip (decomprimilo prima).\nLe cartelle si uniscono a quelle esistenti: i file con lo stesso nome vengono sostituiti.\nPoi Commit changes: Cloudflare ripubblica il sito in un paio di minuti.\n\nDentro ci sono: data/auto.json (solo dati pubblici: targa, costi, prezzo di vendita e note interne non ci sono) e " + foto.length + " foto in img/auto/.\n");
+    return z.generateAsync({ type: "blob", compression: "DEFLATE" });
+  }
+  let ZIPP = null, zipTk = 0;
+  const filePubb = () => (ZIPP ? new File([ZIPP], NOME_ZIP(), { type: "application/zip" }) : null);
+  const puoCondividere = () => { try { const f = filePubb(); return !!(f && navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch (e) { return false; } };
   $("#b-pubblica").onclick = () => {
-    const pub = S.auto.filter(inVetrina), prep = S.auto.length - pub.length, d = pub.filter((a) => a.stato === "disponibile").length, nf = fotoLocali().length;
-    $("#p-conteggio").textContent = `Sul sito andranno ${d} auto in vendita e ${pub.length - d} vendute` + (nf ? `, con ${nf} foto caricate da qui.` : ".") + (prep ? ` Restano fuori ${prep} ${prep === 1 ? "auto in preparazione" : "auto in preparazione"}.` : "") + (S.auto.some((a) => a.demo) ? " Attenzione: ci sono ancora auto di esempio." : "");
+    const c = cambiamenti(), pub = S.auto.filter(inVetrina), prep = S.auto.length - pub.length, d = pub.filter((a) => a.stato === "disponibile").length, nf = fotoLocali().length;
+    const li = [];
+    c.nuove.forEach((a) => li.push(`<li class="n"><b>Nuova</b> ${TG.esc(titolo(a))}${a.anno ? " " + a.anno : ""}<small>${a.prezzo != null ? TG.esc(TG.euro(a.prezzo)) : "prezzo su richiesta"}</small></li>`));
+    c.modificate.forEach((x) => li.push(`<li class="m"><b>Cambiata</b> ${TG.esc(titolo(x.a))}<small>${TG.esc(x.cosa.join(", "))}</small></li>`));
+    c.tolte.forEach((o) => li.push(`<li class="t"><b>Tolta</b> ${TG.esc(titolo(o))}<small>${S.auto.some((a) => a.id === o.id) ? "nascosta, la vedi solo tu" : "eliminata"}</small></li>`));
+    if (c.titolare) li.push('<li class="m"><b>Cambiato</b> nome o foto del titolare</li>');
+    $("#p-elenco").innerHTML = li.slice(0, 14).join("") + (li.length > 14 ? `<li class="altre">… e altre ${li.length - 14}</li>` : "") || '<li class="altre">Nessuna novità: il sito è già aggiornato.</li>';
+    $("#p-sotto").textContent = c.tot ? "Controlla le novità e invia il file a chi gestisce il sito." : "Non c’è niente da inviare.";
+    $("#p-conteggio").textContent = `Dopo l’aggiornamento il sito mostrerà ${d} auto in vendita e ${pub.length - d} vendute` + (nf ? `, con ${nf} foto caricate da qui.` : ".") + (prep ? ` ${piu(prep, "auto resta nascosta", "auto restano nascoste")} (solo tu le vedi).` : "") + (S.auto.some((a) => a.demo) ? " Attenzione: ci sono ancora auto di esempio." : "");
+    const tk = ++zipTk; ZIPP = null;
+    const inv = $("#p-invia"), zp = $("#p-zip");
+    inv.disabled = true; zp.disabled = true; inv.textContent = "Preparo il file…";
+    $("#p-spiega").textContent = "Preparo il file con le tue auto e le foto: ci vuole un attimo.";
     apri($("#d-pubblica"));
+    costruisciZip().then((b) => {
+      if (tk !== zipTk) return;
+      ZIPP = b; const cond = puoCondividere();
+      inv.disabled = false; zp.disabled = false; inv.textContent = cond ? "Invia l’aggiornamento" : "Scarica l’aggiornamento"; zp.hidden = !cond;
+      $("#p-spiega").textContent = cond
+        ? "Tocca «Invia l’aggiornamento» e scegli come mandarlo (WhatsApp, e-mail…) a chi gestisce il sito: lo carica lui e le novità compaiono sul sito in pochi minuti."
+        : "Scarica il file e mandalo a chi gestisce il sito (WhatsApp, e-mail): lo carica lui e le novità compaiono sul sito in pochi minuti.";
+    }).catch((e) => { inv.textContent = "Non riesco a preparare il file"; toast("Non riesco a creare il file: " + e.message); });
   };
-  $("#p-zip").onclick = async () => {
-    try {
-      const z = new JSZip(), foto = fotoLocali();
-      z.file("data/auto.json", jsonSito());
-      foto.forEach((n) => z.file("img/auto/" + n, GT.Foto.blob(n)));
-      z.file("LEGGIMI.txt", "Pacchetto per il sito Borzi Auto.\n\nSul repository GitHub del sito apri la cartella «public», poi Add file → Upload files, e trascina qui le cartelle «data» e «img» di questo zip (decomprimilo prima).\nLe cartelle si uniscono a quelle esistenti: i file con lo stesso nome vengono sostituiti.\nPoi Commit changes: Cloudflare ripubblica il sito in un paio di minuti.\n\nDentro ci sono: data/auto.json (solo dati pubblici: targa, costi, prezzo di vendita e note interne non ci sono) e " + foto.length + " foto in img/auto/.\n");
-      TG.tab.scarica(await z.generateAsync({ type: "blob", compression: "DEFLATE" }), `borzi-auto-sito-${oggi()}.zip`);
-      toast(`Pacchetto scaricato: auto.json e ${foto.length} foto.`);
-    } catch (e) { toast("Non riesco a creare il pacchetto: " + e.message); }
+  $("#d-pubblica").addEventListener("close", () => { zipTk++; });
+  const scaricaPubb = () => { if (!ZIPP) return; TG.tab.scarica(ZIPP, NOME_ZIP()); toast("File scaricato. Mandalo a chi gestisce il sito."); };
+  $("#p-zip").onclick = scaricaPubb;
+  $("#p-invia").onclick = async () => {
+    const f = filePubb(); if (!f) return;
+    if (puoCondividere()) {
+      try { await navigator.share({ files: [f], title: "Aggiornamento del sito " + AP.Config.cfg.nome, text: "Ecco le auto e le foto aggiornate per il sito." }); toast("File inviato. Le novità compaiono sul sito appena viene caricato."); return; }
+      catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    scaricaPubb();
   };
   $("#p-scarica").onclick = () => TG.tab.scarica(jsonSito(), "auto.json", "application/json;charset=utf-8");
 
   /* collegamento con l'archivio online (server.js) */
   const eguali = (a, b) => GT.Unione.h(a) === GT.Unione.h(b);
   GT.Server.init({
-    leggi: () => ({ auto: S.auto, contatti: S.contatti, storico: S.storico, titolare: S.titolare, flotta: S.imp }),
-    norm: { auto: pieno, contatti: GT.Crm.norm, storico: (d) => normStorico([d])[0] || null, titolare: normTitolare, flotta: normImp },
-    haEsempi: () => S.auto.some((a) => a.demo) || S.contatti.some((c) => c.demo) || S.storico.some((r) => r.demo),
+    leggi: () => ({ auto: S.auto, contatti: S.contatti, storico: S.storico, visite: S.visite, richieste: S.richieste, titolare: S.titolare, flotta: S.imp, vimp: S.vimp }),
+    norm: { auto: pieno, contatti: GT.Crm.norm, visite: AP.Visite.norm, richieste: AP.Richieste.norm, storico: (d) => normStorico([d])[0] || null, titolare: normTitolare, flotta: normImp, vimp: AP.Visite.pulisciImp },
+    haEsempi: () => S.auto.some((a) => a.demo) || S.contatti.some((c) => c.demo) || S.storico.some((r) => r.demo) || S.visite.some((v) => v.demo) || S.richieste.some((r) => r.demo),
     applica: (m) => {
-      ["auto", "contatti", "storico"].forEach((t) => {
+      ["auto", "contatti", "storico", "visite", "richieste"].forEach((t) => {
         const arr = S[t];
         m[t].del.forEach((id) => { const i = arr.findIndex((x) => x.id === id); if (i >= 0) arr.splice(i, 1); });
         m[t].set.forEach((d) => { const i = arr.findIndex((x) => x.id === d.id); if (i >= 0) { Object.keys(arr[i]).forEach((k) => delete arr[i][k]); Object.assign(arr[i], d); } else arr.push(d); });
       });
       if (m.titolare) S.titolare = m.titolare;
       if (m.flotta) S.imp = m.flotta;
+      if (m.vimp) { S.vimp = m.vimp; applicaImp(); }
       pulisciFoto(); salva(true);
     },
     correggiFoto: (id, via) => { const a = S.auto.find((x) => x.id === id); if (a) { a.foto = GT.Foto.lista(a.foto).filter((n) => !via.has(n)).join("|"); salva(true); } },
@@ -672,10 +760,15 @@
     try { await GT.Foto.svuota(); } catch (e) {}
     location.reload();
   };
-  const ctx = { S, salva, ridisegna: disegna, toast, apri, numero, dataIso, oggi, titolo, q: () => S.q, apriVenduta, stima: apriStima, modifica: apriForm };
+  const vai = (t) => { S.tab = t; disegna(); window.scrollTo(0, 0); };
+  const ctx = { S, salva, ridisegna: disegna, toast, apri, numero, dataIso, oggi, titolo, q: () => S.q, apriVenduta, stima: apriStima, modifica: apriForm, applicaImp, vai, pubblica: () => $("#b-pubblica").click() };
   GT.Crm.init(ctx);
+  GT.Agenda.init(ctx);
+  GT.Richieste.init(ctx);
   GT.Check.init(ctx);
   GT.Stima.init(ctx);
   GT.Garage.init(ctx);
+  GT.Aggiungi.init(ctx, F);
+  GT.Home.init(ctx);
   avvia();
-})();
+});

@@ -5,6 +5,9 @@
    - /api/admin/*              riservato: dietro password (cookie di sessione)
    Servono: il database D1 (binding DB) e il segreto GESTIONALE_PASSWORD (almeno 10 caratteri). */
 
+import { mercato, manutenzione } from "./visite.js";
+import V from "../public/js/visite-core.js";
+
 const ENC = new TextEncoder();
 const GIORNI_SESSIONE = 30;
 const MAX_FOTO = 900 * 1024;               // byte; la riga del database ha un tetto di ~2 MB e la foto va in base64
@@ -33,13 +36,15 @@ export function db(env) {
         env.DB.prepare("CREATE TABLE IF NOT EXISTS foto (nome TEXT PRIMARY KEY, tipo TEXT NOT NULL, dati TEXT NOT NULL, creato INTEGER NOT NULL)"),
         env.DB.prepare("CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)"),
         env.DB.prepare("CREATE TABLE IF NOT EXISTS tentativi (ip TEXT NOT NULL, t INTEGER NOT NULL)"),
+        env.DB.prepare("CREATE TABLE IF NOT EXISTS prenotazioni_ip (ip TEXT NOT NULL, t INTEGER NOT NULL)"),
+        env.DB.prepare("CREATE TABLE IF NOT EXISTS foto_richieste (nome TEXT PRIMARY KEY, rid TEXT NOT NULL, dati TEXT NOT NULL, creato INTEGER NOT NULL)"),
       ]),
     };
   }
   return pronto.p.then(() => env.DB, (e) => { pronto = null; throw e; });
 }
-const meta = async (D, k) => { const r = await D.prepare("SELECT v FROM meta WHERE k=?").bind(k).first(); return r ? r.v : null; };
-const parse = (s, d) => { try { return JSON.parse(s); } catch (e) { return d; } };
+export const meta = async (D, k) => { const r = await D.prepare("SELECT v FROM meta WHERE k=?").bind(k).first(); return r ? r.v : null; };
+export const parse = (s, d) => { try { return JSON.parse(s); } catch (e) { return d; } };
 
 /* ---------- password e sessione ---------- */
 const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -160,15 +165,19 @@ export async function admin(request, env, ctx, url, ora = Date.now()) {
 
   if (!(await autenticato(request, env, ora))) return json({ errore: "non_autorizzato" }, 401);
 
+  if (azione === "mercato") return mercato(request, env, ctx, url, ora);
+
   if (azione === "dati" && request.method === "GET") {
+    try { await manutenzione(env, D, url, ora); } catch (e) { /* la pulizia dei dati vecchi non deve bloccare l'accesso */ }
     const r = await D.prepare("SELECT tipo, dati FROM docs").all();
-    const out = { auto: [], contatti: [], storico: [] };
+    const out = { auto: [], contatti: [], storico: [], visite: [], richieste: [] };
     for (const x of r.results || []) { const d = parse(x.dati, null); if (d && out[x.tipo]) out[x.tipo].push(d); }
-    return json({ inizializzato: (await meta(D, "inizializzato")) === "1", auto: out.auto, contatti: out.contatti, storico: out.storico,
-      impostazioni: { titolare: parse(await meta(D, "titolare"), { nome: "", foto: "" }), flotta: parse(await meta(D, "flotta"), {}) || {} }, ora });
+    return json({ inizializzato: (await meta(D, "inizializzato")) === "1", auto: out.auto, contatti: out.contatti, storico: out.storico, visite: out.visite, richieste: out.richieste,
+      impostazioni: { titolare: parse(await meta(D, "titolare"), { nome: "", foto: "" }), flotta: parse(await meta(D, "flotta"), {}) || {}, visite: V.pulisciImp(parse(await meta(D, "visite_imp"), {})) }, ora });
   }
   if (azione === "sync" && request.method === "POST") return sync(request, D, ora);
   if (azione.startsWith("foto/") && request.method === "PUT") return caricaFoto(request, D, decodeURIComponent(azione.slice(5)), ora);
+  if (azione.startsWith("richiesta-foto/") && (request.method === "GET" || request.method === "HEAD")) return fotoRichiesta(D, request, azione.slice(15));
   return json({ errore: "non_trovato" }, 404);
 }
 
@@ -191,8 +200,8 @@ async function login(request, env, D, url, ora) {
   return json({ ok: true }, 200, { "set-cookie": `tg_sess=${token}; ${attributi(url, "Max-Age=" + GIORNI_SESSIONE * 86400)}` });
 }
 
-/* sync: { auto:{set:[…],del:[id…]}, contatti:{set,del}, storico:{set,del}, impostazioni:{titolare:{nome,foto}, flotta:{…}}, inizializza:true } */
-const TIPI = ["auto", "contatti", "storico"];
+/* sync: { auto:{set:[…],del:[id…]}, contatti:{set,del}, storico:{set,del}, visite:{set,del}, impostazioni:{titolare:{nome,foto}, flotta:{…}}, inizializza:true } */
+const TIPI = ["auto", "contatti", "storico", "visite", "richieste"];
 /* impostazioni della flotta: solo numeri, sì/no e testi brevi, al massimo 24 voci */
 function scrub(o) {
   const out = {}; let n = 0;
@@ -243,9 +252,12 @@ async function sync(request, D, ora) {
   }
   const f = corpo.impostazioni && corpo.impostazioni.flotta;
   if (f && typeof f === "object" && !Array.isArray(f)) st.push(D.prepare("INSERT INTO meta(k, v) VALUES('flotta', ?1) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(JSON.stringify(scrub(f))));
+  const vi = corpo.impostazioni && corpo.impostazioni.visite;
+  if (vi && typeof vi === "object" && !Array.isArray(vi)) st.push(D.prepare("INSERT INTO meta(k, v) VALUES('visite_imp', ?1) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(JSON.stringify(V.pulisciImp(vi))));      // orari delle visite scelti dal titolare
   if (corpo.inizializza) st.push(D.prepare("INSERT INTO meta(k, v) VALUES('inizializzato', '1') ON CONFLICT(k) DO UPDATE SET v='1'"));
   if (st.length) await D.batch(st);
   if (a.set.length || a.del.length || t) await pulisciFoto(D, ora);
+  if (blocchi[4][1].set.length || blocchi[4][1].del.length) await pulisciFotoRichieste(D, ora);
   return json({ ok: true, ora });
 }
 
@@ -271,3 +283,27 @@ async function caricaFoto(request, D, nome, ora) {
   await D.prepare("INSERT INTO foto(nome, tipo, dati, creato) VALUES(?1, ?2, ?3, ?4) ON CONFLICT(nome) DO UPDATE SET tipo=excluded.tipo, dati=excluded.dati, creato=excluded.creato").bind(nome, tipo, aB64(buf), ora).run();
   return json({ ok: true, nome, url: "/foto/" + nome });
 }
+
+
+/* ---------- foto delle richieste «Vendi la tua auto» ----------
+   Non sono pubbliche come quelle delle auto in vetrina: le legge solo il gestionale (con la password).
+   Una foto che nessuna richiesta cita più (richiesta cancellata o resa anonima) si toglie dopo un'ora. */
+const NOME_FOTO_RICH = /^r[a-z0-9]{3,40}-\d{1,2}\.jpg$/;
+export const nomeFotoRichiesta = (id, n) => `${id}-${n}.jpg`;
+async function fotoRichiesta(D, request, nome) {
+  try { nome = decodeURIComponent(nome); } catch (e) { return json({ errore: "nome_non_valido" }, 400); }
+  if (!NOME_FOTO_RICH.test(nome)) return json({ errore: "nome_non_valido" }, 400);
+  const r = await D.prepare("SELECT dati FROM foto_richieste WHERE nome=?").bind(nome).first();
+  if (!r) return json({ errore: "non_trovato" }, 404);
+  return new Response(request.method === "HEAD" ? null : daB64(r.dati), { headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=3600", "x-content-type-options": "nosniff" } });
+}
+export async function pulisciFotoRichieste(D, ora) {
+  const usate = new Set();
+  const r = await D.prepare("SELECT json_extract(dati, '$.foto') AS f FROM docs WHERE tipo='richieste'").all();
+  (r.results || []).forEach((x) => elencoFoto(x.f).forEach((n) => usate.add(n)));
+  const tutte = await D.prepare("SELECT nome FROM foto_richieste WHERE creato < ?").bind(ora - 3600000).all();
+  const via = (tutte.results || []).map((x) => x.nome).filter((n) => !usate.has(n));
+  if (via.length) await D.prepare("DELETE FROM foto_richieste WHERE nome IN (SELECT value FROM json_each(?))").bind(JSON.stringify(via)).run();
+  return via.length;
+}
+export { aB64, tipoImmagine };

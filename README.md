@@ -6,7 +6,7 @@ Cloudflare pubblica la cartella `public/`. La grafica del sito è ispirata ai si
 
 ## Da compilare prima di andare online
 
-**Tutti i dati dell'azienda stanno in un solo punto: l'oggetto `CONFIG` in cima a `public/js/sito.js`.** Quello che lasci vuoto non compare sul sito (nessun pulsante «Chiama» finto, nessun orario inventato). Oggi c'è solo il nome «Borzi Auto».
+**I dati del sito stanno in un solo punto: l'oggetto `CONFIG` in cima a `public/js/sito.js`** (il gestionale ha i suoi in `public/garage.json`, vedi sotto). Quello che lasci vuoto non compare sul sito (nessun pulsante «Chiama» finto, nessun orario inventato). Oggi ci sono nome, telefono, sede, orari, link Google, il titolare (Flavio Borzi) e le auto vendute (5.000).
 
 | Campo di `CONFIG` | Cosa mettere | Dove compare |
 |---|---|---|
@@ -18,24 +18,32 @@ Cloudflare pubblica la cartella `public/`. La grafica del sito è ispirata ai si
 | `orari` | righe con giorni, nome e fasce (esempio commentato nel file) | Contatti (evidenzia il giorno di oggi) |
 | `instagram`, `google`, `autoscout` | link completi | Contatti, vetrina |
 | `mappa` | facoltativo: link a Google Maps | Contatti |
+| `titolare` | `nome` e `ruolo` (oggi «Flavio Borzi», «Titolare») | titolo della prima schermata, scheda del titolare, dati per Google |
+| `venduteTotale` | numero di auto vendute (oggi 5000; `0` = il riquadro scompare) | contatore della prima schermata |
 
 Altre cose da sistemare:
 - **Dati legali**: ragione sociale esatta, sede legale e numero REA vanno nel piè di pagina (c'è un commento HTML in `index.html`).
 - **Dominio**: quando c'è, aggiungi in `index.html` `og:url`, `og:image` (immagine 1200×630) e il link canonico, e la riga `Sitemap` in `robots.txt`.
-- **Titolare**: nome, ruolo e fino a 2 foto si impostano dal gestionale (voce «Titolare»). Senza foto la sezione mostra solo le recensioni e i pulsanti disponibili.
+- **Titolare**: nome e ruolo stanno in `CONFIG.titolare` (il gestionale, se collegato, può sovrascriverli). Le foto di Flavio sono solo nella prima schermata; la sezione recensioni resta senza foto.
 - **Auto e recensioni di esempio**: `public/data/auto.json` (11 auto in vetrina, con le foto in `public/img/auto/`, più alcune vendute di esempio) e le schede di `public/data/recensioni.json` sono dati **di esempio**: modelli riconosciuti dalle foto, ma anno, chilometri, allestimento e prezzo sono inventati, e sul sito sono etichettati «Esempio». Il voto (5,0) e il numero di recensioni (364) vengono invece dal profilo Google e si aggiornano a mano in `recensioni.json` finché non si collega il Worker. Si sostituiscono con le auto vere dal gestionale e con le recensioni vere di Google.
-- Il logo (`public/img/borzi-bianco.svg` e `borzi-nero.svg`) e le icone vengono dal progetto precedente; il rosso del marchio è `#e11d2e` (variabile `--accent` in `public/style.css`).
+- **Logo e colori**: il logo (`public/img/borzi-bianco.svg`, `borzi-nero.svg`, `logo-borzi-auto.svg/.png`, favicon e icone) è ridisegnato in vettoriale a partire dall'immagine del profilo (carattere Montserrat Italic e i due slash). La palette è quella del logo: nero, bianco e argento; **non c'è più nessun rosso**. I colori sono le variabili in cima a `public/style.css` (`--accent`, `--link`, `--star`…); nel gestionale stanno in `public/garage.json` (`tema`).
+- **Dati dell'azienda in due posti**: il sito legge `CONFIG` (`public/js/sito.js`), il gestionale legge `public/garage.json`. Se cambi telefono, indirizzo o orari vanno aggiornati in entrambi.
+- **Regole del gestionale (`garage.json` → `regole`)**: costi di vendita (300 €), costo giornaliero di stock (10 €) e margine minimo (1.500 €) sono valori **segnaposto**: vanno sostituiti con i numeri reali di Borzi Auto, perché alimentano la stima dei prezzi e la pagina Flotta.
 
 ## Cosa c'è
 
 | Percorso | Cosa fa |
 |---|---|
-| `public/index.html` | Il sito: vetrina auto, «Già vendute», recensioni Google, **Il nostro salone** (carosello di foto), servizi, contatti, orari |
+| `public/index.html` | Il sito: **prima schermata con Flavio Borzi**, vetrina auto, «Già vendute», recensioni Google, **Il nostro salone** (carosello di foto), servizi, contatti, orari |
+| `public/js/hero.js` | Movimento e dati della prima schermata: contatore delle auto vendute, stelle, marche che scorrono, «Aperto ora» (orari letti da `CONFIG`, ora italiana), luce che segue il mouse, inclinazione delle foto, parallasse allo scroll. Con «riduci animazioni» non parte niente e la sezione è già nel suo stato finale |
+| `public/img/flavio/` | Le due foto di Flavio (`flavio-1` appoggiato all'auto, `flavio-2` dal finestrino), ognuna in WebP e JPEG a 640 e 1100 px. Sono ingrandite con intelligenza artificiale da fotogrammi di un video a bassa risoluzione: i volti sono nitidi ma non è una foto da reflex |
 | `public/js/salone.js` | Il carosello del salone: scorre da solo, si ferma al passaggio del mouse o fuori schermo, si comanda con frecce, pallini, tastiera e swipe; con «riduci animazioni» non parte da solo |
 | `public/img/salone/` | Le foto del carosello, ognuna in due ritagli: `nome-w.jpg` (orizzontale 16:10, schermi larghi) e `nome-t.jpg` (verticale 4:5, telefono) |
 | `public/style.css` | Tutto lo stile del sito (in cima i colori dei due temi) |
 | `public/js/sito.js` | `CONFIG` con i dati dell'azienda, vetrina, filtri, scheda auto, recensioni, dati per Google |
-| `public/gestionale/` | Pagina riservata (non linkata, `noindex`, esclusa da `robots.txt`): auto, foto, contatti/CRM, **Flotta**, **Stima del prezzo**, **Controlli prima della vendita** |
+| `public/gestionale/` | Pagina riservata (non linkata, `noindex`, esclusa da `robots.txt`): **Riepilogo**, **Aggiungi auto guidato**, auto, foto, contatti/CRM, **Visite**, **Flotta**, **Stima del prezzo**, **Controlli prima della vendita**. Stile in `gestionale.css` + `design.css`; `borzi.css` arrotonda gli angoli per allinearli al sito |
+| `public/garage.json`, `public/js/ap-config.js` | Dati e tema del gestionale (nome, contatti, orari, colori, regole di calcolo, moduli attivi) |
+| `public/js/catalogo.js`, `public/img/marche/` | Catalogo marche/modelli per la selezione guidata dell'auto e i loghi delle marche |
 | `public/data/auto.json` | Le auto del sito quando l'archivio online non è attivo (ora: esempi) |
 | `public/data/recensioni.json` | Recensioni di riserva (ora: solo esempi) |
 | `src/worker.js` | Worker: `/api/recensioni`, `/api/auto`, `/api/admin/*`, `/foto/*` |
@@ -69,13 +77,19 @@ Come si comporta:
 
 ## Cosa fa il gestionale
 
+**Riepilogo.** È la prima pagina: mette in cima quello che serve per decidere oggi, cioè cosa fare ora, le cifre della flotta, come vanno le vendite, da quanto tempo le auto sono ferme, i prezzi rispetto al mercato, le trattative e le prossime visite. Legge solo i dati che il gestionale ha già.
+
+**Aggiungi auto (procedura guidata).** Si parte dalle **foto** (anche scattate dal telefono), poi si sceglie la marca dal suo logo, il modello da un elenco, e anno, chilometri e motore con un tocco. Mentre si compila compaiono il **prezzo consigliato** (con i tre approcci: vendi in fretta, equilibrato, più margine, e il prezzo massimo da pagare per guadagnare il margine minimo) e l'anteprima di come l'auto apparirà sul sito. Il modulo resta quello di sempre: stessi campi e stesso salvataggio. Senza annunci incollati la stima è «di riferimento» (dal catalogo), non di mercato.
+
 **Auto.** Aggiungi, modifica, «Venduta» (data e prezzo), «Rimetti in vendita», elimina. In cima le cifre della flotta (auto in vetrina e valore, giorni medi in stock, margine potenziale, trattative aperte, contatti da richiamare). Dal telefono l'elenco diventa una lista di schede e c'è il pulsante fisso «+ Aggiungi auto»; nelle foto compare anche «+ Scatta» (fotocamera).
 
 **Controlli prima della vendita.** Quando salvi una **nuova** auto si apre una checklist (documenti, sicurezza e meccanica, elettronica e interni, carrozzeria, preparazione per la vendita). Per ogni voce: ok / da fare / non serve, con costo stimato e nota. Se una voce indispensabile è «da fare» l'auto va **in preparazione**: resta nascosta dal sito finché non segni i lavori come fatti. Si riapre da «Controlli» in riga.
 
-**Stima del prezzo.** Dalla riga o dal modulo: «Stima il prezzo». Il sistema **non può leggere AutoScout24 da solo** (non offre un accesso per i prezzi, e copiare le pagine in automatico non è consentito), quindi parte da annunci che **incolli** o importi. Filtra per anno, toglie gli annunci anomali, corregge per i chilometri e propone un range per tre approcci (vendere in fretta, equilibrato, massimo margine), con costi, guadagno ipotetico e prezzo minimo per non perdere. L'affidabilità è «alta» da 12 annunci utili, «media» da 6; sotto i 6 è solo indicativa.
+**Stima del prezzo** (modulo `mercato.js`/`stima.js`, anche nel passo finale di «Aggiungi auto»). Dalla riga o dal modulo: «Stima il prezzo». Il sistema **non può leggere AutoScout24 da solo** (non offre un accesso per i prezzi, e copiare le pagine in automatico non è consentito), quindi parte da annunci che **incolli** o importi. Filtra per anno, toglie gli annunci anomali, corregge per i chilometri e propone un range per tre approcci (vendere in fretta, equilibrato, massimo margine), con costi, guadagno ipotetico e prezzo minimo per non perdere. L'affidabilità è «alta» da 12 annunci utili, «media» da 6; sotto i 6 è solo indicativa.
 
 **Flotta.** Posti nel garage, giorni dall'acquisto alla vetrina e percentuale di riempimento desiderata: mostra la saturazione prevista nelle prossime 12 settimane, quante auto far entrare e uscire ogni settimana, le auto da spingere e i segmenti che rendono di più. Si basa sul **tuo storico** (auto vendute e import CSV/Excel dello storico vendite); i dati di esempio si tolgono con «Elimina i dati di esempio».
+
+**Visite.** Agenda degli appuntamenti in sede, con richiamo ai clienti. Il **modulo di prenotazione sul sito è spento** (`garage.json` → `moduli.visite: false`, e `moduli.vendi: false` per le richieste di valutazione): il sito oggi non ha pulsanti di prenotazione. L'agenda si usa comunque a mano.
 
 **Contatti (CRM).** Pipeline (Nuovo → Contattato → Appuntamento → Trattativa → Venduto / Perso) o elenco; telefono/WhatsApp/email in un tocco, auto di interesse, budget, richiamo, storico attività.
 
@@ -107,7 +121,7 @@ Il repository è già collegato al progetto `autoprofit-borziauto` (stesso `name
 
 `python3 -m http.server 8770 -d public` e apri `http://localhost:8770/`. Il gestionale è in `/gestionale/` (modo locale).
 
-**Cosa non è stato provato:** l'archivio online (D1), le recensioni di Google e la mappa non sono stati collaudati su Cloudflare vero con i dati di Borzi Auto; l'aspetto del sito non è stato controllato a occhio dopo il rifacimento in stile Apple, solo con controlli automatici.
+**Cosa non è stato provato:** l'archivio online (D1), il Worker aggiornato (visite, richieste, stima dal mercato), le recensioni di Google e la mappa non sono stati collaudati su Cloudflare vero con i dati di Borzi Auto, ma solo in locale con risposte simulate. Il sito e il gestionale sono stati provati con browser automatico (telefono, tablet, computer, tema chiaro e scuro, «riduci animazioni»); le animazioni vanno viste a occhio sul sito pubblicato.
 
 ## Note tecniche
 
@@ -119,3 +133,9 @@ Il repository è già collegato al progetto `autoprofit-borziauto` (stesso `name
 ## Cambiare le foto del salone
 
 Le foto del carosello sono le `<figure class="reel-slide">` dentro `<section id="salone">` in `public/index.html`: per ognuna servono due file in `public/img/salone/` (`nome-w.jpg` 1320×825 e `nome-t.jpg` 960×1200). Per aggiungerne una, copia una `<figure>` intera, cambia i nomi dei file, il testo `alt` e «N di M» in `aria-label`. Il carosello si adatta da solo al numero di foto (minimo 3).
+
+## Cambiare la prima schermata (Flavio Borzi)
+
+- **Nome e numeri**: `CONFIG.titolare.nome` e `CONFIG.venduteTotale` in `public/js/sito.js`. Il voto e il numero di recensioni arrivano da `recensioni.json` (o da Google quando il Worker è attivo); le marche che scorrono in basso sono quelle delle auto in vetrina.
+- **Foto**: sostituisci i file in `public/img/flavio/` (stessi nomi; larghezze 640 e 1100, `.webp` e `.jpg`) e, se cambi i rapporti, le proporzioni in `public/index.html` (`flavio-1` 3:4, `flavio-2` 5:4) e in `style.css` (`.fr-a`, `.fr-b`). Le foto sono tagliate a parallelogramma con l'inclinazione degli slash del logo (12°).
+- **Frasi**: titolo e testo stanno in `public/index.html` dentro `<section id="hero">`.

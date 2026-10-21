@@ -27,7 +27,7 @@
 
 <header class="top" id="top">
   <a class="brand" href="#top" aria-label="Borzi Auto, inizio pagina">
-    <picture><source srcset="img/borzi-bianco.svg" media="(prefers-color-scheme: dark)"><img src="img/borzi-nero.svg" alt="Borzi Auto" width="132" height="12"></picture>
+    <picture><source srcset="img/borzi-bianco.svg" media="(prefers-color-scheme: dark)"><img src="img/borzi-nero.svg" alt="Borzi Auto" width="143" height="14"></picture>
   </a>
   <nav class="nav" aria-label="Principale">
     <a href="#auto">Auto in vetrina</a>
@@ -52,16 +52,47 @@
 </header>
 
 <main>
-<section class="hero dark" aria-labelledby="titolo">
-  <div class="hero-copy wrap">
-    <h1 id="titolo">Le auto usate<br>di Borzi&nbsp;Auto.</h1>
-    <p class="lead">Guarda le auto in vetrina, poi vieni a vederle da vicino.</p>
-    <p class="cta">
-      <a class="btn btn-primary btn-lg" href="#auto">Guarda le auto</a>
-      <a class="link-arrow" data-se="tel" data-h="tel" href="#contatti" hidden>Chiamaci</a>
-    </p>
+<section class="hero dark" id="hero" aria-labelledby="titolo">
+  <div class="hero-bg" aria-hidden="true">
+    <i class="hb-s hb-s1"></i><i class="hb-s hb-s2"></i><i class="hb-s hb-s3"></i><i class="hb-flare"></i>
+    <span class="hb-spot"></span>
   </div>
-  <div class="hero-car" aria-hidden="true"></div>
+  <div class="hero-grid wrap">
+    <div class="hero-copy">
+      <p class="hero-open" id="hero-open" hidden><i aria-hidden="true"></i><span></span></p>
+      <h1 id="titolo"><span class="hl"><span id="h-n1">Flavio</span></span> <span class="hl"><span id="h-n2">Borzi.</span></span></h1>
+      <p class="lead"><span id="h-ruolo">Titolare</span> di <span data-t="nome">Borzi Auto</span><span data-se="citta" hidden> a <span data-t="citta"></span></span>. Guarda le auto in vetrina, poi vieni a vederle da vicino.</p>
+      <p class="cta">
+        <a class="btn btn-primary btn-lg" id="hero-cta" href="#auto">Guarda le auto</a>
+        <a class="link-arrow" data-se="tel" data-h="tel" href="#contatti" hidden>Chiamaci</a>
+      </p>
+    </div>
+
+    <div class="hero-stage" id="stage">
+      <div class="st-glow" aria-hidden="true"></div>
+      <figure class="fr fr-a">
+        <div class="fr-in"><picture>
+          <source type="image/webp" srcset="img/flavio/flavio-1-640.webp 640w, img/flavio/flavio-1-1100.webp 1100w" sizes="(max-width:719px) 74vw, 400px">
+          <img id="ph-a" src="img/flavio/flavio-1-1100.jpg" srcset="img/flavio/flavio-1-640.jpg 640w, img/flavio/flavio-1-1100.jpg 1100w" sizes="(max-width:719px) 74vw, 400px" width="1100" height="1470" alt="Flavio Borzi, titolare di Borzi Auto, appoggiato a un’auto sportiva gialla" fetchpriority="high" decoding="async">
+        </picture><i class="glint" aria-hidden="true"></i></div>
+      </figure>
+      <figure class="fr fr-b">
+        <div class="fr-in"><picture>
+          <source type="image/webp" srcset="img/flavio/flavio-2-640.webp 640w, img/flavio/flavio-2-1100.webp 1100w" sizes="(max-width:719px) 62vw, 340px">
+          <img id="ph-b" src="img/flavio/flavio-2-1100.jpg" srcset="img/flavio/flavio-2-640.jpg 640w, img/flavio/flavio-2-1100.jpg 1100w" sizes="(max-width:719px) 62vw, 340px" width="1100" height="880" alt="Flavio Borzi sorride dal finestrino di un’auto sportiva gialla" decoding="async">
+        </picture><i class="glint" aria-hidden="true"></i></div>
+      </figure>
+      <div class="hchip hchip-sold" id="chip-sold" role="img" aria-label="Più di 5.000 auto vendute">
+        <span class="hchip-n"><span id="n-vendute" data-to="5000">5.000</span>+</span>
+        <span class="hchip-l">auto vendute</span>
+      </div>
+      <div class="hchip hchip-rate" id="chip-rate" role="img" aria-label="5 stelle su 5 su Google">
+        <span class="hs" id="hs"><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="hchip-row"><span class="hchip-n" id="n-voto">5,0</span><span class="hchip-l" id="l-voto">su Google</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-mq" id="hero-mq" aria-hidden="true" hidden><div class="mq-track" id="mq-track"></div></div>
 </section>
 
 <section class="showroom" id="auto" aria-labelledby="t-auto">
@@ -210,7 +241,7 @@
 
 <footer class="foot">
   <div class="wrap foot-in">
-    <picture><source srcset="img/borzi-bianco.svg" media="(prefers-color-scheme: dark)"><img src="img/borzi-nero.svg" alt="Borzi Auto" width="96" height="9"></picture>
+    <picture><source srcset="img/borzi-bianco.svg" media="(prefers-color-scheme: dark)"><img src="img/borzi-nero.svg" alt="Borzi Auto" width="92" height="9"></picture>
     <p class="foot-line">
       <span>© <span data-t="anno">2026</span> <span data-t="ragioneSociale">Borzi Auto</span></span>
       <span data-se="indirizzoCompleto" hidden data-t="indirizzoCompleto"></span>
@@ -225,5 +256,6 @@
 <script src="js/comune.js"></script>
 <script src="js/sito.js"></script>
 <script src="js/salone.js"></script>
+<script src="js/hero.js"></script>
 </body>
 </html>

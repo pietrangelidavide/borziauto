@@ -121,7 +121,7 @@
   Foto.editor = function (root, input, titolo, toast, opz) {
     const max = (opz && opz.max) || 40, tocco = !!(window.matchMedia && matchMedia("(pointer:coarse)").matches);
     let nomi = Foto.lista(input.value);
-    const scrivi = () => { input.value = Foto.unisci(nomi); };
+    const scrivi = () => { input.value = Foto.unisci(nomi); input.dispatchEvent(new Event("input", { bubbles: true })); };     // chi guarda il modulo (anteprima, consigli) lo viene a sapere
     const avviso = (m) => (toast ? toast(m) : console.warn(m));
 
     function disegna() {

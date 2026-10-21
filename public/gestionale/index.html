@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="it">
+<html lang="it" data-modo="gestionale">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#0b0b0c">
+<meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,37 +13,45 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gestionale auto · Borzi Auto</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../css/base.css">
 <link rel="stylesheet" href="gestionale.css">
+<link rel="stylesheet" href="design.css">
+<link rel="stylesheet" href="borzi.css">
 </head>
 <body class="gt">
 <header class="gt-top">
-  <a class="gt-brand" href="../" aria-label="Torna al sito"><img src="../img/borzi-bianco.svg" alt="Borzi Auto" width="132" height="12"></a>
-  <h1>Gestionale auto</h1>
+  <a class="gt-brand" href="../" aria-label="Torna al sito" data-ap="logo" data-h="24"></a>
+  <h1>Gestionale</h1>
   <button type="button" class="pill" id="sync" role="status" disabled></button>
   <a class="btn btn-line sm" href="../" id="b-sito">Vai al sito</a>
   <button type="button" class="btn btn-line sm" id="b-esci" hidden>Esci</button>
 </header>
 
 <main class="gt-main">
-  <section class="gt-intro">
-    <p id="intro-t">Qui gestisci le auto, le loro foto e i contatti dei clienti. Tutto resta <strong>in questo browser</strong>: sul sito va solo quello che pubblichi, e mai i dati riservati.</p>
+  <nav class="tabs" role="tablist" aria-label="Sezioni del gestionale">
+    <button type="button" role="tab" id="tab-home" aria-selected="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h6V4H4zM14 20h6V11h-6zM14 4h6v4h-6zM4 17h6v3H4z"/></svg><span>Riepilogo</span></button>
+    <button type="button" role="tab" id="tab-disp" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3l2-5h14l2 5v3M3 15h18M3 15v3h3v-3M18 15v3h3v-3M7 12h.01M17 12h.01"/></svg><span>In vendita</span> <b id="n-disp">0</b></button>
+    <button type="button" role="tab" id="tab-vend" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Vendute</span> <b id="n-vend">0</b></button>
+    <button type="button" role="tab" id="tab-crm" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM20 19v-1a4 4 0 0 0-3-3.8M15.5 4.3a3.5 3.5 0 0 1 0 6.4"/></svg><span>Contatti</span> <b id="n-crm">0</b></button>
+    <button type="button" role="tab" id="tab-visite" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14v14H5zM5 10h14M9 3v4M15 3v4"/></svg><span>Visite</span> <b id="n-visite" hidden>0</b></button>
+    <button type="button" role="tab" id="tab-ric" aria-selected="false" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V4h8l8 8-8 8zM8.5 8.5h.01"/></svg><span>Valutazioni</span> <b id="n-ric" hidden>0</b></button>
+    <button type="button" role="tab" id="tab-flotta" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Flotta</span></button>
+  </nav>
+
+  <div class="gt-corpo">
+  <section class="pubbar" id="pubbar" aria-label="Stato del sito">
+    <span class="pb-dot" aria-hidden="true"></span>
+    <div class="pb-t"><b id="pb-titolo">Il sito è aggiornato</b><small id="pb-sotto"></small></div>
     <button type="button" class="btn btn-light" id="b-pubblica">Pubblica sul sito</button>
   </section>
 
-  <div class="kpis" id="kpi" aria-label="Riepilogo della flotta"></div>
-
-  <div class="tabs" role="tablist" aria-label="Elenco">
-    <button type="button" role="tab" id="tab-disp" aria-selected="true">In vendita <b id="n-disp">0</b></button>
-    <button type="button" role="tab" id="tab-vend" aria-selected="false">Vendute <b id="n-vend">0</b></button>
-    <button type="button" role="tab" id="tab-crm" aria-selected="false">Contatti <b id="n-crm">0</b></button>
-    <button type="button" role="tab" id="tab-flotta" aria-selected="false">Flotta</button>
-  </div>
+  <section id="home" class="home" aria-label="Riepilogo"></section>
 
   <div class="gt-bar" id="barra">
     <input type="search" id="q" placeholder="Cerca marca, modello, targa…" aria-label="Cerca">
     <div class="gt-actions">
       <button type="button" class="btn btn-light sm" id="b-nuova">Aggiungi auto</button>
+      <button type="button" class="btn btn-line sm" id="b-pagare">Quanto vendere e pagare</button>
       <button type="button" class="btn btn-line sm" id="b-importa">Importa CSV o Excel</button>
       <details class="gt-menu" id="menu-esporta">
         <summary class="btn btn-line sm">Esporta</summary>
@@ -68,6 +76,7 @@
   </div>
 
   <section id="crm" hidden aria-label="Contatti e trattative">
+    <div class="gd-nota priv-scad" id="crm-scad" role="status" hidden><span id="crm-scad-t"></span> <button type="button" class="lnk" id="crm-scad-del">Elimina questi contatti</button></div>
     <div class="crm-bar">
       <div class="seg" role="group" aria-label="Vista">
         <button type="button" id="cv-pipe" aria-pressed="true">Pipeline</button>
@@ -81,9 +90,44 @@
     <p class="gt-empty" id="crm-vuoto" hidden></p>
   </section>
 
+  <section id="agenda" hidden aria-label="Agenda delle visite">
+    <div class="kpis" id="av-kpi"></div>
+    <div class="crm-bar">
+      <div class="seg" role="group" aria-label="Vista">
+        <button type="button" id="av-elenco" aria-pressed="true">Elenco</button>
+        <button type="button" id="av-sett" aria-pressed="false">Settimana</button>
+      </div>
+      <div class="av-nav" id="av-nav" hidden>
+        <button type="button" class="btn btn-line sm" id="av-prec" aria-label="Settimana precedente">‹</button>
+        <button type="button" class="btn btn-line sm" id="av-oggi">Oggi</button>
+        <button type="button" class="btn btn-line sm" id="av-succ" aria-label="Settimana successiva">›</button>
+        <span id="av-intervallo" class="muted"></span>
+      </div>
+      <label class="inl chk"><input type="checkbox" id="av-chiuse"> Mostra anche le chiuse</label>
+      <button type="button" class="btn btn-line sm av-orari" id="av-orari">Orari delle visite</button>
+    </div>
+    <p class="av-riep small muted"><span id="av-orari-riep"></span> <button type="button" class="lnk" id="av-orari-mod">Cambia</button></p>
+    <div id="av-lista"></div>
+    <div id="av-settimana" class="sett" hidden></div>
+    <p class="gt-empty" id="av-vuoto" hidden></p>
+  </section>
+
+  <section id="ricevute" hidden aria-label="Richieste di valutazione: chi vuole vendere la sua auto">
+    <div class="kpis" id="ri-kpi"></div>
+    <div class="crm-bar">
+      <div class="seg" role="group" aria-label="Quali richieste">
+        <button type="button" id="ri-aperte" aria-pressed="true">Da gestire</button>
+        <button type="button" id="ri-chiuse" aria-pressed="false">Chiuse</button>
+        <button type="button" id="ri-tutte" aria-pressed="false">Tutte</button>
+      </div>
+    </div>
+    <ul id="ri-lista" aria-label="Richieste di valutazione"></ul>
+    <p class="gt-empty" id="ri-vuoto" hidden></p>
+  </section>
+
   <section id="flotta" hidden aria-label="Ottimizzazione della flotta">
-    <div class="fl-imp">
-      <h2>Il tuo garage</h2>
+    <details class="fl-imp">
+      <summary>Impostazioni del garage: posti, tempi di acquisto, obiettivo</summary>
       <div class="fl-campi">
         <label>Posti nel garage<input id="fl-posti" inputmode="numeric" placeholder="Es. 24"></label>
         <label>Giorni dall’acquisto alla vetrina<input id="fl-ritardo" inputmode="numeric"></label>
@@ -91,9 +135,15 @@
         <label>Acquisti al massimo per settimana<input id="fl-max" inputmode="numeric"></label>
         <label>Giorni di preparazione<input id="fl-prep" inputmode="numeric"></label>
       </div>
-    </div>
+    </details>
 
-    <div class="kpis" id="fl-kpi" aria-label="Cifre della flotta"></div>
+    <div class="fl-kpig" id="fl-kpi" aria-label="Cifre della flotta"></div>
+
+    <div class="fl-box">
+      <h2>Le marche in garage</h2>
+      <p class="muted small">Tocca una marca per vedere le sue auto. In rosso quello che richiede attenzione: auto ferme da molto, margine negativo, prezzi sopra il mercato.</p>
+      <div id="fl-marche"></div>
+    </div>
 
     <div class="fl-box" id="fl-g-box" hidden>
       <h2>Auto in garage nelle prossime settimane</h2>
@@ -149,48 +199,88 @@
     <button type="button" class="lnk" id="b-titolare">Nome e foto del titolare sul sito</button>
     <button type="button" class="lnk" id="b-reset">Annulla le modifiche alle auto e riparti dai dati del sito</button>
   </p>
+  </div>
 </main>
 
 <!-- aggiungi / modifica -->
-<dialog id="d-form" aria-labelledby="f-titolo"><form class="gd" method="dialog" id="form">
-  <h2 id="f-titolo">Aggiungi auto</h2>
-  <div class="fg">
-    <label>Marca *<input name="marca" list="l-marche" required autocomplete="off"></label>
-    <label>Modello *<input name="modello" required></label>
-    <label class="w2">Allestimento<input name="allestimento"></label>
-    <label>Anno<input name="anno" inputmode="numeric" placeholder="2021"></label>
-    <label>Chilometri<input name="km" inputmode="numeric" placeholder="48000"></label>
-    <label>Alimentazione<select name="alimentazione"><option value=""></option><option>Benzina</option><option>Diesel</option><option>Ibrida</option><option>Elettrica</option><option>GPL</option><option>Metano</option></select></label>
-    <label>Cambio<select name="cambio"><option value=""></option><option>Manuale</option><option>Automatico</option></select></label>
-    <label>Potenza (CV)<input name="cv" inputmode="numeric"></label>
-    <label>Colore<input name="colore" placeholder="Blu, Nero…"></label>
-    <label>Carrozzeria<select name="carrozzeria"><option value=""></option><option>Berlina</option><option>SUV</option><option>Citycar</option><option>Coupé</option><option>Station wagon</option><option>Cabrio</option><option>Monovolume</option><option>Pick-up</option></select></label>
-    <label>Prezzo (€)<input name="prezzo" inputmode="numeric" placeholder="24900"></label>
-    <label>Stato<select name="stato"><option value="disponibile">In vendita</option><option value="venduta">Venduta</option></select></label>
-    <label>Data vendita<input name="data_vendita" type="date"></label>
-    <div class="w2 fotobox"><span class="fl">Foto</span><input type="hidden" name="foto"><div id="fotoed" class="fotoed"></div></div>
-    <label class="w2">Link AutoScout24<input name="autoscout_url" type="url" placeholder="https://…"></label>
-    <label class="w2">Descrizione per il sito<textarea name="descrizione" rows="2"></textarea></label>
-  </div>
-  <fieldset class="priv"><legend>Flotta, riservato: non va sul sito</legend>
-    <div class="fg">
-      <label>Targa<input name="targa" autocomplete="off"></label>
-      <label>Data di acquisto<input name="data_acquisto" type="date"></label>
-      <label>Costo di acquisto (€)<input name="costo_acquisto" inputmode="numeric"></label>
-      <label>Costi extra, ricondizionamento (€)<input name="costi_extra" inputmode="numeric"></label>
-      <label>Revisione entro il<input name="scad_revisione" type="date"></label>
-      <label>Prezzo di vendita (€)<input name="prezzo_vendita" inputmode="numeric"></label>
-      <label class="w2">Note interne<textarea name="note_interne" rows="2"></textarea></label>
+<dialog id="d-form" aria-labelledby="f-titolo"><form class="gd gd-auto" method="dialog" id="form">
+  <header class="fa-head"><div><h2 id="f-titolo">Aggiungi auto</h2><p class="fa-aiuto">Quattro passi: foto, che auto è, anno e chilometri, prezzo. Il prezzo giusto te lo suggerisco io.</p></div><button type="button" class="fa-x" data-chiudi aria-label="Chiudi">×</button></header>
+  <div class="fa-cols">
+    <div class="fa-main">
+      <section class="fa-sez" aria-labelledby="fa-h1">
+        <h3 id="fa-h1"><i>1</i>Foto</h3>
+        <p class="fa-aiuto">Davanti, dietro, fianchi, interni, cruscotto, bagagliaio: con almeno 4 foto l’auto attira molte più richieste. La prima è la copertina.</p>
+        <div class="fotobox"><input type="hidden" name="foto"><div id="fotoed" class="fotoed"></div></div>
+      </section>
+
+      <section class="fa-sez" aria-labelledby="fa-h2">
+        <h3 id="fa-h2"><i>2</i>Che auto è</h3>
+        <div class="fa-campo"><label for="f-marca" class="fa-l">Marca *</label>
+          <div class="fa-marca"><img id="fa-logo" alt="" width="30" height="30" hidden><input id="f-marca" name="marca" required autocomplete="off" placeholder="Scegli qui sotto o scrivi"></div>
+          <div class="fa-chips fa-marche" id="fa-marche" role="group" aria-label="Marche"></div></div>
+        <div class="fa-campo"><label for="f-modello" class="fa-l">Modello *</label>
+          <input id="f-modello" name="modello" required autocomplete="off" placeholder="Es. Golf">
+          <div class="fa-chips" id="fa-modelli" role="group" aria-label="Modelli"></div></div>
+        <label class="fa-campo">Versione, se vuoi<input name="allestimento" placeholder="Es. 2.0 TDI Style"></label>
+      </section>
+
+      <section class="fa-sez" aria-labelledby="fa-h3">
+        <h3 id="fa-h3"><i>3</i>Anno, chilometri, motore</h3>
+        <div class="fa-campo"><label for="f-anno" class="fa-l">Anno di immatricolazione</label>
+          <input id="f-anno" name="anno" inputmode="numeric" placeholder="2021" autocomplete="off">
+          <div class="fa-chips fa-anni" id="fa-anni" role="group" aria-label="Anni"></div></div>
+        <label class="fa-campo">Chilometri<input name="km" inputmode="numeric" placeholder="48000" autocomplete="off"></label>
+        <div class="fa-campo"><span class="fa-l" id="fa-la">Alimentazione</span><div class="fa-seg" id="fa-alim" role="radiogroup" aria-labelledby="fa-la"></div>
+          <select name="alimentazione" class="fa-nasc" tabindex="-1" aria-hidden="true"><option value=""></option><option>Benzina</option><option>Diesel</option><option>Ibrida</option><option>Elettrica</option><option>GPL</option><option>Metano</option></select></div>
+        <div class="fa-campo"><span class="fa-l" id="fa-lc">Cambio</span><div class="fa-seg" id="fa-cambio" role="radiogroup" aria-labelledby="fa-lc"></div>
+          <select name="cambio" class="fa-nasc" tabindex="-1" aria-hidden="true"><option value=""></option><option>Manuale</option><option>Automatico</option></select></div>
+      </section>
+
+      <section class="fa-sez" aria-labelledby="fa-h4">
+        <h3 id="fa-h4"><i>4</i>Prezzo</h3>
+        <label class="fa-campo fa-prezzo-in">Prezzo in vetrina (€)<input name="prezzo" inputmode="numeric" placeholder="24900" autocomplete="off"></label>
+        <div id="fa-prezzo" class="fa-prezzo" aria-live="polite"></div>
+      </section>
+
+      <div class="fa-campo fa-stato"><span class="fa-l" id="fa-ls">Stato dell’auto</span><div class="fa-seg" id="fa-stato" role="radiogroup" aria-labelledby="fa-ls"></div>
+        <select name="stato" class="fa-nasc" tabindex="-1" aria-hidden="true"><option value="disponibile">In vendita</option><option value="venduta">Venduta</option></select>
+        <label class="fa-venduta" id="fa-venduta" hidden>Venduta il<input name="data_vendita" type="date"></label></div>
+
+      <details class="fa-det"><summary>Altri dettagli per il sito (facoltativi)</summary>
+        <div class="fg">
+          <label>Potenza (CV)<input name="cv" inputmode="numeric"></label>
+          <label>Colore<input name="colore" placeholder="Blu, Nero…"></label>
+          <label>Carrozzeria<select name="carrozzeria"><option value=""></option><option>Berlina</option><option>SUV</option><option>Citycar</option><option>Coupé</option><option>Station wagon</option><option>Cabrio</option><option>Monovolume</option></select></label>
+          <label class="w2">Link AutoScout24<input name="autoscout_url" type="url" placeholder="https://…"></label>
+          <label class="w2">Descrizione per il sito<textarea name="descrizione" rows="3" placeholder="Es. Unico proprietario, tagliandi in regola, gomme nuove."></textarea></label>
+        </div>
+      </details>
+      <details class="fa-det fa-riserv"><summary>Dati riservati: non vanno mai sul sito</summary>
+        <div class="fg">
+          <label>Targa<input name="targa" autocomplete="off"></label>
+          <label>Data di acquisto<input name="data_acquisto" type="date"></label>
+          <label>Costo di acquisto (€)<input name="costo_acquisto" inputmode="numeric"></label>
+          <label>Costi extra, ricondizionamento (€)<input name="costi_extra" inputmode="numeric"></label>
+          <label>Revisione entro il<input name="scad_revisione" type="date"></label>
+          <label>Prezzo di vendita finale (€)<input name="prezzo_vendita" inputmode="numeric"></label>
+          <label class="w2">Note interne<textarea name="note_interne" rows="2"></textarea></label>
+        </div>
+      </details>
     </div>
-  </fieldset>
+    <aside class="fa-lato" aria-label="Anteprima">
+      <h3>Così appare sul sito</h3>
+      <div class="fa-prev" id="fa-prev"></div>
+      <label class="fa-visibile"><input type="checkbox" id="fa-visibile" name="visibile" checked><span><b>Mostra sul sito</b><small id="fa-vis-nota"></small></span></label>
+    </aside>
+  </div>
   <p class="gd-err" id="f-err" role="alert" hidden></p>
   <div class="gd-btns c-btns">
-    <button type="button" class="btn btn-line sm" id="f-stima">Stima il prezzo</button>
+    <button type="button" class="btn btn-line sm" id="f-stima">Calcolo completo dei prezzi</button>
     <button type="button" class="btn btn-line sm" id="f-check">Controlli prima della vendita</button><span class="grow"></span>
-    <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button>
+    <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva l’auto</button>
   </div>
 </form></dialog>
-<datalist id="l-marche"><option>BMW</option><option>Audi</option><option>Mercedes-Benz</option><option>smart</option><option>MINI</option><option>Volkswagen</option></datalist>
+<datalist id="l-marche"></datalist>
 
 <!-- contatto del CRM -->
 <dialog id="d-contatto" aria-labelledby="c-titolo"><form class="gd" method="dialog" id="form-c">
@@ -217,6 +307,86 @@
     <button type="button" class="lnk d" id="c-del">Elimina</button><span class="grow"></span>
     <a class="btn btn-line sm" id="c-tel" href="#" hidden>Chiama</a><a class="btn btn-line sm" id="c-wa" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a><a class="btn btn-line sm" id="c-mail" href="#" hidden>Email</a>
     <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button>
+  </div>
+</form></dialog>
+
+<!-- visita in agenda -->
+<dialog id="d-visita" aria-labelledby="vi-titolo"><form class="gd" method="dialog" id="form-vi">
+  <h2 id="vi-titolo">Nuova visita</h2>
+  <div class="fg">
+    <label>Nome *<input name="nome" autocomplete="off"></label>
+    <label>Telefono<input name="telefono" inputmode="tel" autocomplete="off"></label>
+    <label>Email<input name="email" type="email" autocomplete="off"></label>
+    <label>Stato<select name="stato"></select></label>
+    <label>Giorno<input name="data" type="date" required></label>
+    <label>Ora<input name="ora" type="time" step="300" required></label>
+    <label>Durata<select name="durata"></select></label>
+    <label class="w2">Auto da vedere<select name="auto_id"></select></label>
+    <label class="w2">Oppure cosa vuole vedere<input name="auto_testo" placeholder="Es. un SUV diesel"></label>
+    <label class="w2">Note<textarea name="note" rows="2"></textarea></label>
+  </div>
+  <p class="gd-nota" id="vi-avviso" role="status" hidden></p>
+  <p class="small muted" id="vi-consenso" hidden></p>
+  <p class="gd-err" id="vi-err" role="alert" hidden></p>
+  <div class="gd-btns c-btns">
+    <button type="button" class="lnk d" id="vi-del">Elimina</button><button type="button" class="lnk d" id="vi-anon">Cancella i dati personali</button><span class="grow"></span>
+    <a class="btn btn-line sm" id="vi-tel" href="#" hidden>Chiama</a><a class="btn btn-line sm" id="vi-wa" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a>
+    <button type="button" class="btn btn-line sm" id="vi-crm" hidden>Aggiungi ai contatti</button><button type="button" class="btn btn-line sm" id="vi-ics" hidden>File calendario</button>
+    <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button>
+  </div>
+</form></dialog>
+
+<!-- orari delle visite scelti dal titolare -->
+<dialog id="d-orari" aria-labelledby="o-titolo"><form class="gd" method="dialog" id="form-o">
+  <h2 id="o-titolo">Orari delle visite</h2>
+  <p class="muted small">Scegli quando i clienti possono prenotare una visita dal sito. Sono gli orari <b>in cui puoi riceverli</b>, non per forza quelli di apertura del garage. <span id="o-nota"></span></p>
+  <div class="o-giorni" id="o-giorni"></div>
+  <p class="o-copia"><button type="button" class="lnk" data-o="copia">Copia gli orari di lunedì su martedì–venerdì</button></p>
+  <div class="fg">
+    <label>Una visita dura<select name="durata"></select></label>
+    <label>Un orario prenotabile ogni<select name="passo"></select></label>
+    <label>Visite nello stesso orario<input name="posti" type="number" min="1" max="10" inputmode="numeric"></label>
+    <label>Preavviso minimo<select name="anticipoOre"></select></label>
+    <label>Si può prenotare fino a<select name="giorniMax"></select></label>
+  </div>
+  <fieldset class="priv o-chius"><legend>Giorni di chiusura e ferie</legend>
+    <div class="o-add">
+      <label>Dal<input name="dal" type="date"></label>
+      <label>Al (se sono più giorni)<input name="al" type="date"></label>
+      <button type="button" class="btn btn-line sm" data-o="addc">Aggiungi</button>
+    </div>
+    <ul class="o-lista" id="o-chiusure"></ul>
+  </fieldset>
+  <p class="gd-err" id="o-err" role="alert" hidden></p>
+  <div class="gd-btns c-btns">
+    <button type="button" class="lnk d" id="o-reset">Torna agli orari di partenza</button><span class="grow"></span>
+    <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva</button>
+  </div>
+</form></dialog>
+
+<!-- richiesta di valutazione: «Vendi la tua auto» -->
+<dialog id="d-ric" aria-labelledby="ri-titolo"><form class="gd" method="dialog" id="form-ri">
+  <div><h2 id="ri-titolo">Richiesta</h2><p class="muted small" id="ri-sotto"></p></div>
+  <div class="vr-w">
+    <div class="vr-foto" id="ri-foto"></div>
+    <div>
+      <div id="ri-dettagli"></div>
+      <fieldset class="priv"><legend>Come la gestisci, riservato</legend>
+        <div class="fg">
+          <label>Stato<select name="stato"></select></label>
+          <label>Offerta fatta (€)<input name="offerta" inputmode="numeric" placeholder="Es. 5800"></label>
+          <label class="w2">Note interne<textarea name="note_interne" rows="3" placeholder="Cosa vi siete detti, quando richiamare…"></textarea></label>
+        </div>
+      </fieldset>
+      <p class="small muted" id="ri-consenso"></p>
+    </div>
+  </div>
+  <p class="gd-err" id="ri-err" role="alert" hidden></p>
+  <div class="gd-btns c-btns">
+    <button type="button" class="lnk d" id="ri-del">Elimina</button><button type="button" class="lnk d" id="ri-anon">Cancella i dati personali e le foto</button><span class="grow"></span>
+    <a class="btn btn-line sm" id="ri-tel" href="#" hidden>Chiama</a><a class="btn btn-line sm" id="ri-wa" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a><a class="btn btn-line sm" id="ri-mail" href="#" hidden>Email</a>
+    <button type="button" class="btn btn-line sm" id="ri-stima">Quanto pagare</button><button type="button" class="btn btn-line sm" id="ri-crm" hidden>Aggiungi ai contatti</button>
+    <button type="button" class="btn btn-line" data-chiudi>Chiudi</button><button type="submit" class="btn btn-light">Salva</button>
   </div>
 </form></dialog>
 
@@ -256,16 +426,24 @@
   <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Chiudi</button><button type="button" class="btn btn-light" id="i-ok" hidden>Importa</button></div>
 </div></dialog>
 
-<!-- pubblica -->
-<dialog id="d-pubblica" aria-labelledby="p-titolo"><div class="gd">
-  <h2 id="p-titolo">Pubblica sul sito</h2>
-  <p id="p-conteggio"></p>
-  <ol class="passi">
-    <li><button type="button" class="btn btn-light sm" id="p-zip">Scarica il pacchetto del sito (.zip)</button> <span class="muted small">Contiene <code>data/auto.json</code> e le foto in <code>img/auto/</code>. Targa, costi, prezzo di vendita, note interne e contatti restano fuori.</span></li>
-    <li>Decomprimi lo zip. Sul repository GitHub del sito apri la cartella <code>public</code> → <em>Add file</em> → <em>Upload files</em> e trascina dentro le cartelle <code>data</code> e <code>img</code>. Si uniscono a quelle esistenti e i file con lo stesso nome vengono sostituiti → <em>Commit changes</em>.</li>
-    <li>Cloudflare ripubblica il sito da solo in un paio di minuti. Poi ricarica questa pagina: in alto comparirà «Allineato al sito».</li>
-  </ol>
-  <p class="muted small">Hai cambiato solo i dati e nessuna foto? Basta <button type="button" class="lnk" id="p-scarica">solo auto.json</button> da caricare in <code>public/data</code>.</p>
+<!-- pubblica: per il titolare, non per il tecnico -->
+<dialog id="d-pubblica" aria-labelledby="p-titolo"><div class="gd gd-pub">
+  <header class="fa-head"><div><h2 id="p-titolo">Aggiorna il sito</h2><p class="fa-aiuto" id="p-sotto"></p></div><button type="button" class="fa-x" data-chiudi aria-label="Chiudi">×</button></header>
+  <section class="pp-cosa" aria-labelledby="p-h1"><h3 id="p-h1">Cosa cambia sul sito</h3><ul id="p-elenco" class="pp-elenco"></ul><p class="small muted" id="p-conteggio"></p></section>
+  <section class="pp-come" aria-labelledby="p-h2"><h3 id="p-h2">Come si aggiorna</h3>
+    <p id="p-spiega">Il sito si aggiorna con un file che contiene le tue auto e le foto. Toccando il pulsante qui sotto il file parte direttamente: se non hai chi cura il sito, scaricalo e mandalo a chi lo gestisce.</p>
+    <div class="pp-az"><button type="button" class="btn btn-light" id="p-invia" disabled>Preparo il file…</button><button type="button" class="btn btn-line" id="p-zip" disabled>Scarica il file</button></div>
+    <p class="small muted" id="p-nota">Il sito mostra le novità pochi minuti dopo che il file è stato caricato. Targa, costi, prezzi di vendita, note e contatti non sono nel file: restano solo qui.</p>
+  </section>
+  <details class="pp-tec"><summary>Per chi gestisce il sito (GitHub e Cloudflare)</summary>
+    <ol class="passi">
+      <li>Decomprimi lo zip: contiene <code>data/auto.json</code> e le foto in <code>img/auto/</code>.</li>
+      <li>Sul repository GitHub del sito apri la cartella <code>public</code> → <em>Add file</em> → <em>Upload files</em> e trascina dentro le cartelle <code>data</code> e <code>img</code>. Si uniscono a quelle esistenti e i file con lo stesso nome vengono sostituiti → <em>Commit changes</em>.</li>
+      <li>Cloudflare ripubblica il sito da solo in un paio di minuti. Poi ricarica questa pagina: in alto comparirà «Il sito è aggiornato».</li>
+    </ol>
+    <p class="small muted">Solo i dati, senza foto nuove: <button type="button" class="lnk" id="p-scarica">scarica solo auto.json</button> da caricare in <code>public/data</code>.</p>
+    <p class="small muted">Con l’archivio online attivo (Worker e database D1, vedi LEGGIMI) questo passaggio non serve più: ogni modifica va sul sito da sola.</p>
+  </details>
   <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Chiudi</button></div>
 </div></dialog>
 
@@ -287,28 +465,34 @@
   <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi id="k-salta">Chiudi</button><button type="button" class="btn btn-light" id="k-salva">Salva i controlli</button></div>
 </div></dialog>
 
-<!-- stima del prezzo -->
-<dialog id="d-stima" aria-labelledby="s-titolo"><div class="gd st-w">
-  <div class="st-head"><div><h2 id="s-titolo">Stima del prezzo di vendita</h2><p class="muted" id="s-auto"></p></div></div>
+<!-- stima: quanto vendere e quanto pagare -->
+<dialog id="d-stima" aria-labelledby="s-titolo" data-focus="vendi"><div class="gd st-w">
+  <header class="fa-head st-head"><img id="s-logo" class="st-logo" alt="" width="44" height="44" hidden><div><h2 id="s-titolo">Quanto vendere e quanto pagare</h2><p class="fa-aiuto" id="s-auto"></p></div><button type="button" class="fa-x" data-chiudi aria-label="Chiudi">×</button></header>
   <div class="st-cols">
     <div class="st-in">
       <div class="fg st-f">
-        <label>Marca<input id="s-marca" autocomplete="off"></label>
-        <label>Modello<input id="s-modello" autocomplete="off"></label>
+        <label>Marca<input id="s-marca" list="l-marche-s" autocomplete="off"></label>
+        <label>Modello<input id="s-modello" list="l-modelli-s" autocomplete="off"></label>
         <label>Anno<input id="s-anno" inputmode="numeric"></label>
         <label>Chilometri<input id="s-km" inputmode="numeric"></label>
-        <label>Costo di acquisto (€)<input id="s-acq" inputmode="numeric"></label>
-        <label>Costi extra (€)<input id="s-extra" inputmode="numeric"></label>
+        <label>Alimentazione<select id="s-alim"><option value="">Non so</option><option>Benzina</option><option>Diesel</option><option>Ibrida</option><option>Elettrica</option><option>GPL</option><option>Metano</option></select></label>
+        <label>Cambio<select id="s-cambio"><option value="">Non so</option><option>Manuale</option><option>Automatico</option></select></label>
+        <label id="s-acq-l">Prezzo di acquisto (€)<input id="s-acq" inputmode="numeric" placeholder="Se già lo sai"></label>
+        <label id="s-extra-l">Costi extra (€)<input id="s-extra" inputmode="numeric"></label>
       </div>
-      <ol class="st-passi">
-        <li><a class="btn btn-line sm" id="s-link" href="https://www.autoscout24.it/" target="_blank" rel="noopener">Apri la ricerca su AutoScout24</a><span class="muted small">marca, modello e anni sono già impostati</span></li>
-        <li><label>Copia la pagina dei risultati e incollala qui<textarea id="s-incolla" rows="3" placeholder="Incolla qui il testo della pagina: legge prezzo, km e anno di ogni annuncio"></textarea></label>
-          <div class="st-az"><button type="button" class="btn btn-light sm" id="s-leggi">Aggiungi questi annunci</button>
-            <label class="btn btn-line sm st-file">Oppure carica un file<input type="file" id="s-file" accept=".csv,.txt,.xlsx,text/csv"></label></div></li>
-      </ol>
+      <div class="st-fonte" id="s-fonte" role="status" aria-live="polite"></div>
+      <div class="st-az"><button type="button" class="btn btn-line sm" id="s-ricarica" hidden>Aggiorna i prezzi</button></div>
+      <details id="s-manuale" class="st-man"><summary><span id="s-man-t">Affina con annunci veri (facoltativo)</span></summary>
+        <ol class="st-passi">
+          <li><a class="btn btn-line sm" id="s-link" href="https://www.autoscout24.it/" target="_blank" rel="noopener">Apri la ricerca su AutoScout24</a><span class="muted small">marca, modello e anni sono già impostati</span></li>
+          <li><label>Copia la pagina dei risultati e incollala qui<textarea id="s-incolla" rows="3" placeholder="Incolla qui il testo della pagina: legge prezzo, km e anno di ogni annuncio"></textarea></label>
+            <div class="st-az"><button type="button" class="btn btn-light sm" id="s-leggi">Aggiungi questi annunci</button>
+              <label class="btn btn-line sm st-file">Oppure carica un file<input type="file" id="s-file" accept=".csv,.txt,.xlsx,text/csv"></label></div></li>
+        </ol>
+        <p class="small muted">Servono almeno 6 annunci per sostituire la stima di riferimento. Restano salvati su questo dispositivo.</p>
+      </details>
       <p class="small" id="s-conta" role="status"></p>
-      <details id="s-det" hidden><summary>Annunci letti</summary><div class="tbl-wrap small-t"><table id="s-tab"></table></div><button type="button" class="lnk d" id="s-svuota">Cancella gli annunci salvati per questo modello</button></details>
-      <p class="small muted">AutoScout24 non permette di leggere i prezzi in automatico, quindi la stima parte dagli annunci che incolli qui. Restano salvati su questo dispositivo. È una stima, non una valutazione ufficiale.</p>
+      <details id="s-det" hidden><summary>Annunci usati</summary><div class="tbl-wrap small-t"><table id="s-tab"></table></div><button type="button" class="lnk d" id="s-svuota">Cancella gli annunci inseriti a mano per questo modello</button></details>
       <fieldset class="priv st-imp"><legend>Costi e margine, riservati</legend>
         <div class="fg">
           <label>Sconto in trattativa (%)<input id="s-trat" inputmode="decimal"></label>
@@ -321,20 +505,25 @@
     <div class="st-out">
       <div id="s-vuoto" class="st-vuoto" hidden></div>
       <div id="s-ris">
+        <div class="st-due">
+          <section class="st-big st-vendi" aria-labelledby="s-h-v"><h3 id="s-h-v">Quanto vendere</h3><b class="st-num" id="s-v-prezzo"></b><p class="st-sub" id="s-v-sub"></p><p class="st-gain" id="s-v-gain"></p></section>
+          <section class="st-big st-compra" aria-labelledby="s-h-c"><h3 id="s-h-c">Quanto pagare, al massimo</h3><b class="st-num" id="s-c-prezzo"></b><p class="st-sub" id="s-c-sub"></p><p class="st-ver" id="s-c-verdetto" hidden></p></section>
+        </div>
         <p class="st-q">Scegli come vuoi vendere</p>
         <div class="st-cards" id="s-cards"></div>
         <label class="st-slider">Più in fretta<input type="range" id="s-q" min="10" max="90" step="1" value="50" aria-label="Da vendere in fretta a margine massimo"><span>Più margine</span></label>
         <p id="s-qtxt" class="small"></p>
         <div id="s-grafico" class="st-graf"></div>
         <p class="small muted" id="s-note"></p>
-        <h3 class="st-h">Costi e guadagno</h3>
-        <dl class="st-conti" id="s-conti"></dl>
+        <details class="st-conti-d" open><summary>Come si arriva al guadagno</summary><dl class="st-conti" id="s-conti"></dl></details>
+        <details class="st-conti-d"><summary>Come si arriva al massimo da pagare</summary><div id="s-compra"></div></details>
       </div>
       <p id="s-miei" class="small st-miei" hidden></p>
     </div>
   </div>
   <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Chiudi</button><button type="button" class="btn btn-light" id="s-usa" hidden>Usa questo prezzo</button></div>
 </div></dialog>
+<datalist id="l-marche-s"></datalist><datalist id="l-modelli-s"></datalist><datalist id="l-modelli"></datalist>
 
 <!-- importa lo storico delle vendite -->
 <dialog id="d-storico" aria-labelledby="sto-titolo"><div class="gd">
@@ -381,15 +570,25 @@
 <button type="button" class="fab" id="fab" hidden>+ Aggiungi auto</button>
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script src="../js/ap-config.js" data-root="../"></script>
+<script src="../js/visite-core.js"></script>
+<script src="../js/richieste-core.js"></script>
 <script src="../vendor/jszip.min.js"></script>
 <script src="../js/comune.js"></script>
 <script src="../js/tabelle.js"></script>
 <script src="foto.js"></script>
 <script src="crm.js"></script>
+<script src="agenda.js"></script>
+<script src="richieste.js"></script>
 <script src="unione.js"></script>
+<script src="../js/catalogo.js"></script>
 <script src="calcoli.js"></script>
+<script src="mercato.js"></script>
 <script src="checklist.js"></script>
 <script src="stima.js"></script>
+<script src="aggiungi.js"></script>
+<script src="../js/neon.js"></script>
+<script src="home.js"></script>
 <script src="flotta.js"></script>
 <script src="server.js"></script>
 <script src="gestionale.js"></script>

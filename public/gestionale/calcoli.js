@@ -233,6 +233,34 @@
   /* prezzo sotto il quale non conviene scendere: costi + guadagno minimo voluto, dopo la trattativa */
   C.prezzoMinimo = ({ costi, margineMin, trattativa, passo }) => arrotonda((costi.diretti + (margineMin || 0)) / (1 - (trattativa == null ? 0.03 : trattativa)), passo || 100);
 
+  /* ---------- QUANTO PAGARE ----------
+     Al contrario del prezzo di vendita: dal prezzo a cui pensi di rivendere (secondo l'approccio scelto) si tolgono la trattativa,
+     i lavori, i costi di vendita e quelli di tenere l'auto in garage, e il guadagno minimo che vuoi. Quello che resta è il massimo da pagare.
+     «Apertura» e «obiettivo» lasciano più margine del minimo (2× e 1,5×): sono una regola pratica, modificabile in C.REGOLE_ACQUISTO. */
+  C.REGOLE_ACQUISTO = { apertura: 2, obiettivo: 1.5 };
+  C.pagare = function ({ mercato, q, costi, giorniBase, costoGiorno, trattativa, margineMin, richiesta, passo }) {
+    if (!mercato) return null;
+    const c = costi || {}, altri = (c.extra || 0) + (c.lavori || 0) + (c.vendita || 0);
+    const p = C.piano({ mercato, q, costi: { diretti: altri, acquisto: 0, acquistoNoto: true }, giorniBase, costoGiorno, trattativa, margineMin, passo });
+    if (!p) return null;
+    const pas = passo || 100, mm = margineMin || 0;
+    const unita = mm > 0 ? mm : Math.max(500, arrotonda(p.chiuso * 0.05, 100));
+    const giu = (x) => Math.max(0, Math.floor(x / pas) * pas);
+    const lordo = p.guadagno;                                  // quanto resta dopo trattativa, altri costi e giacenza, prima di pagare l'auto
+    const massimo = giu(lordo - mm), obiettivo = Math.min(massimo, giu(lordo - unita * C.REGOLE_ACQUISTO.obiettivo)), apertura = Math.min(obiettivo, giu(lordo - unita * C.REGOLE_ACQUISTO.apertura));
+    const r = {
+      q, prezzoVendita: p.prezzo, chiuso: p.chiuso, giorni: p.giorni, giacenza: p.giacenza, altriCosti: altri, costiConGiacenza: p.costiTotali,
+      lordo, margineMin: mm, massimo, obiettivo, apertura, nonConviene: lordo - mm <= 0, richiesta: richiesta == null ? null : richiesta,
+    };
+    if (richiesta != null && isFinite(richiesta)) {
+      r.margineRichiesta = lordo - richiesta;
+      r.verdetto = richiesta <= obiettivo ? "ottimo" : richiesta <= massimo ? "trattabile" : "caro";
+      r.scontoNecessario = Math.max(0, richiesta - massimo);
+      r.scontoPercento = richiesta > 0 ? r.scontoNecessario / richiesta : 0;
+    }
+    return r;
+  };
+
   /* =====================================================================
      3. STORICO E PREVISIONI PER LA FLOTTA
      ===================================================================== */

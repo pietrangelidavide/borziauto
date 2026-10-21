@@ -1,22 +1,22 @@
 {
  "name": "Borzi Auto · Gestionale",
  "short_name": "Borzi Auto",
- "description": "Gestionale auto di Borzi Auto",
+ "description": "Gestionale auto: margine, flotta e visite",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
  "orientation": "portrait",
- "background_color": "#0b0b0c",
- "theme_color": "#0b0b0c",
+ "background_color": "#000000",
+ "theme_color": "#000000",
  "lang": "it",
  "icons": [
   {
-   "src": "../favicon-192.png",
+   "src": "../icon-192.png",
    "sizes": "192x192",
    "type": "image/png"
   },
   {
-   "src": "../favicon-512.png",
+   "src": "../icon-512.png",
    "sizes": "512x512",
    "type": "image/png"
   }
