@@ -1,11 +1,9 @@
-/* AutoProfit · archivio online (database D1 di Cloudflare).
+/* Borzi Auto · archivio online (database D1 di Cloudflare).
    Qui vivono le auto, i contatti del CRM e le foto caricate dal gestionale, così il titolare le gestisce anche dal telefono.
    - /api/auto                 pubblico: le auto del sito (solo campi pubblici)
    - /foto/<nome>              pubblico: le foto
    - /api/admin/*              riservato: dietro password (cookie di sessione)
    Servono: il database D1 (binding DB) e il segreto GESTIONALE_PASSWORD (almeno 10 caratteri). */
-
-import { mercato, manutenzione } from "./visite.js";
 
 const ENC = new TextEncoder();
 const GIORNI_SESSIONE = 30;
@@ -35,7 +33,6 @@ export function db(env) {
         env.DB.prepare("CREATE TABLE IF NOT EXISTS foto (nome TEXT PRIMARY KEY, tipo TEXT NOT NULL, dati TEXT NOT NULL, creato INTEGER NOT NULL)"),
         env.DB.prepare("CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)"),
         env.DB.prepare("CREATE TABLE IF NOT EXISTS tentativi (ip TEXT NOT NULL, t INTEGER NOT NULL)"),
-        env.DB.prepare("CREATE TABLE IF NOT EXISTS prenotazioni_ip (ip TEXT NOT NULL, t INTEGER NOT NULL)"),
       ]),
     };
   }
@@ -49,7 +46,7 @@ const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(
 const daB64u = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
 const chiaviCache = new Map();
 async function chiave(pw) {
-  if (!chiaviCache.has(pw)) chiaviCache.set(pw, crypto.subtle.importKey("raw", ENC.encode("autoprofit|" + pw), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]));
+  if (!chiaviCache.has(pw)) chiaviCache.set(pw, crypto.subtle.importKey("raw", ENC.encode("borzi-auto|" + pw), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]));
   return chiaviCache.get(pw);
 }
 async function impronta(testo) { return new Uint8Array(await crypto.subtle.digest("SHA-256", ENC.encode(testo))); }
@@ -163,14 +160,11 @@ export async function admin(request, env, ctx, url, ora = Date.now()) {
 
   if (!(await autenticato(request, env, ora))) return json({ errore: "non_autorizzato" }, 401);
 
-  if (azione === "mercato") return mercato(request, env, ctx, url, ora);
-
   if (azione === "dati" && request.method === "GET") {
-    try { await manutenzione(env, D, url, ora); } catch (e) { /* la pulizia dei dati vecchi non deve bloccare l'accesso */ }
     const r = await D.prepare("SELECT tipo, dati FROM docs").all();
-    const out = { auto: [], contatti: [], storico: [], visite: [] };
+    const out = { auto: [], contatti: [], storico: [] };
     for (const x of r.results || []) { const d = parse(x.dati, null); if (d && out[x.tipo]) out[x.tipo].push(d); }
-    return json({ inizializzato: (await meta(D, "inizializzato")) === "1", auto: out.auto, contatti: out.contatti, storico: out.storico, visite: out.visite,
+    return json({ inizializzato: (await meta(D, "inizializzato")) === "1", auto: out.auto, contatti: out.contatti, storico: out.storico,
       impostazioni: { titolare: parse(await meta(D, "titolare"), { nome: "", foto: "" }), flotta: parse(await meta(D, "flotta"), {}) || {} }, ora });
   }
   if (azione === "sync" && request.method === "POST") return sync(request, D, ora);
@@ -197,8 +191,8 @@ async function login(request, env, D, url, ora) {
   return json({ ok: true }, 200, { "set-cookie": `tg_sess=${token}; ${attributi(url, "Max-Age=" + GIORNI_SESSIONE * 86400)}` });
 }
 
-/* sync: { auto:{set:[…],del:[id…]}, contatti:{set,del}, storico:{set,del}, visite:{set,del}, impostazioni:{titolare:{nome,foto}, flotta:{…}}, inizializza:true } */
-const TIPI = ["auto", "contatti", "storico", "visite"];
+/* sync: { auto:{set:[…],del:[id…]}, contatti:{set,del}, storico:{set,del}, impostazioni:{titolare:{nome,foto}, flotta:{…}}, inizializza:true } */
+const TIPI = ["auto", "contatti", "storico"];
 /* impostazioni della flotta: solo numeri, sì/no e testi brevi, al massimo 24 voci */
 function scrub(o) {
   const out = {}; let n = 0;

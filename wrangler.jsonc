@@ -1,7 +1,7 @@
 {
-  // AutoProfit, un garage = un progetto Cloudflare: Cloudflare pubblica la cartella "public" (sito, gestionale, garage.json)
-  // e, solo per /api/* e /foto/*, esegue il Worker in src/worker.js.
-  // Il nome deve coincidere con il nome del progetto creato su Cloudflare (ad esempio "autoprofit-borziauto").
+  // Sito di Borzi Auto: Cloudflare pubblica la cartella "public" e, solo per /api/* e /foto/*, esegue il Worker in src/worker.js.
+  // Il nome deve coincidere con il nome del progetto creato su Cloudflare: qui resta quello già collegato a questo repository
+  // ("autoprofit-borziauto"). Se un giorno crei un progetto nuovo con un altro nome, cambia solo questa riga.
   "name": "autoprofit-borziauto",
   "main": "src/worker.js",
   "compatibility_date": "2026-10-12",
@@ -11,33 +11,19 @@
     "run_worker_first": ["/api/*", "/foto/*"]
   },
   "vars": {
-    // Recensioni di Google (facoltative): Place ID della scheda del garage. Vuoto = il sito usa data/recensioni.json.
+    // Recensioni di Google: Place ID della scheda di Borzi Auto (vedi README). Vuoto = il sito usa data/recensioni.json.
     "GOOGLE_PLACE_ID": "",
     // Per quante ore il Worker ricorda la risposta di Google (da 1 a 24).
     "CACHE_ORE": "6"
-
-    // PREZZI DI MERCATO (stima automatica). Senza queste variabili il gestionale usa i «Dati di esempio» e lo dichiara.
-    // AutoScout24 non ha un'API pubblica e le sue condizioni vietano di copiare i dati con programmi propri:
-    // si collega solo un feed AUTORIZZATO (accordo con il portale o fornitore di dati con licenza) che risponda
-    // con JSON {fonte, aggiornato, annunci:[{prezzo, anno, km, ...}]} a GET <MERCATO_URL>?marca=..&modello=..&anno=..&km=..
-    // ,"MERCATO_URL": "https://…"       // indirizzo https del feed autorizzato
-    // ,"MERCATO_NOME": "Nome della fonte" // come compare nel gestionale
-    // ,"MERCATO_CACHE_ORE": "12"        // da 1 a 48
-    // Poi in garage.json: "mercato": { "fonte": "auto", "urlFeed": "../api/admin/mercato" }
   }
-  // ARCHIVIO ONLINE DEL GESTIONALE (auto, contatti, visite e foto salvate sul server, usabile dal telefono; serve anche
-  // per le prenotazioni dal sito, che altrimenti restano disattivate).
+  // ARCHIVIO ONLINE DEL GESTIONALE (auto e foto salvate sul server, usabile dal telefono).
   // Si attiva in 3 passi (dettagli nel README):
-  //   1. Cloudflare › Storage & Databases › D1 › Create database (ad esempio "autoprofit-borziauto"); copia il suo "Database ID".
+  //   1. Cloudflare › Storage & Databases › D1 › Create database, nome "borziauto"; copia il suo "Database ID".
   //   2. Togli i // dalle righe qui sotto e incolla l'ID al posto di INCOLLA-QUI-IL-DATABASE-ID.
   //   3. Progetto › Settings › Variables and Secrets › Secret "GESTIONALE_PASSWORD" (almeno 10 caratteri).
-  // Finché il database non c'è, il sito legge public/data/auto.json e il gestionale resta «solo su questo browser».
+  // Finché il database non c'è, il sito continua a leggere public/data/auto.json e il gestionale resta «solo su questo browser».
   // ,"d1_databases": [
-  //   { "binding": "DB", "database_name": "autoprofit-borziauto", "database_id": "INCOLLA-QUI-IL-DATABASE-ID" }
+  //   { "binding": "DB", "database_name": "borziauto", "database_id": "INCOLLA-QUI-IL-DATABASE-ID" }
   // ]
-  // I segreti NON vanno scritti qui: si aggiungono da Cloudflare (Settings › Variables and Secrets › Secret):
-  //   GESTIONALE_PASSWORD  (obbligatorio con l'archivio online)
-  //   GOOGLE_PLACES_KEY    (solo se usi le recensioni di Google)
-  //   MERCATO_KEY          (solo se il feed dei prezzi richiede una chiave)
-  //   SALE_IP              (facoltativo: sale segreto per il limite di richieste; se manca si usa la password)
+  // I segreti GOOGLE_PLACES_KEY e GESTIONALE_PASSWORD NON vanno scritti qui: si aggiungono da Cloudflare (Settings › Variables and Secrets › Secret).
 }

@@ -1,4 +1,4 @@
-/* AutoProfit · unione dei dati tra questo dispositivo e l'archivio online.
+/* Borzi Auto · unione dei dati tra questo dispositivo e l'archivio online.
    Logica pura (senza pagina), provata in _work/t_unione.mjs.
    Per ogni documento si confrontano tre versioni: quella di questo dispositivo, quella dell'archivio e quella dell'ultima
    sincronizzazione («base»). Chi ha cambiato rispetto alla base vince; se hanno cambiato entrambi vince questo dispositivo

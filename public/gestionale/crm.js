@@ -1,4 +1,4 @@
-/* AutoProfit · CRM della flotta: contatti e trattative collegati alle auto, cruscotto della flotta.
+/* Borzi Auto · CRM della flotta: contatti e trattative collegati alle auto, cruscotto della flotta.
    Tutto resta in questo browser (come le auto): non finisce mai nel sito. */
 (function () {
   "use strict";
@@ -73,11 +73,6 @@
         const s = e.target.closest("[data-sort]"); if (s) { V.sort.d = V.sort.k === s.dataset.sort ? -V.sort.d : 1; V.sort.k = s.dataset.sort; return this.disegna(); }
         const r = e.target.closest("tr[data-id]"); if (r) apriContatto(X.S.contatti.find((x) => x.id === r.dataset.id));
       });
-      $("#crm-scad-del").onclick = () => {
-        const sc = Crm.scaduti(); if (!sc.length) return;
-        if (!confirm(`Eliminare ${sc.length} ${sc.length === 1 ? "contatto" : "contatti"} senza attività da più di ${Crm.mesiConservazione()} mesi? Non si può annullare: fai prima un backup se vuoi tenerne una copia.`)) return;
-        const id = new Set(sc.map((c) => c.id)); X.S.contatti = X.S.contatti.filter((c) => !id.has(c.id)); X.salva(); X.ridisegna(); X.toast(sc.length === 1 ? "Contatto eliminato." : `${sc.length} contatti eliminati.`);
-      };
       initDialogo();
     },
     nuovo: () => apriContatto(null),
@@ -85,13 +80,6 @@
     interessati: (autoId) => X.S.contatti.filter((c) => c.auto_id === autoId && apertoC(c)).length,
     aperti: () => X.S.contatti.filter(apertoC),
     filtraAuto(id) { V.auto = id || ""; V.vista = "list"; },
-
-    /* privacy: contatti senza alcuna attività da più dei mesi scritti nell'informativa (garage.json → privacy.conservazione.contatti_mesi) */
-    mesiConservazione: () => +((((window.AP && AP.Config.cfg.privacy) || {}).conservazione || {}).contatti_mesi) || 24,
-    scaduti() {
-      const lim = aggiungiGiorni(X.oggi(), -Math.round(Crm.mesiConservazione() * 30.4));
-      return X.S.contatti.filter((c) => { const ds = [c.creato, c.prossimo].concat(c.attivita.map((a) => a.d)).filter(Boolean).map((d) => String(d).slice(0, 10)).sort(); return ds.length && ds[ds.length - 1] < lim; });
-    },
 
     /* cruscotto: 5 numeri in alto */
     kpi() {
@@ -119,10 +107,6 @@
         if (!V.chiusi && V.vista === "list" && !apertoC(c)) return false;
         return !q || TG.norm([c.nome, c.telefono, c.email, c.fonte, descAuto(c), c.note].join(" ")).includes(q);
       });
-      // promemoria privacy
-      const sc = Crm.scaduti(), bn = $("#crm-scad");
-      bn.hidden = !sc.length;
-      if (sc.length) $("#crm-scad-t").textContent = `${sc.length} ${sc.length === 1 ? "contatto non ha" : "contatti non hanno"} attività da più di ${Crm.mesiConservazione()} mesi: è il limite scritto nell’informativa sulla privacy.`;
       // filtro per auto
       const sa = $("#crm-auto");
       const scelte = [["", "Tutte le auto"], ["_nessuna", "Senza auto precisa"]].concat(S.auto.filter((a) => a.stato === "disponibile" || S.contatti.some((c) => c.auto_id === a.id)).map((a) => [a.id, X.titolo(a) + (a.allestimento ? " · " + a.allestimento : "") + (a.stato === "venduta" ? " (venduta)" : "")]));

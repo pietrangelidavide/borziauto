@@ -1,4 +1,4 @@
-/* AutoProfit · funzioni condivise tra sito e gestionale (nessuna dipendenza). */
+/* Borzi Auto · funzioni condivise tra sito e gestionale (nessuna dipendenza). */
 (function () {
   const TG = (window.TG = {});
 

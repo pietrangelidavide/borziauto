@@ -1,4 +1,4 @@
-/* AutoProfit · controlli prima della vendita.
+/* Borzi Auto · controlli prima della vendita.
    Quando inserisci una nuova auto si apre questa lista: per ogni voce segni «a posto», «da fare» (con costo) o «non c’è».
    I lavori da fare entrano nel calcolo del margine; se sono indispensabili (documenti, sicurezza) l’auto resta
    «in preparazione» e non compare sul sito finché non li segni come fatti. Tutto è riservato: non va mai sul sito. */

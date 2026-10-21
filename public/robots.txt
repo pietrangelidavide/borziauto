@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /gestionale/
+
+# Quando il sito ha il suo dominio, aggiungi qui la riga:
+# Sitemap: https://www.IL-TUO-DOMINIO.it/sitemap.xml

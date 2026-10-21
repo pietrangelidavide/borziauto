@@ -1,5 +1,5 @@
-/* AutoProfit · collegamento all'archivio online (Worker + database D1).
-   Se il sito ha l'archivio attivo, il gestionale chiede la password e tiene auto, contatti, storico, visite, foto e impostazioni
+/* Borzi Auto · collegamento all'archivio online (Worker + database D1).
+   Se il sito ha l'archivio attivo, il gestionale chiede la password e tiene auto, contatti, storico, foto e impostazioni
    allineati tra telefono e computer. Se l'archivio non c'è (sito statico, file aperto dal disco), non cambia nulla:
    il gestionale resta «locale», con i dati nel browser e la pubblicazione con il pacchetto .zip.
    Le modifiche si salvano sempre prima in questo dispositivo e poi si inviano: se manca la rete restano in coda. */
@@ -8,15 +8,15 @@
   const GT = (window.GT = window.GT || {});
   const $ = (s, r) => (r || document).querySelector(s);
   const API = "../api/admin/";
-  const SK = "autoprofit.sync.v1";
-  const COLL = ["auto", "contatti", "storico", "visite"];
+  const SK = "borziauto.sync.v1";
+  const COLL = ["auto", "contatti", "storico"];
   const ID = /^[A-Za-z0-9_-]{1,64}$/;
   const NOME_FOTO = /^[a-z0-9][a-z0-9._-]{2,90}\.(?:jpe?g|png|webp)$/;
   const MAX_FOTO = 880 * 1024;
   const U = () => GT.Unione;
   let X = null;                                  // contesto fornito dal gestionale
 
-  const St = { modo: "locale", busy: false, again: false, err: "", fase: "", sporco: false, haBase: false, base: { auto: {}, contatti: {}, storico: {}, visite: {}, titolare: undefined, flotta: undefined }, subite: new Set(), ultimo: 0, timer: null, ver: 0 };
+  const St = { modo: "locale", busy: false, again: false, err: "", fase: "", sporco: false, haBase: false, base: { auto: {}, contatti: {}, storico: {}, titolare: undefined, flotta: undefined }, subite: new Set(), ultimo: 0, timer: null, ver: 0 };
 
   /* ---------- memoria dello stato di sincronizzazione (solo in questo browser) ---------- */
   function leggiSt() {
@@ -161,7 +161,7 @@
     St.fase = "";
 
     // 3) novità arrivate dall'archivio, applicate qui (solo dove nel frattempo non è cambiato nulla)
-    const ora = X.leggi(), saltati = { auto: new Set(), contatti: new Set(), storico: new Set(), visite: new Set() };
+    const ora = X.leggi(), saltati = { auto: new Set(), contatti: new Set(), storico: new Set() };
     const hLoc = (t, id) => { const x = ora[t].find((y) => y.id === id); return x ? U().h(N[t](x)) : null; };
     const hSnap = (t, id) => { const x = snap[t].find((y) => y.id === id); return x ? U().h(N[t](x)) : null; };
     const finale = {};
@@ -174,7 +174,7 @@
     });
     const appT = sT.azione === "applica" ? (sT.valore || N.titolare({})) : null;
     const appF = sF.azione === "applica" ? sF.valore : ripartiF ? predF : null;
-    X.applica({ auto: finale.auto, contatti: finale.contatti, storico: finale.storico, visite: finale.visite, titolare: appT, flotta: appF });
+    X.applica({ auto: finale.auto, contatti: finale.contatti, storico: finale.storico, titolare: appT, flotta: appF });
     if (appT || appF) novita++;
 
     COLL.forEach((t) => (St.base[t] = m[t].base));

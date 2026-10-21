@@ -1,8 +1,7 @@
-/* AutoProfit · stima del prezzo di vendita e calcolo di quanto pagare.
-   Gli annunci di mercato arrivano da una fonte (mercato.js: feed autorizzato, dati di esempio dichiarati, oppure annunci inseriti a mano),
-   si filtrano per anno, si correggono per i chilometri e danno un prezzo per tre approcci: vendere in fretta, equilibrato, margine massimo.
-   Con gli stessi dati, in modalità «Quanto pagare» si risale al massimo da pagare per ogni approccio.
-   È una stima, non una valutazione ufficiale. */
+/* Borzi Auto · stima del prezzo di vendita.
+   Parte dagli annunci di mercato che incolli o importi (AutoScout24 non permette di leggere i prezzi in automatico),
+   li filtra per anno, corregge per i chilometri e propone un prezzo per tre approcci: vendere in fretta, equilibrato, margine massimo.
+   Accanto mostra i costi dell'auto e il guadagno ipotetico. È una stima, non una valutazione ufficiale. */
 (function () {
   "use strict";
   const GT = (window.GT = window.GT || {});
@@ -10,9 +9,9 @@
   const esc = (s) => TG.esc(s);
   const Calc = () => GT.Calc;
   let X = null;          // contesto: { S, salva, toast, apri, oggi, titolo, numero, ridisegna }
-  let ST = null;         // { id, modo, onUsa, auto[] (dalla fonte), comps[] (inseriti a mano), esclusi:Set, q, fonteAuto, carico }
+  let ST = null;         // { id, onUsa, comps[], esclusi:Set, q }
 
-  const LSK = "autoprofit.mercato.v1";
+  const LSK = "borziauto.mercato.v1";
   const salvati = () => { try { return JSON.parse(localStorage.getItem(LSK)) || {}; } catch (e) { return {}; } };
   const scrivi = (o) => {
     try {
@@ -39,12 +38,10 @@
     return storia().filter((r) => chiave(r.marca, r.modello) === k && (!a.anno || !r.anno || Math.abs(r.anno - a.anno) <= 2));
   }
 
-  const elenco = () => ST.auto.concat(ST.comps);        // gli indici di «esclusi» valgono su questo elenco
-
   /* ---------- apertura ---------- */
   function apri(o) {
     const v = o.valori || {};
-    ST = { id: o.id || null, modo: o.modo === "compra" ? "compra" : "vendi", onUsa: o.onUsa, auto: [], comps: [], esclusi: new Set(), q: 0.5, lavori: o.lavori || 0, prezzoAttuale: v.prezzo == null ? null : v.prezzo, fonte: "", fonteAuto: null, carico: 0, token: 0 };
+    ST = { id: o.id || null, onUsa: o.onUsa, comps: [], esclusi: new Set(), q: 0.5, lavori: o.lavori || 0, prezzoAttuale: v.prezzo == null ? null : v.prezzo, fonte: "" };
     $("#s-marca").value = v.marca || ""; $("#s-modello").value = v.modello || "";
     $("#s-anno").value = v.anno == null ? "" : v.anno; $("#s-km").value = v.km == null ? "" : v.km;
     $("#s-acq").value = v.costo_acquisto == null ? "" : v.costo_acquisto; $("#s-extra").value = v.costi_extra == null ? "" : v.costi_extra;
@@ -52,23 +49,10 @@
     const imp = X.S.imp;
     $("#s-trat").value = imp.trattativa; $("#s-cvend").value = imp.costi_vendita || ""; $("#s-cgiorno").value = imp.costo_giorno || ""; $("#s-mmin").value = imp.margine_min || "";
     $("#s-incolla").value = ""; $("#s-q").value = 50;
-    $("#s-manuale").open = false;
+    $("#s-usa").hidden = !ST.onUsa;
     caricaSalvati();
-    impostaModo();
     X.apri($("#d-stima"));
-    cercaMercato();            // prima la ricerca (segna «Cerco gli annunci…»), così il pannello degli annunci manuali non si apre per un attimo
     aggiorna();
-  }
-  function impostaModo() {
-    const c = ST.modo === "compra";
-    $("#d-stima").dataset.modo = ST.modo;
-    $("#s-m-vendi").setAttribute("aria-pressed", String(!c)); $("#s-m-compra").setAttribute("aria-pressed", String(c));
-    $("#s-titolo").textContent = c ? "Quanto pagare questa auto" : "Stima del prezzo di vendita";
-    $("#s-acq-l").firstChild.nodeValue = c ? "Prezzo che ti chiedono (€)" : "Costo di acquisto (€)";
-    $("#s-extra-l").firstChild.nodeValue = c ? "Lavori e costi previsti (€)" : "Costi extra (€)";
-    $("#s-usa").hidden = c || !ST.onUsa;
-    $("#s-vendi-box").hidden = c; $("#s-compra-box").hidden = !c;
-    $("#s-q-lbl").textContent = c ? "Come pensi di rivenderla" : "Scegli come vuoi vendere";
   }
   function caricaSalvati() {
     const a = leggiAuto(), s = salvati()[chiave(a.marca, a.modello)];
@@ -81,26 +65,6 @@
     if (ST.comps.length) o[k] = { data: X.oggi(), annunci: ST.comps.slice(0, 400) }; else delete o[k];
     scrivi(o);
   }
-  /* ---------- fonte dei prezzi di mercato ---------- */
-  const CACHE = {};
-  const chiaveFonte = (a) => [chiave(a.marca, a.modello), a.anno || ""].join("|");
-  async function cercaMercato(forza) {
-    const a = leggiAuto(); if (!ST) return;
-    if (!a.marca) { ST.auto = []; ST.fonteAuto = null; ST.carico = 0; return aggiorna(); }
-    const k = chiaveFonte(a), mio = ++ST.token;
-    if (!forza && CACHE[k]) { applicaFonte(CACHE[k]); return aggiorna(); }
-    ST.carico = 1; aggiorna();
-    const cfg = (window.AP && AP.Config.cfg.mercato) || {};
-    const r = await GT.Mercato.cerca({ marca: a.marca, modello: a.modello, anno: a.anno, km: a.km }, cfg, { online: X.S.online, oggi: X.oggi() });
-    if (!ST || mio !== ST.token) return;                       // nel frattempo è cambiato qualcosa: questa risposta è vecchia
-    r.quando = Date.now(); CACHE[k] = r;
-    applicaFonte(r); aggiorna();
-  }
-  function applicaFonte(r) {
-    ST.auto = r.annunci.slice(); ST.fonteAuto = r.fonte; ST.erroreFonte = r.errore || ""; ST.carico = 0;
-    ST.esclusi = new Set();
-  }
-
   function aggiungi(lista) {
     const viste = new Set(ST.comps.map((c) => [c.prezzo, c.km, c.anno].join("|")));
     let nuovi = 0;
@@ -113,45 +77,23 @@
   /* ---------- calcolo e disegno ---------- */
   function calcola() {
     const a = leggiAuto(), imp = X.S.imp, st = storia();
-    const mercato = Calc().stimaMercato({ anno: a.anno, km: a.km, comps: elenco(), esclusi: [...ST.esclusi] });
+    const mercato = Calc().stimaMercato({ anno: a.anno, km: a.km, comps: ST.comps, esclusi: [...ST.esclusi] });
     const g = Calc().giacenza(st);
-    const compra = ST.modo === "compra";
-    // in «vendi» l'acquisto è il costo già sostenuto; in «compra» è il prezzo chiesto dal venditore e le spese sono quelle previste
-    const costi = Calc().costiAuto({ costo_acquisto: compra ? null : a.acquisto, costi_extra: a.extra, checklist: { voci: [{ s: "da_fare", costo: ST.lavori }] } }, imp);
+    const costi = Calc().costiAuto({ costo_acquisto: a.acquisto, costi_extra: a.extra, checklist: { voci: [{ s: "da_fare", costo: ST.lavori }] } }, imp);
     const base = { mercato, costi, giorniBase: g.n >= 5 ? g.mediana : null, costoGiorno: imp.costo_giorno, trattativa: (imp.trattativa || 0) / 100, margineMin: imp.margine_min };
-    const piani = Calc().APPROCCI.map((p) => ({ ...p, piano: Calc().piano({ ...base, q: p.q }), paga: Calc().pagare({ ...base, q: p.q, richiesta: compra ? a.acquisto : null }) }));
+    const piani = Calc().APPROCCI.map((p) => ({ ...p, piano: Calc().piano({ ...base, q: p.q }) }));
     const scelto = Calc().piano({ ...base, q: ST.q });
-    const paga = Calc().pagare({ ...base, q: ST.q, richiesta: compra ? a.acquisto : null });
-    return { a, mercato, costi, g, piani, scelto, paga, base, compra };
-  }
-
-  const dataIt = (iso) => (iso ? String(iso).slice(0, 10).split("-").reverse().join("/") : "");
-  function disegnaFonte(r) {
-    const el = $("#s-fonte"), f = ST.fonteAuto, a = r.a;
-    let h = "";
-    if (ST.carico) h = '<span class="fonte-c">Cerco gli annunci simili…</span>';
-    else if (!a.marca) h = '<span class="fonte-c muted">Scrivi marca e modello: i prezzi di mercato compaiono da soli.</span>';
-    else if (f && f.id !== "manuale") {
-      h = `<span class="chip ${f.reale ? "ok" : "ex"}">${f.reale ? "Fonte" : "Esempio"}: ${esc(f.nome)}</span> <span class="fonte-c">${ST.auto.length} annunci${f.aggiornato ? ", aggiornati al " + dataIt(f.aggiornato) : ""}.</span>`
-        + (f.nota ? `<small class="fonte-n">${esc(f.nota)}</small>` : "");
-    } else h = `<span class="fonte-c muted">${esc(ST.erroreFonte || "Nessuna fonte automatica collegata: la stima usa gli annunci che inserisci tu.")}</span>`;
-    el.innerHTML = h;
-    el.hidden = false;
-    const man = $("#s-manuale");
-    if (!ST.auto.length && a.marca && !ST.carico && !ST.manTocca) man.open = true;
-    $("#s-ricarica").hidden = !(f && f.id !== "manuale");
-    $("#s-ricarica").disabled = !!ST.carico;
+    return { a, mercato, costi, g, piani, scelto, base };
   }
 
   function aggiorna() {
     if (!ST) return;
-    const r = calcola(), { a, mercato: m } = r, compra = r.compra;
+    const r = calcola(), { a, mercato: m } = r;
     $("#s-link").href = Calc().linkRicerca(a);
-    disegnaFonte(r);
-    const tutti = elenco(), tot = tutti.length, man = ST.comps.length;
-    $("#s-conta").textContent = ST.carico ? "" : !tot ? "Ancora nessun annuncio." : `${tot} annunci${man ? ` (${man} inseriti da te${ST.fonte ? ", salvati il " + ST.fonte.split("-").reverse().join("/") : ""})` : ""}${m.n !== tot ? ` · ${m.n} usati per la stima` : ""}.`;
+    const tot = ST.comps.length;
+    $("#s-conta").textContent = !tot ? "Ancora nessun annuncio." : `${tot} annunci letti${ST.fonte ? " (salvati il " + ST.fonte.split("-").reverse().join("/") + ")" : ""}${m.n !== tot ? ` · ${m.n} usati per la stima` : ""}.`;
     $("#s-det").hidden = !tot;
-    $("#s-det > summary").textContent = `Annunci usati (${tot}): togli quelli che non c’entrano`;
+    $("#s-det > summary").textContent = `Annunci letti (${tot}): togli quelli che non c’entrano`;
     $("#s-tab").innerHTML = "<thead><tr><th></th><th class='num'>Prezzo</th><th class='num'>Km</th><th class='num'>Anno</th><th class='num'>Corretto</th><th>Stato</th></tr></thead><tbody>" +
       m.comps.slice().sort((x, y) => x.corretto - y.corretto).map((c) => `<tr class="${c.usata ? "" : "off"}"><td><input type="checkbox" data-i="${c.i}" ${ST.esclusi.has(c.i) ? "" : "checked"} aria-label="Usa questo annuncio"></td><td class="num">${eur(c.prezzo)}</td><td class="num">${c.km != null ? TG.num(c.km) : "–"}</td><td class="num">${c.anno || "–"}</td><td class="num">${c.usata || c.motivo === "prezzo anomalo" ? eur(c.corretto) : "–"}</td><td>${esc(c.usata ? "usato" : c.motivo)}</td></tr>`).join("") + "</tbody>";
 
@@ -160,7 +102,7 @@
     $("#s-miei").hidden = !sim.length;
     if (sim.length) {
       const pv = sim.filter((x) => x.prezzo_vendita != null).map((x) => x.prezzo_vendita), gg = sim.filter((x) => x.giorni != null).map((x) => x.giorni);
-      $("#s-miei").innerHTML = `<b>Le tue vendite di ${esc(a.marca)} ${esc(a.modello)}</b>: ${sim.length} auto${pv.length ? `, venduta in media a ${eur(Calc().stat.media(pv))}` : ""}${gg.length ? `, in ${Math.round(Calc().stat.media(gg))} giorni` : ""}. <span class="muted">Sono prezzi di vendita veri, di solito più bassi di quelli di annuncio.</span>`;
+      $("#s-miei").innerHTML = `<b>Le tue vendite di ${esc(a.marca)} ${esc(a.modello)}</b>: ${sim.length} ${sim.length === 1 ? "auto" : "auto"}${pv.length ? `, venduta in media a ${eur(Calc().stat.media(pv))}` : ""}${gg.length ? `, in ${Math.round(Calc().stat.media(gg))} giorni` : ""}. <span class="muted">Sono prezzi di vendita veri, di solito più bassi di quelli di annuncio.</span>`;
     }
 
     const vuoto = m.affidabilita === "insufficiente";
@@ -168,21 +110,13 @@
     $("#s-ris").hidden = vuoto;
     $("#s-usa").disabled = vuoto;
     if (vuoto) {
-      const attesa = ST.carico && a.marca;
-      $("#s-vuoto").innerHTML = attesa ? "<h3>Sto cercando gli annunci…</h3><p class='muted'>Ci vuole un attimo.</p>"
-        : !a.marca ? "<h3>Da dove parto?</h3><p>Scrivi marca, modello e anno dell’auto: il programma cerca gli annunci simili e mostra subito il prezzo.</p>"
-        : `<h3>Mancano gli annunci di confronto</h3><p>${tot ? "Gli annunci dell’anno giusto sono troppo pochi: ne servono almeno 3 (meglio più di 10)." : "Per stimare il prezzo servono gli annunci di auto simili alla tua."}</p><p>Apri <b>Aggiungi o sostituisci con annunci tuoi</b> qui a sinistra: puoi incollare i risultati di una ricerca o caricare un file.</p>`
-          + (!compra && r.costi.acquistoNoto ? `<p class="muted small">Intanto: per guadagnare almeno ${eur(X.S.imp.margine_min || 0)} dopo la trattativa del ${X.S.imp.trattativa}% non scendere sotto <b>${eur(Calc().prezzoMinimo({ costi: r.costi, margineMin: X.S.imp.margine_min, trattativa: X.S.imp.trattativa / 100 }))}</b>.</p>` : "");
+      $("#s-vuoto").innerHTML = `<h3>Mancano gli annunci di confronto</h3><p>${tot ? "Gli annunci dell’anno giusto sono troppo pochi: ne servono almeno 3 (meglio più di 10)." : "Per stimare il prezzo servono gli annunci di auto simili alla tua."}</p><ol><li>Tocca <b>Apri la ricerca su AutoScout24</b> (marca, modello e anni sono già impostati).</li><li>Seleziona tutta la pagina dei risultati e copiala.</li><li>Incollala nel riquadro qui a sinistra e tocca <b>Aggiungi questi annunci</b>.</li></ol>` + (r.costi.acquistoNoto ? `<p class="muted small">Intanto: per guadagnare almeno ${eur(X.S.imp.margine_min || 0)} dopo la trattativa del ${X.S.imp.trattativa}% non scendere sotto <b>${eur(Calc().prezzoMinimo({ costi: r.costi, margineMin: X.S.imp.margine_min, trattativa: X.S.imp.trattativa / 100 }))}</b>.</p>` : "");
       ST.ultimo = null; return;
     }
     // schede dei tre approcci
     const migliore = r.piani.filter((p) => p.piano && p.piano.guadagnoGiorno != null && p.piano.guadagnoGiorno > 0).sort((x, y) => y.piano.guadagnoGiorno - x.piano.guadagnoGiorno)[0];
     $("#s-cards").innerHTML = r.piani.map((p) => {
-      const pi = p.piano, pg = p.paga, att = Math.abs(ST.q - p.q) < 0.02;
-      if (compra) return `<button type="button" class="st-card ${att ? "on" : ""}" data-q="${p.q}" aria-pressed="${att}">
-  <span class="st-n">${esc(p.nome)}</span><b class="st-p">${eurH(pg.massimo)}</b>
-  <span class="st-m">al massimo · rivendi a ${eur(pi.prezzo)}${pi.giorni != null ? " in circa " + pi.giorni + " giorni" : ""}</span>
-</button>`;
+      const pi = p.piano, att = Math.abs(ST.q - p.q) < 0.02;
       return `<button type="button" class="st-card ${att ? "on" : ""}" data-q="${p.q}" aria-pressed="${att}">
   <span class="st-n">${esc(p.nome)}</span><b class="st-p">${eurH(pi.prezzo)}</b>
   <span class="st-m">${pi.giorni != null ? "circa " + pi.giorni + " giorni" : "tempo non stimabile"}</span>
@@ -192,14 +126,13 @@
     }).join("");
     const s = r.scelto;
     ST.ultimo = s;
-    $("#s-qtxt").innerHTML = `Rivendendo a <b>${eur(s.prezzo)}</b> sei più economico del <b>${pct(s.piuEconomicoDi)}</b> degli annunci simili.`;
+    $("#s-qtxt").innerHTML = `Con <b>${eur(s.prezzo)}</b> sei più economico del <b>${pct(s.piuEconomicoDi)}</b> degli annunci simili.`;
     $("#s-grafico").innerHTML = grafico(r);
     $("#s-note").innerHTML = `<b>Affidabilità ${esc(m.affidabilita)}</b>: ${m.n} annunci${m.tolleranza ? ` dell’anno ${a.anno ? a.anno - m.tolleranza + "-" + (a.anno + m.tolleranza) : ""}` : ""}, da ${eur(m.stat.min)} a ${eur(m.stat.max)}, la metà tra ${eur(m.stat.p25)} e ${eur(m.stat.p75)}.` + m.note.map((n) => " " + esc(n)).join("");
 
-    if (compra) { disegnaPagare(r); return; }
     // costi e guadagno
     const c = r.costi, righe = [];
-    const R = (t, v, cls) => righe.push(`<div class="st-r ${cls || ""}"><dt>${t}</dt><dd>${v}</dd></div>`);
+    const R = (t, v, cls, extra) => righe.push(`<div class="st-r ${cls || ""}"><dt>${t}</dt><dd>${v}</dd></div>`);
     R("Prezzo di annuncio", eur(s.prezzo));
     R(`Dopo la trattativa (−${X.S.imp.trattativa}%)`, eur(s.chiuso));
     R("Costo di acquisto", c.acquistoNoto ? eur(c.acquisto) : '<span class="late">non inserito</span>', "costo");
@@ -215,34 +148,6 @@
     } else R("Guadagno ipotetico", "inserisci il costo di acquisto", "gain");
     $("#s-conti").innerHTML = righe.join("");
     $("#s-usa").textContent = "Usa " + eur(s.prezzo) + " come prezzo";
-  }
-
-  /* quanto pagare: tre livelli (apertura, obiettivo, massimo), come ci si arriva e, se c'è, il giudizio sul prezzo chiesto */
-  function disegnaPagare(r) {
-    const g = r.paga, imp = X.S.imp, c = r.costi;
-    if (!g) { $("#s-compra").innerHTML = ""; return; }
-    const lvl = (cls, titolo, v, nota) => `<div class="pg-l ${cls}"><span>${titolo}</span><b>${eurH(v)}</b><small>${nota}</small></div>`;
-    let verdetto = "";
-    if (g.richiesta != null) {
-      const testo = g.verdetto === "ottimo" ? `Ti chiedono <b>${eur(g.richiesta)}</b>: è sotto il tuo obiettivo. Se l’auto è davvero come dice l’annuncio, conviene.`
-        : g.verdetto === "trattabile" ? `Ti chiedono <b>${eur(g.richiesta)}</b>: va bene solo se scendi verso ${eur(g.obiettivo)}; oltre ${eur(g.massimo)} non resta il margine minimo.`
-        : `Ti chiedono <b>${eur(g.richiesta)}</b>: è troppo. Per tenere il margine minimo devi ottenere almeno <b>${eur(g.scontoNecessario)}</b> di sconto (${pct(g.scontoPercento, 1)}), oppure lasciar perdere.`;
-      verdetto = `<p class="pg-v ${g.verdetto}" role="status"><b>${g.verdetto === "ottimo" ? "Conviene" : g.verdetto === "trattabile" ? "Da trattare" : "Troppo caro"}.</b> ${testo}</p>`;
-    }
-    const ness = g.nonConviene ? `<p class="pg-v caro" role="status"><b>Non conviene a nessun prezzo.</b> Con questi costi e questo prezzo di rivendita non resta il margine minimo nemmeno regalata. Prova a ridurre i lavori previsti o a cambiare approccio.</p>` : "";
-    const righe = [];
-    const R = (t, v, cls) => righe.push(`<div class="st-r ${cls || ""}"><dt>${t}</dt><dd>${v}</dd></div>`);
-    R("Prezzo a cui la rivendi", eur(g.prezzoVendita));
-    R(`Dopo la trattativa (−${imp.trattativa}%)`, eur(g.chiuso));
-    if (c.extra || c.lavori) R("Lavori e costi previsti", "− " + eur(c.extra + c.lavori), "costo");
-    if (c.vendita) R("Costi di vendita", "− " + eur(c.vendita), "costo");
-    if (g.giacenza) R(`Giacenza (${g.giorni} giorni × ${eur(imp.costo_giorno)})`, "− " + eur(g.giacenza), "costo");
-    R("Guadagno minimo che vuoi", "− " + eur(g.margineMin), "costo");
-    R("Massimo da pagare", `<b>${eur(g.massimo)}</b>`, "gain");
-    $("#s-compra").innerHTML = ness + verdetto +
-      `<div class="pg-liv">${lvl("ap", "Apri con", g.apertura, "guadagno previsto " + eur(g.lordo - g.apertura))}${lvl("ob", "Punta a", g.obiettivo, "guadagno previsto " + eur(g.lordo - g.obiettivo))}${lvl("mx", "Non oltre", g.massimo, "guadagno previsto " + eur(g.lordo - g.massimo))}</div>`
-      + `<h3 class="st-h">Come ci arrivo</h3><dl class="st-conti">${righe.join("")}</dl>`
-      + `<p class="small muted">Apertura e obiettivo sono una regola pratica (2× e 1,5× il guadagno minimo). Il prezzo di rivendita dipende dall’approccio scelto qui sopra.</p>`;
   }
 
   /* ---------- grafico: dove cade il tuo prezzo tra gli annunci (prezzi corretti per i km) ---------- */
@@ -281,16 +186,10 @@
   function init(ctx) {
     X = ctx;
     const rid = (() => { let tm; return () => { clearTimeout(tm); tm = setTimeout(aggiorna, 120); }; })();
-    const cerca = (() => { let tm; return () => { clearTimeout(tm); tm = setTimeout(() => cercaMercato(), 450); }; })();
     ["s-marca", "s-modello", "s-anno", "s-km", "s-acq", "s-extra"].forEach((id) => $("#" + id).addEventListener("input", (e) => {
       if ((id === "s-marca" || id === "s-modello") && ST) { const k = chiave($("#s-marca").value, $("#s-modello").value); const sv = salvati()[k]; if (sv && !ST.comps.length) { ST.comps = sv.annunci.slice(); ST.fonte = sv.data; } }
-      if (["s-marca", "s-modello", "s-anno"].includes(id)) cerca();
       rid();
     }));
-    $("#s-m-vendi").onclick = () => { if (ST && ST.modo !== "vendi") { ST.modo = "vendi"; impostaModo(); aggiorna(); } };
-    $("#s-m-compra").onclick = () => { if (ST && ST.modo !== "compra") { ST.modo = "compra"; impostaModo(); aggiorna(); } };
-    $("#s-ricarica").onclick = () => { delete CACHE[chiaveFonte(leggiAuto())]; cercaMercato(true); };
-    $("#s-manuale > summary").addEventListener("click", () => { if (ST) ST.manTocca = true; });
     const impCampi = [["s-trat", "trattativa"], ["s-cvend", "costi_vendita"], ["s-cgiorno", "costo_giorno"], ["s-mmin", "margine_min"]];
     impCampi.forEach(([id, k]) => $("#" + id).addEventListener("input", (e) => { const n = num(e.target.value); X.S.imp[k] = n == null ? (k === "trattativa" ? 3 : 0) : Math.max(0, k === "trattativa" ? Math.min(30, n) : n); X.salva(); rid(); }));
     $("#s-leggi").onclick = () => {
@@ -309,7 +208,7 @@
         X.toast(`${aggiungi(l)} annunci aggiunti dal file.`); aggiorna();
       } catch (err) { X.toast("Non riesco a leggere il file: " + err.message); }
     });
-    $("#s-svuota").onclick = () => { ST.comps = []; ST.esclusi = new Set(); ST.fonte = ""; memorizza(); aggiorna(); };   // cancella solo gli annunci inseriti a mano
+    $("#s-svuota").onclick = () => { ST.comps = []; ST.esclusi = new Set(); ST.fonte = ""; memorizza(); aggiorna(); };
     $("#s-tab").addEventListener("change", (e) => { const i = e.target.dataset.i; if (i == null) return; if (e.target.checked) ST.esclusi.delete(+i); else ST.esclusi.add(+i); aggiorna(); });
     $("#s-cards").addEventListener("click", (e) => { const b = e.target.closest("[data-q]"); if (!b) return; ST.q = +b.dataset.q; $("#s-q").value = Math.round(ST.q * 100); aggiorna(); });
     $("#s-q").addEventListener("input", (e) => { ST.q = +e.target.value / 100; aggiorna(); });
@@ -320,5 +219,5 @@
     let tm; window.addEventListener("resize", () => { if ($("#d-stima").open) { clearTimeout(tm); tm = setTimeout(aggiorna, 150); } });
   }
 
-  GT.Stima = { init, apri, quantoPagare: () => apri({ modo: "compra", valori: {}, lavori: 0 }) };
+  GT.Stima = { init, apri };
 })();

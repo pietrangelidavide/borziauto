@@ -1,4 +1,4 @@
-/* AutoProfit · scheda «Flotta»: tenere il garage il più pieno possibile.
+/* Borzi Auto · scheda «Flotta»: tenere il garage il più pieno possibile.
    Dallo storico delle vendite (quelle del gestionale più il file CSV che importi) prevede quante auto escono,
    quante ne servono e quando comprarle, su che tipo di auto puntare e quali auto spingere. Sono previsioni, non certezze:
    più storico c'è, più sono affidabili (la scheda dice quanto). */
@@ -235,7 +235,7 @@
 
   function esporta(solo) {
     const rows = solo ? [] : X.S.storico.map((r) => Calc().COLONNE_STORICO.map(([k]) => (r[k] == null ? "" : r[k])));
-    TG.tab.scarica("﻿" + TG.tab.toCSV([Calc().COLONNE_STORICO.map(([, t]) => t)].concat(rows)), solo ? "autoprofit-storico-modello.csv" : `autoprofit-storico-vendite-${X.oggi()}.csv`, "text/csv;charset=utf-8");
+    TG.tab.scarica("﻿" + TG.tab.toCSV([Calc().COLONNE_STORICO.map(([, t]) => t)].concat(rows)), solo ? "borzi-auto-storico-modello.csv" : `borzi-auto-storico-vendite-${X.oggi()}.csv`, "text/csv;charset=utf-8");
   }
 
   function init(ctx) {

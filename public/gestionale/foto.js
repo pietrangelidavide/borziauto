@@ -1,11 +1,11 @@
-/* AutoProfit · foto delle auto caricate a mano.
+/* Borzi Auto · foto delle auto caricate a mano.
    Le foto si scelgono dalla galleria del telefono, dalla fotocamera o dal computer, si ridimensionano nel browser
    (max 1600 px, JPEG, sotto 850 KB) e restano in questo browser (IndexedDB). Con l'archivio online partono da sole
    verso il server; in modalità locale il pacchetto .zip le contiene in img/auto/. */
 (function () {
   "use strict";
   const GT = (window.GT = window.GT || {});
-  const DBN = "autoprofit.foto.v1", ST = "foto";
+  const DBN = "borziauto.foto.v1", ST = "foto";
   const URLS = {};      // nome → indirizzo temporaneo per l'anteprima
   const BLOBS = {};     // nome → Blob (copia in memoria: funziona anche se IndexedDB non è disponibile)
   let db = null, dbOk = true;

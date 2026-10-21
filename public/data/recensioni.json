@@ -1,0 +1,45 @@
+{
+  "demo": true,
+  "fonte": "esempio",
+  "voto": 4.9,
+  "totale": 48,
+  "tutte": "",
+  "scrivi": "",
+  "recensioni": [
+    {
+      "autore": "Cliente di esempio",
+      "stelle": 5,
+      "quando": "2 settimane fa",
+      "testo": "Tutto chiaro dall’inizio: l’auto era come nelle foto e nessuna sorpresa al momento del ritiro.",
+      "demo": true
+    },
+    {
+      "autore": "Cliente di esempio",
+      "stelle": 5,
+      "quando": "1 mese fa",
+      "testo": "Ho chiamato la sera e il giorno dopo ero già in sede a vederla. Persone disponibili e precise, mi hanno spiegato ogni dettaglio senza fretta.",
+      "demo": true
+    },
+    {
+      "autore": "Cliente di esempio",
+      "stelle": 5,
+      "quando": "2 mesi fa",
+      "testo": "Professionali e cordiali. La consegna è stata puntuale e le carte erano in ordine.",
+      "demo": true
+    },
+    {
+      "autore": "Cliente di esempio",
+      "stelle": 4,
+      "quando": "3 mesi fa",
+      "testo": "Ottima esperienza, consiglio a chi cerca un’auto tedesca e vuole parlare con chi la conosce davvero.",
+      "demo": true
+    },
+    {
+      "autore": "Cliente di esempio",
+      "stelle": 5,
+      "quando": "4 mesi fa",
+      "testo": "Torno volentieri: si capisce che ci tengono a far uscire auto in ordine.",
+      "demo": true
+    }
+  ]
+}

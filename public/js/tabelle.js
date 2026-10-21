@@ -1,4 +1,4 @@
-/* AutoProfit · lettura e scrittura di CSV ed Excel (.xlsx) nel browser.
+/* Borzi Auto · lettura e scrittura di CSV ed Excel (.xlsx) nel browser.
    Usa solo JSZip (vendor/jszip.min.js). I file .xls vecchi non sono supportati: da Excel "Salva con nome" → .xlsx o .csv. */
 (function () {
   const TG = window.TG || (window.TG = {});
