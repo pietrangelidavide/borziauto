@@ -69,13 +69,17 @@
       if (url && !document.querySelector('link[data-ap-font]')) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = url; l.setAttribute("data-ap-font", ""); document.head.appendChild(l); }
       const fd = t.fontTitoli && t.fontTitoli.css, ft = t.fontTesto && t.fontTesto.css;
       if (modo === "gestionale") {
+        /* tema.lavoroAuto: true → l'area di lavoro segue il tema chiaro/scuro del dispositivo e i colori stanno in css/base.css (token); qui si cambia solo il carattere dei titoli */
+        const auto = t.lavoroAuto === true;
         const acc = t.accentoLavoro || t.accento || "#f2d22e", acc2 = t.accentoLavoro2 || t.accento2 || acc;
-        set("--xeno", acc); set("--xeno-2", acc2);
-        set("--ink", contrasto(acc, "#101216") >= 7 ? "#101216" : "#ffffff");
-        set("--acc-rgb", triplo(acc, "#f2d22e")); set("--acc2-rgb", triplo(acc2, "#ffe466"));
+        if (!auto) {
+          set("--xeno", acc); set("--xeno-2", acc2);
+          set("--ink", contrasto(acc, "#101216") >= 7 ? "#101216" : "#ffffff");
+          set("--acc-rgb", triplo(acc, "#f2d22e")); set("--acc2-rgb", triplo(acc2, "#ffe466"));
+        }
         set("--display", fd); set("--dw", t.pesoTitoli); set("--dt", t.maiuscoloTitoli ? "uppercase" : "none");
         /* palette completa dell'area di lavoro (tema.lavoro): chi non la indica tiene quella scura di Borzi Auto, con solo l'accento del garage */
-        const w = t.lavoro && typeof t.lavoro === "object" ? t.lavoro : null;
+        const w = !auto && t.lavoro && typeof t.lavoro === "object" ? t.lavoro : null;
         if (w) {
           const chiaro = w.testo || "#f1f2ee";
           set("--night", w.sfondo); set("--garage", w.superficie); set("--garage-2", w.superficie2);
@@ -87,7 +91,7 @@
           set("--r-btn", w.raggio == null ? "" : w.raggio + "px");
           set("--ds", w.scalaTitoli); if (ft) set("--text", ft);
         }
-        const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", (w && rgb(w.sfondo) && w.sfondo) || "#101216");
+        if (!auto) { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", (w && rgb(w.sfondo) && w.sfondo) || "#101216"); }
       } else {
         const acc = t.accento || "#f2d22e", acc2 = t.accento2 || acc, bg = t.sfondo || "#f5f4ef", ink = t.testo || "#14161a";
         set("--v-bg", bg); set("--v-surf", t.superficie || "#ffffff"); set("--v-surf2", t.superficie2 || bg); set("--v-ink", ink);
@@ -119,7 +123,15 @@
           const scuro = modo === "gestionale" || el.hasAttribute("data-su-scuro");
           const src = scuro ? t.logoSuScuro || t.logo : t.logo || t.logoSuScuro;
           el.textContent = "";
-          if (src) { const im = document.createElement("img"); im.src = (/^(data:|https?:|\/)/.test(src) ? "" : RADICE) + src; im.alt = cfg.nome; im.height = +el.getAttribute("data-h") || 28; el.appendChild(im); }
+          const url = (f) => (/^(data:|https?:|\/)/.test(f) ? "" : RADICE) + f;
+          if (src) {
+            const im = document.createElement("img"); im.src = url(src); im.alt = cfg.nome; im.height = +el.getAttribute("data-h") || 28;
+            if (modo === "gestionale" && t.lavoroAuto === true && t.logo && t.logoSuScuro && t.logo !== t.logoSuScuro) {     // chiaro di giorno, scuro di notte
+              const pic = document.createElement("picture"), so = document.createElement("source");
+              so.media = "(prefers-color-scheme: dark)"; so.srcset = url(t.logoSuScuro); im.src = url(t.logo);
+              pic.appendChild(so); pic.appendChild(im); el.appendChild(pic);
+            } else el.appendChild(im);
+          }
           else { const s = document.createElement("span"); s.className = "ap-marchio"; s.textContent = cfg.nome; el.appendChild(s); }
         }
       });

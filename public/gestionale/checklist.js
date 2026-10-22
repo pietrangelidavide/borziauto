@@ -1,6 +1,6 @@
-/* Borzi Auto · controlli prima della vendita.
-   Quando inserisci una nuova auto si apre questa lista: per ogni voce segni «a posto», «da fare» (con costo) o «non c’è».
-   I lavori da fare entrano nel calcolo del margine; se sono indispensabili (documenti, sicurezza) l’auto resta
+/* Borzi Auto · controlli: all'acquisto (per capire quanto mettere nei «costi extra») e prima della vendita.
+   La lista si apre dal passo «Acquisto e controlli» del modulo auto e dalla scheda dell'auto: per ogni voce segni «a posto», «da fare» (con costo) o «non c’è».
+   I lavori da fare entrano nel calcolo del margine, oppure (se li aggiungi ai costi extra) nei costi extra, mai in tutti e due; se sono indispensabili (documenti, sicurezza) l’auto resta
    «in preparazione» e non compare sul sito finché non li segni come fatti. Tutto è riservato: non va mai sul sito. */
 (function () {
   "use strict";
@@ -69,10 +69,34 @@
     if (!c) return r;
     c.voci.forEach((v) => {
       if (TEMPLATE[v.k] || v.t) r.controllate++;
-      if (v.s === "da_fare") { r.daFare++; r.costo += v.costo || 0; if (TEMPLATE[v.k] && TEMPLATE[v.k].blocca) r.bloccanti++; }
+      if (v.s === "da_fare") { r.daFare++; r.costo += Math.max(0, (v.costo || 0) - (v.addebitato || 0)); if (TEMPLATE[v.k] && TEMPLATE[v.k].blocca) r.bloccanti++; }
       if (v.s === "fatto") r.fatti++;
     });
     return r;
+  }
+
+  /* quanto costano i lavori ancora da fare, e quanto di questo è già dentro i costi extra */
+  function preventivo(a) {
+    const c = norm(a && a.checklist), r = { fatta: !!c, daFare: 0, totale: 0, incluso: 0, residuo: 0, fatti: 0, speso: 0, controllate: 0 };
+    if (!c) return r;
+    c.voci.forEach((v) => {
+      r.controllate++;
+      if (v.s === "da_fare") { r.daFare++; r.totale += v.costo || 0; r.incluso += Math.min(v.costo || 0, v.addebitato || 0); }
+      if (v.s === "fatto") { r.fatti++; r.speso += v.costo || 0; }
+    });
+    r.residuo = r.totale - r.incluso;
+    return r;
+  }
+  /* aggiunge ai costi extra il costo dei lavori da fare non ancora contati (senza toccare i lavori fatti, già contati): restituisce { checklist, costi_extra } */
+  function aggiungiAiExtra(a) {
+    const c = norm(a && a.checklist); if (!c) return { checklist: null, costi_extra: a ? a.costi_extra : null };
+    let extra = +(a && a.costi_extra) || 0;
+    const voci = c.voci.map((v) => {
+      if (v.s !== "da_fare") return v;
+      const costo = v.costo || 0; extra += costo - (v.addebitato || 0);
+      return { ...v, addebitato: costo };
+    });
+    return { checklist: norm({ data: c.data, voci }), costi_extra: Math.max(0, Math.round(extra)) };
   }
 
   /* ---------- finestra ---------- */
@@ -85,7 +109,7 @@
     const aperto = v.s === "da_fare" || v.s === "fatto";
     const st = STATI.map(([s, t]) => `<button type="button" data-s="${s}" aria-pressed="${v.s === s || (s === "da_fare" && v.s === "fatto")}">${t}</button>`).join("");
     return `<li class="ck-r ${v.s ? "s-" + v.s : ""}" data-k="${esc(v.k)}">
-  <div class="ck-t"><span>${esc(testo(v))}</span>${blocca(v) ? '<small class="ck-b" title="Serve prima di mettere l’auto in vendita">indispensabile</small>' : ""}</div>
+  <div class="ck-t"><span>${esc(testo(v))}</span>${blocca(v) ? '<small class="ck-b" title="Serve prima di mettere l’auto in vendita">indispensabile</small>' : ""}${v.s === "da_fare" && v.addebitato > 0 ? '<small class="ck-b ck-ex" title="Il costo di questo lavoro è già nei costi extra dell’auto">già nei costi extra</small>' : ""}</div>
   <div class="ck-seg" role="group" aria-label="${esc(testo(v))}">${st}</div>
   ${aperto ? `<div class="ck-d">
     <label class="ck-eur">Costo €<input data-f="costo" inputmode="numeric" value="${v.costo == null ? "" : v.costo}" placeholder="0"></label>
@@ -115,6 +139,7 @@
   function riepiloga() {
     const s = stato();
     $("#k-prog").textContent = `${s.fatte} su ${s.tot} controllate`;
+    const ex = $("#k-ex-n"); if (ex) ex.textContent = TG.euro(s.costo);
     $("#k-sum").innerHTML = s.daFare.length
       ? `<b>${s.daFare.length}</b> ${s.daFare.length === 1 ? "lavoro" : "lavori"} da fare · costo stimato <b>${TG.euro(s.costo)}</b>${s.bloccanti ? ` · <span class="late">${s.bloccanti} ${s.bloccanti === 1 ? "indispensabile" : "indispensabili"} prima di vendere</span>` : ""}`
       : s.fatte ? "Nessun lavoro da fare." : "Segna le voci una per una, oppure «Segna tutto a posto» se l’auto è a posto.";
@@ -122,9 +147,13 @@
 
   function apri(a, o) {
     A = a; opz = o || {}; nuova = !!opz.nuova; stornare = 0;
+    const acq = !!opz.acquisto;
+    $("#k-extra-r").hidden = !acq;
+    document.querySelector(".ck-st").hidden = !!opz.senzaAuto;      // senza un'auto vera non c'è niente da pubblicare o nascondere
+    if (acq) $("#k-extra").checked = true;
     const c = norm(a.checklist);
     voci = c ? c.voci.map((v) => ({ ...v })) : [];
-    $("#k-titolo").textContent = nuova ? "Prima di mettere in vendita" : "Controlli prima della vendita";
+    $("#k-titolo").textContent = acq ? "Controlli all’acquisto" : nuova ? "Prima di mettere in vendita" : "Controlli prima della vendita";
     $("#k-auto").textContent = X.titolo(a) + (a.allestimento ? " · " + a.allestimento : "") + (a.anno ? " · " + a.anno : "");
     $("#k-salta").textContent = nuova ? "Salta per ora" : "Chiudi";
     const s = stato();
@@ -195,8 +224,9 @@
       // i costi dei lavori fatti passano nei «costi extra»: si somma solo la differenza rispetto a quanto già addebitato
       const prima = A.costi_extra;
       let extra = (+prima || 0) - stornare;
+      const inExtra = !!opz.acquisto && $("#k-extra").checked;      // dal passo «Acquisto»: i lavori da fare si contano subito nei costi extra
       const salvate = voci.filter((v) => v.s).map((v) => {
-        const voglio = v.s === "fatto" ? v.costo || 0 : 0;
+        const voglio = v.s === "fatto" || (v.s === "da_fare" && (inExtra || (!opz.acquisto && v.addebitato > 0))) ? v.costo || 0 : 0;
         extra += voglio - (v.addebitato || 0);
         return { ...v, addebitato: voglio };
       });
@@ -205,11 +235,12 @@
       A.preparazione = document.querySelector('input[name="k-st"]:checked').value === "prep";
       X.salva(); $("#d-check").close(); X.ridisegna();
       const r = riepilogo(A);
-      X.toast(A.preparazione ? `Controlli salvati: l’auto resta in preparazione (${r.daFare} ${r.daFare === 1 ? "lavoro" : "lavori"}).` : "Controlli salvati: l’auto è pronta per la vendita.");
+      if (opz.senzaAuto) X.toast(A.costi_extra ? `Controlli fatti: costi extra ${TG.euro(A.costi_extra)}.` : "Controlli fatti: nessun costo extra.");
+      else X.toast(A.preparazione ? `Controlli salvati: l’auto resta in preparazione (${r.daFare} ${r.daFare === 1 ? "lavoro" : "lavori"}).` : "Controlli salvati: l’auto è pronta per la vendita.");
       if (opz.dopo) opz.dopo(A);
       A = null;
     };
   }
 
-  GT.Check = { init, apri, riepilogo, norm, VOCI: TEMPLATE, GRUPPI };
+  GT.Check = { init, apri, riepilogo, preventivo, aggiungiAiExtra, norm, VOCI: TEMPLATE, GRUPPI };
 })();

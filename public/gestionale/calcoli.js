@@ -200,7 +200,7 @@
   };
 
   /* costi dell'auto: acquisto, costi extra già sostenuti, lavori ancora da fare (check-list), costi di vendita */
-  C.lavoriDaFare = (a) => ((a && a.checklist && a.checklist.voci) || []).filter((v) => v.s === "da_fare").reduce((t, v) => t + (+v.costo || 0), 0);
+  C.lavoriDaFare = (a) => ((a && a.checklist && a.checklist.voci) || []).filter((v) => v.s === "da_fare").reduce((t, v) => t + Math.max(0, (+v.costo || 0) - (+v.addebitato || 0)), 0);   // quello già messo nei costi extra non si conta due volte
   C.costiAuto = function (a, imp) {
     imp = imp || {};
     const c = {

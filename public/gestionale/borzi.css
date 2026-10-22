@@ -1,8 +1,234 @@
-/* Borzi Auto · gestionale: angoli arrotondati in stile Apple al posto dei tagli diagonali dell'originale. */
-.gt{--taglio:none;--taglio-s:none;--rad:20px;--rad-s:14px}
-.gt .pubbar,.gt .hm-box,.gt .fl-box,.gt .fl-imp,.gt .kpi,.gt .hm-k,.gt .card-auto,.gt .kcol,.gt .st-vuoto,.gt .tbl-wrap,.gt .gd,.gt .hm-testa{border-radius:var(--rad)}
-.gt .fa-sug,.gt .fa-prev,.gt .st-big,.gt .st-card,.gt .fl-marche li button,.gt .fl-spingi>li,.gt .hm-conf,.gt #fa-logo,.gt .st-logo,.gt .mlogo{border-radius:var(--rad-s)}
-.gt .btn{border-radius:980px}
-.gt .tabs button{border-radius:14px}
-.gt .tabs button[aria-selected="true"]{clip-path:none}
-.gt dialog>*{border-radius:var(--rad)}
+/* Borzi Auto · gestionale · pelle Apple.
+   Parte dai colori di css/base.css (chiari di giorno, scuri di notte, segue il dispositivo) e dà la forma: angoli arrotondati,
+   pulsanti a pillola, intestazione trasparente, pannelli piatti senza luci né barre. Va caricato dopo design.css, che ha ancora
+   la struttura (griglie, misure, ordine delle cose). Obiettivo: leggere bene, senza sforzo, a qualunque ora. */
+
+.gt{--taglio:none;--taglio-s:none;--rad:20px;--rad-s:14px;background-image:none;background-attachment:scroll}
+.gt :focus-visible{outline:2px solid var(--chrome);outline-offset:2px}
+.gt ::selection{background:rgba(var(--acc-rgb),.2)}
+
+/* ---------- intestazione ---------- */
+.gt-top{flex-wrap:nowrap;gap:12px 16px;padding:10px clamp(16px,4vw,40px);background:rgba(var(--night-rgb),.78);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border-bottom:1px solid var(--line-d)}
+.gt-top::after{content:none;animation:none}
+.gt-brand{flex:none}
+.gt-brand img{height:20px}
+.gt-top h1{margin-right:auto;font-size:1rem;font-weight:600;letter-spacing:0;color:var(--fog)}
+.pill{border-radius:980px;border:0;background:rgba(var(--acc-rgb),.08);color:var(--soft);font-weight:500;font-size:.92rem;padding:.5em 1em}
+.pill::before{box-shadow:none!important}
+.pill.ok::before{background:var(--ok)}
+.pill.err{background:rgba(var(--tail-rgb),.12);color:var(--late)}
+button.pill:not(:disabled):hover{background:rgba(var(--acc-rgb),.14);color:var(--chrome);border-color:transparent}
+.gt-az{display:flex;align-items:center;gap:8px}
+.gt-az:empty{display:none}
+
+/* «Fatture» e «Vai al sito»: in basso nel menu a sinistra sui computer, icone in alto sul telefono */
+.gt-side{display:contents}
+.gt-ext{display:none}
+.gt-ext:empty{display:none}
+.gt-az .btn{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;gap:0;border-radius:50%}
+.gt-az .btn .lbl{display:none}
+.gt-az .btn .ic{width:21px;height:21px}
+@media (min-width:1101px){
+  .gt-side{display:grid;position:sticky;top:84px;gap:20px;align-content:start}
+  .tabs{position:static}
+  .gt-ext{display:grid;gap:4px;padding-top:18px;border-top:1px solid var(--line-d)}
+  .gt-ext .btn{justify-content:flex-start;gap:14px;width:100%;min-height:46px;padding:.7em 1.1em;border-radius:12px;background:none;color:var(--soft);font-size:1.02rem;font-weight:600}
+  .gt-ext .btn:hover{background:rgba(var(--acc-rgb),.06);color:var(--chrome)}
+  .gt-ext .btn .ic{width:23px;height:23px}
+  .gt-ext #b-fatture::after{content:"↗";margin-left:auto;opacity:.5;font-weight:500}
+  .gt-az{display:none}
+}
+
+/* ---------- menu laterale ---------- */
+.gt-main{grid-template-columns:262px minmax(0,1fr)}
+.tabs{gap:4px}
+.tabs button{border-radius:12px;font-weight:600;font-size:1.04rem;color:var(--soft);padding:.8em 1em}
+.tabs button:hover{background:rgba(var(--acc-rgb),.06);color:var(--chrome)}
+.tabs button[aria-selected="true"]{background:rgba(var(--acc-rgb),.1);color:var(--chrome);clip-path:none}
+.tabs button[aria-selected="true"]::before,.tabs button[aria-selected="true"]::after{content:none}
+.tabs button[aria-selected="true"] .ic{color:var(--chrome);filter:none}
+.tabs button b{border-radius:980px;background:rgba(var(--acc-rgb),.1);color:var(--soft);font-weight:600}
+.tabs button[aria-selected="true"] b{background:var(--xeno);color:var(--ink)}
+
+/* ---------- pannelli ---------- */
+.hm-box,.fl-box,.fl-imp,.kpi,.hm-k,.card-auto,.kcol,.st-vuoto,.tbl-wrap,.pubbar{border-radius:var(--rad);background:var(--garage);box-shadow:none}
+.tbl-wrap{border:1px solid var(--line-d)}
+.pubbar{padding:16px 22px}
+.pubbar.mod{background:var(--garage);box-shadow:inset 0 0 0 1.5px rgba(var(--acc-rgb),.3)}
+.pb-dot{box-shadow:none}
+.pubbar.mod .pb-dot{background:var(--warn)}
+.hm-k.warn,.kpi.warn{box-shadow:inset 0 0 0 1.5px rgba(var(--tail-rgb),.5)}
+button.hm-k:hover{background:var(--garage-2)}
+button.hm-k:hover::after{content:none}
+.meter{height:8px;border-radius:980px;background:rgba(var(--acc-rgb),.12)}
+.meter i{border-radius:inherit;box-shadow:none}
+.hm-pipe li i,.fm-bar,.fm-bar i{border-radius:980px;box-shadow:none}
+.hm-bar{rx:5px;ry:5px}
+.hm-fasce{gap:4px}
+.hm-fasce i{border-radius:8px}
+.hm-fasce .f1{color:var(--on-ok)}.hm-fasce .f2{color:var(--ink)}.hm-fasce .f3{color:#1d1d1f}.hm-fasce .f4{color:var(--on-tail)}
+.hm-leg i{border-radius:4px}
+.hm-az li,.hm-conf,.pp-elenco li,.fl-spingi>li,.fl-marche li button,.fl-rib li,.st-fonte,.st-big,.st-card,.fa-sug,.fa-prev,.fa-visibile,.kc,.tt,.gt-pop{border-radius:var(--rad-s);box-shadow:none}
+.hm-az li{background:var(--campo2)}
+.hm-az li.t-alto{background:rgba(var(--tail-rgb),.1)}
+.hm-az li.t-medio{background:var(--campo2)}
+.hm-ico{border-radius:12px}
+.pp-elenco li,.pp-elenco li.n,.pp-elenco li.m,.pp-elenco li.t{box-shadow:none}
+.pp-elenco li.altre{background:none}
+.fl-marche li button:hover{box-shadow:none}
+.c-sopra,.c-linea,.c-sotto{box-shadow:none}
+.c-sopra{background:rgba(var(--tail-rgb),.1)}.c-linea{background:rgba(var(--ok-rgb),.12)}
+.st-vendi,.st-compra{box-shadow:none}
+.st-card.on{box-shadow:inset 0 0 0 2px var(--xeno)}
+.fa-chip.on,.fa-sug-3 button.on{box-shadow:inset 0 0 0 2px var(--xeno);background:rgba(var(--acc-rgb),.08)}
+
+/* ---------- pulsanti ---------- */
+.gt .btn{min-height:44px;border:0;border-radius:980px;font-weight:600;letter-spacing:0;clip-path:none}
+.gt .btn-light{background:var(--xeno);color:var(--ink)}
+.gt .btn-light:hover{background:var(--xeno-2)}
+.gt .btn-line{background:rgba(var(--acc-rgb),.08);color:var(--chrome);border:0}
+.gt .btn-line:hover{background:rgba(var(--acc-rgb),.14);border:0}
+.gt .btn-light:disabled{opacity:.4}
+.fa-x{border:0;border-radius:50%;background:rgba(var(--acc-rgb),.08)}
+.fa-x:hover{background:rgba(var(--acc-rgb),.14);color:var(--chrome)}
+.fab{clip-path:none;border-radius:980px}
+.lnk{color:var(--chrome);text-decoration-color:rgba(var(--acc-rgb),.4)}
+.lnk:hover{text-decoration-color:var(--chrome)}
+.gt .lnk.d{color:var(--late)}
+.gt-foot .lnk{color:var(--fog)}
+
+/* ---------- campi ---------- */
+.gt input,.gt select,.gt textarea{border-radius:12px;background:var(--campo);border:1px solid var(--line-d)}
+.gt input[type=checkbox],.gt input[type=radio]{accent-color:var(--xeno)}
+.gt input:focus,.gt select:focus,.gt textarea:focus{outline:2px solid var(--chrome);outline-offset:0;border-color:transparent}
+.gt-bar input,.gt-bar select{background:var(--garage)}
+.gt-bar input[type=search]{border-radius:980px;padding-inline:1.2em}
+
+/* ---------- tabelle, etichette ---------- */
+th{background:var(--garage);color:var(--fog);font-weight:600;border-bottom:1px solid var(--line-d)}
+th button:hover{color:var(--chrome)}
+tr:hover td{background:rgba(var(--acc-rgb),.035)}
+tr:hover td:first-child{box-shadow:none}
+.thumb{border-radius:10px;object-fit:cover}
+.tag,.st,.chip{border-radius:12px;border:0;background:rgba(var(--acc-rgb),.08);color:var(--soft);font-weight:600;padding:.16em .75em}
+.st{border-left:0}
+td .tag.warn,.ca-tag .tag.warn,.tag.warn{background:rgba(var(--tail-rgb),.12);color:var(--late);border:0}
+.tag.ok{background:rgba(var(--ok-rgb),.14);color:var(--ok-t);border:0}
+.vm{border-radius:980px}
+.tabs button b,.pill,.tag,.vm{font-variant-numeric:tabular-nums}
+
+/* interruttori (stile iOS) */
+.sw{width:51px;height:31px;border:0;border-radius:980px;background:rgba(var(--acc-rgb),.2)}
+.sw i{top:2px;left:2px;width:27px;height:27px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.sw[aria-checked="true"]{background:var(--ok);border:0}
+.sw[aria-checked="true"] i{transform:translateX(20px);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.gt .fa-visibile input{width:51px;height:31px;border:0;border-radius:980px;background:rgba(var(--acc-rgb),.2)}
+.gt .fa-visibile input::after{top:2px;left:2px;width:27px;height:27px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.gt .fa-visibile input:checked{background:var(--ok);border:0}
+.gt .fa-visibile input:checked::after{transform:translateX(20px);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+
+/* ---------- finestre ---------- */
+dialog::backdrop{background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+@media (prefers-color-scheme:dark){dialog::backdrop{background:rgba(0,0,0,.62)}}
+.gd{border-radius:28px;border:0;clip-path:none;background:var(--garage);box-shadow:0 30px 80px -20px rgba(0,0,0,.4),0 0 0 1px var(--line-d)}
+.gd::before{content:none}
+.gt-pop{background:var(--garage);border:1px solid var(--line-d);box-shadow:0 20px 50px -18px rgba(0,0,0,.35)}
+.gt-pop button{border-radius:10px}
+.gt dialog>*{border-radius:28px}
+
+/* ---------- prima schermata del Riepilogo: pannello sempre scuro, con l'auto al neon ---------- */
+.hm-testa{border-radius:28px;box-shadow:none;clip-path:none;background:linear-gradient(120deg,#0a0a0b 25%,#1d1d20);color:#f5f5f7;
+  --chrome:#f5f5f7;--soft:#d1d1d6;--fog:#aeaeb2;--xeno:#f5f5f7;--xeno-2:#fff;--ink:#000;--acc-rgb:245,245,247;--acc2-rgb:255,255,255}
+.hm-tit{letter-spacing:-.02em}
+
+/* l'auto e il Colosseo Quadrato non toccano il bordo della scheda */
+@media (min-width:701px){.hm-neon{right:22px}}
+@media (max-width:700px){.hm-neon{width:calc(100% - 8px)}}
+
+/* ---------- schermi stretti ---------- */
+@media (max-width:1100px){
+  .tabs{gap:6px;padding-block:8px;background:rgba(var(--night-rgb),.82);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+  .tabs button{border-radius:14px}
+  .tabs button[aria-selected="true"]{background:rgba(var(--acc-rgb),.12)}
+}
+@media (max-width:700px){
+  .gt-top{padding-block:8px}
+  .gt-top h1{font-size:.95rem}
+  .hm-testa{border-radius:24px}
+}
+@media (max-width:420px){
+  .gt-top h1{display:none}
+  .gt-brand{margin-right:auto}
+}
+
+/* ---------- passo «Acquisto e controlli» del modulo auto ---------- */
+.fa-acq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.fa-ctl{display:grid;gap:10px;padding:18px 20px;border-radius:var(--rad);background:var(--campo2);box-shadow:none}
+.fa-ctl-testa{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px}
+.fa-ctl-testa b{font-size:1.08rem}
+.fa-ctl-st{color:var(--soft);font-size:.95rem}
+.fa-ctl .fa-aiuto,.fa-ctl p{margin:0}
+.fa-ctl-sum{font-size:1.04rem}
+.fa-ctl-sum b{font-variant-numeric:tabular-nums}
+.fa-ctl-sug{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:12px 14px;border-radius:var(--rad-s);background:rgba(var(--acc-rgb),.07)}
+.fa-ctl-ok{color:var(--ok-t);font-weight:600}
+.fa-ctl-az{display:flex;flex-wrap:wrap;gap:8px}
+.fa-extra small{display:block;margin-top:4px}
+.ck-ex-r{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:var(--rad-s);background:rgba(var(--acc-rgb),.07);color:var(--chrome);cursor:pointer}
+.ck-ex-r[hidden]{display:none}
+.ck-ex-r input{flex:none;margin-top:.25em}
+.ck-b.ck-ex{color:var(--ok-t);border-color:rgba(var(--ok-rgb),.4)}
+@media (max-width:560px){.fa-acq{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- forme: niente più angoli tagliati ---------- */
+.fa-sez h3 i{clip-path:none;border-radius:50%;width:30px;height:30px;font-size:.95rem}
+.fa-pbadge{clip-path:none;left:12px;top:12px;border-radius:980px;padding:.25em .85em}
+#toast,.fab{clip-path:none;border-radius:980px;box-shadow:0 10px 30px -8px rgba(0,0,0,.4)}
+.fl-marche li button,.fl-spingi>li,.fa-sug,.fa-prev,.st-big,.st-card{clip-path:none}
+#fa-logo,.st-logo,.mlogo,.fa-chip img{border-radius:10px;clip-path:none}
+.fa-chip,.fa-seg button{border-radius:980px;border-color:transparent;background:var(--campo2);box-shadow:none}
+.fa-marche .fa-chip{border-radius:16px}
+.fa-chip:hover,.fa-seg button:hover{background:var(--campo3);border-color:transparent}
+.fa-chip.on{background:rgba(var(--acc-rgb),.08);box-shadow:inset 0 0 0 2px var(--xeno);border-color:transparent}
+.fa-seg button[aria-checked="true"]{background:var(--xeno);color:var(--ink);box-shadow:none;border-color:transparent}
+.fa-sug{box-shadow:none;background:var(--campo2)}
+.fa-prev{overflow:hidden}
+.ck-seg{border:0;border-radius:10px;overflow:hidden;background:var(--campo2)}
+.ck-seg button{border-radius:0;min-height:40px}
+.ck-seg button+button{border-left:1px solid var(--line-d)}
+.ck-seg button[aria-pressed="true"]{background:rgba(var(--acc-rgb),.14);color:var(--chrome);box-shadow:inset 0 -3px 0 var(--fog)}
+.ck-b{border-radius:980px;padding:0 .6em}
+.ck-sum{border-radius:var(--rad-s);border-left:0;background:var(--campo2)}
+.gd-btns .btn{min-height:46px}
+
+/* ---------- liste, schede e interruttori di vista ---------- */
+.seg{padding:3px;border:0;border-radius:12px;background:var(--campo3);gap:2px}
+.seg button{border-radius:9px;padding:.5em 1.1em;font-weight:600;color:var(--soft)}
+.seg button:hover{color:var(--chrome)}
+.seg button[aria-pressed="true"]{background:var(--garage);color:var(--chrome);box-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.04)}
+.kc-next{border:0;border-radius:980px;background:rgba(var(--acc-rgb),.08);color:var(--chrome);font-weight:600;padding:.4em .9em;min-height:32px}
+.kc-next:hover{background:rgba(var(--acc-rgb),.14);border:0}
+.fu{border-radius:8px}
+.kpis{gap:12px;background:none;border:0}
+.vi,.vr{border-radius:var(--rad-s);border:0;box-shadow:none}
+.ag.chiudere .vi{box-shadow:inset 0 0 0 1.5px rgba(var(--late-rgb),.55)}
+.ag.oggi .vi{box-shadow:inset 0 0 0 1.5px rgba(var(--acc-rgb),.35)}
+ul#ri-lista,.ag ul{border:0;border-radius:var(--rad);background:none;display:grid;gap:8px}
+.ag-n,.ag h3 span,.ag h3 em{border-radius:8px}
+.vi-c .tag.warn{background:rgba(var(--tail-rgb),.12);color:var(--late)}
+.vi-c .tag.ok{background:rgba(var(--ok-rgb),.14);color:var(--ok-t)}
+.hm-az li button,.hm-l{border-radius:var(--rad-s)}
+.vr.s-nuova{box-shadow:inset 0 0 0 1.5px rgba(var(--acc-rgb),.35)}
+tr:hover td:first-child{box-shadow:none}
+.st-ctl{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.st-ctl[hidden]{display:none}
+.ck-st[hidden]{display:none}
+
+/* ---------- finestre: riquadri e liste ---------- */
+.fotoed,.fe-add,.fa-det,.fa-pf,.st-man,fieldset.priv,.vf-r,.att-vuoto{border-radius:var(--rad-s)}
+.fa-pf{overflow:hidden}
+.fa-det,.st-man{border-color:transparent;background:var(--campo2)}
+.fa-det>summary,.st-man>summary{border-radius:var(--rad-s)}
+.vf-costo,.vf-vin small{border-radius:8px}
+.st-fonte{box-shadow:none;border-left:0;background:var(--campo2)}
+.st-fonte .tag{border-radius:980px}

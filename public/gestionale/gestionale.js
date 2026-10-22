@@ -347,7 +347,6 @@ AP.pronto.then(function () {
     });
     fotoEd.carica(v.foto || "");
     GT.Aggiungi.apertura(a);
-    $("#f-check").hidden = !a || a.stato === "venduta";
     $("#f-verifica").hidden = !a;
     apri($("#d-form"));
   }
@@ -359,12 +358,6 @@ AP.pronto.then(function () {
       valori: { marca: g("marca").trim(), modello: g("modello").trim(), allestimento: g("allestimento").trim(), anno: numero(g("anno")), km: numero(g("km")), costo_acquisto: numero(g("costo_acquisto")), costi_extra: numero(g("costi_extra")), prezzo: numero(g("prezzo")) },
       onUsa: (p) => { F.elements.prezzo.value = p; },
     });
-  };
-  /* controlli: lavorano su una copia, così non toccano le modifiche non ancora salvate nel modulo */
-  $("#f-check").onclick = () => {
-    const prev = editId ? S.auto.find((x) => x.id === editId) : null; if (!prev) return;
-    const copia = JSON.parse(JSON.stringify(prev)); copia.costi_extra = numero(F.elements.costi_extra.value);
-    GT.Check.apri(copia, { originale: prev, dopoVerifica: (x) => { F.elements.targa.value = x.targa || ""; F.elements.telaio.value = x.telaio || ""; }, dopo: (c) => { prev.checklist = c.checklist; prev.preparazione = c.preparazione; prev.costi_extra = c.costi_extra; F.elements.costi_extra.value = c.costi_extra == null ? "" : c.costi_extra; $("#fa-visibile").checked = !c.preparazione; GT.Aggiungi.aggiorna(); salva(); disegna(); } });
   };
   /* verifica storico e documenti dell'auto che stai modificando: usa la targa e il telaio scritti nel modulo, anche se non ancora salvati */
   $("#f-verifica").onclick = () => {
@@ -387,7 +380,7 @@ AP.pronto.then(function () {
     const num = {};
     for (const k of NUMERI) { const n = numero(d[k]); num[k] = n == null ? null : Math.round(n); }
     if (d.cambio) d.cambio = cambioCanon(d.cambio);
-    const rec = pieno(Object.assign({}, prev || {}, d, num, { id: editId || "", marca: marcaCanon(d.marca), demo: prev ? prev.demo : false, preparazione: !F.elements.visibile.checked }));
+    const rec = pieno(Object.assign({}, prev || {}, d, num, GT.Aggiungi.daSalvare(), { id: editId || "", marca: marcaCanon(d.marca), demo: prev ? prev.demo : false, preparazione: !F.elements.visibile.checked }));
     const pos = prev ? S.auto.indexOf(prev) : -1;
     if (pos >= 0) S.auto[pos] = rec; else S.auto.push(rec);
     S.tab = rec.stato;

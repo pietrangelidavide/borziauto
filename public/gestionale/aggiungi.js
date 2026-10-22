@@ -1,6 +1,8 @@
 /* Borzi Auto · inserimento di un'auto pensato per chi la vende, non per chi programma.
    Si parte dalle foto, poi si sceglie la marca dal suo logo, il modello da un elenco, l'anno, i chilometri e il motore con un tocco.
    Mentre si scrive compaiono il prezzo consigliato (stima di riferimento, catalogo.js) e l'anteprima di come l'auto apparirà sul sito.
+   Il passo «Acquisto e controlli» tiene insieme quanto costa l'auto, i controlli (lista di cose da guardare, GT.Check) e i costi extra:
+   il totale dei lavori da fare si aggiunge ai costi extra con un tocco, senza contarlo due volte nel margine.
    Il modulo resta quello di sempre (stessi campi, stesso salvataggio): qui si aggiungono solo scorciatoie e consigli. */
 (function () {
   "use strict";
@@ -9,7 +11,7 @@
   const esc = (s) => TG.esc(s);
   const Cat = () => AP.Catalogo;
   const eur = (n) => (n == null || !isFinite(n) ? "–" : (n < 0 ? "−" : "") + TG.euro(Math.round(Math.abs(n))).replace(" ", " "));
-  let X = null, F = null, prev = null;
+  let X = null, F = null, prev = null, bozza = null;   // bozza: i controlli fatti su un'auto nuova, prima che sia salvata
   const PIU_USATE = ["fiat", "volkswagen", "bmw", "audi", "mercedes-benz", "toyota", "renault", "peugeot", "ford", "opel", "jeep", "alfa-romeo", "citroen", "mini", "lancia", "dacia"];
   const ALIM = ["Benzina", "Diesel", "Ibrida", "Elettrica", "GPL", "Metano"];
 
@@ -83,7 +85,7 @@
     const box = $("#fa-prezzo"), d = dati();
     const costo = X.numero(val("costo_acquisto")), extra = X.numero(val("costi_extra"));
     if (!d.marca || !d.anno) { box.innerHTML = '<p class="fa-aiuto">Scrivi marca, modello e anno: ti suggerisco subito un prezzo di vendita.</p>'; box.dataset.pronto = ""; return; }
-    const lavori = prev ? GT.Calc.lavoriDaFare(prev) : 0;
+    const lavori = GT.Calc.lavoriDaFare(prev || bozza || {});
     const r = GT.Stima.rapido(d, { acquisto: costo, extra, lavori });
     if (!r) { box.innerHTML = '<p class="fa-aiuto">Controlla l’anno: non riesco a stimare questa auto.</p>'; return; }
     box.dataset.pronto = "1";
@@ -101,8 +103,54 @@
 ${conf}${sotto}<p class="fa-fonte">Stima di riferimento${r.noto ? "" : " (modello fuori elenco, più incerta)"}: non viene da nessun portale. <button type="button" class="lnk" data-calc>Apri il calcolo completo</button></p></div>`;
   }
 
+  /* ---------- acquisto e controlli ---------- */
+  const lavoroAuto = () => Object.assign(prev ? JSON.parse(JSON.stringify(prev)) : { id: "", checklist: bozza && bozza.checklist, verifiche: bozza && bozza.verifiche, preparazione: bozza && bozza.preparazione === true }, {
+    marca: val("marca").trim(), modello: val("modello").trim(), allestimento: val("allestimento").trim(), anno: X.numero(val("anno")), km: X.numero(val("km")),
+    targa: val("targa"), telaio: val("telaio"), costi_extra: X.numero(val("costi_extra")) });
+  function controlli() {
+    const box = $("#fa-ctl"); if (!box) return;
+    const a = lavoroAuto(), p = GT.Check.preventivo(a), extra = X.numero(val("costi_extra")) || 0;
+    const metti = (html) => { if (box.dataset.h !== html) { box.innerHTML = html; box.dataset.h = html; } };     // non ridisegna se non è cambiato niente: il fuoco resta dov'è
+    if (!p.fatta) {
+      metti(`<div class="fa-ctl-testa"><b>Controlli</b><span class="fa-ctl-st">non ancora fatti</span></div>
+<p class="fa-aiuto">Documenti, meccanica, elettronica, carrozzeria: per ogni lavoro che serve scrivi quanto costa. Il totale ti dice quanto mettere nei costi extra, e se l’auto vale il prezzo che chiedono.</p>
+<div class="fa-ctl-az"><button type="button" class="btn btn-light sm" data-ctl="apri">Fai i controlli</button></div>`);
+      return;
+    }
+    const lavori = p.daFare ? `<b>${p.daFare}</b> ${p.daFare === 1 ? "lavoro" : "lavori"} da fare, <b>${eur(p.totale)}</b> stimati` : "Nessun lavoro da fare";
+    const fatti = p.fatti ? ` · ${p.fatti} già ${p.fatti === 1 ? "fatto" : "fatti"} (${eur(p.speso)})` : "";
+    const sug = p.residuo > 0
+      ? `<p class="fa-ctl-sug">Con questi lavori i costi extra diventano <b>${eur(extra + p.residuo)}</b>. <button type="button" class="btn btn-light sm" data-ctl="extra">Aggiungi ${eur(p.residuo)} ai costi extra</button></p>`
+      : p.incluso > 0 ? `<p class="fa-ctl-ok" role="status">I ${eur(p.incluso)} dei lavori da fare sono già nei costi extra.</p>` : "";
+    metti(`<div class="fa-ctl-testa"><b>Controlli</b><span class="fa-ctl-st">${p.controllate} ${p.controllate === 1 ? "voce controllata" : "voci controllate"}</span></div>
+<p class="fa-ctl-sum">${lavori}${fatti}</p>${sug}
+<div class="fa-ctl-az"><button type="button" class="btn btn-line sm" data-ctl="apri">Rivedi i controlli</button></div>`);
+  }
+  function apriControlli() {
+    GT.Check.apri(lavoroAuto(), {
+      acquisto: true, originale: prev || (bozza = bozza || {}),
+      dopoVerifica: (x) => { imposta("targa", x.targa || ""); imposta("telaio", x.telaio || ""); },
+      dopo: (c) => {
+        const o = prev || bozza; o.checklist = c.checklist; o.preparazione = c.preparazione;
+        if (prev) prev.costi_extra = c.costi_extra;
+        $("#fa-visibile").checked = !c.preparazione;
+        imposta("costi_extra", c.costi_extra == null ? "" : c.costi_extra);
+        if (prev) { X.salva(); X.ridisegna(); }
+        const b = $("#fa-ctl [data-ctl=apri]"); if (b) b.focus();
+      },
+    });
+  }
+  function extraDaControlli() {
+    const r = GT.Check.aggiungiAiExtra(lavoroAuto()), o = prev || (bozza = bozza || {}), aggiunti = r.costi_extra - (X.numero(val("costi_extra")) || 0);
+    o.checklist = r.checklist;
+    if (prev) { prev.costi_extra = r.costi_extra; X.salva(); X.ridisegna(); }
+    imposta("costi_extra", r.costi_extra);
+    const b = $("#fa-ctl [data-ctl=apri]"); if (b) b.focus();
+    X.toast(`Aggiunti ${eur(aggiunti)} ai costi extra.`);
+  }
+
   let tm;
-  function aggiorna() { disegnaMarca(); disegnaModelli(); disegnaAnni(); aggiornaSegmenti(); anteprima(); clearTimeout(tm); tm = setTimeout(consiglio, 80); }
+  function aggiorna() { disegnaMarca(); disegnaModelli(); disegnaAnni(); aggiornaSegmenti(); anteprima(); controlli(); clearTimeout(tm); tm = setTimeout(consiglio, 80); }
 
   function init(ctx, form) {
     X = ctx; F = form;
@@ -117,12 +165,15 @@ ${conf}${sotto}<p class="fa-fonte">Stima di riferimento${r.noto ? "" : " (modell
       const p = e.target.closest("[data-p]"); if (p) { imposta("prezzo", p.dataset.p); $("#fa-prezzo").querySelectorAll("[data-p]").forEach((b) => b.classList.toggle("on", b === p)); return; }
       if (e.target.closest("[data-calc]")) $("#f-stima").click();
     });
+    $("#fa-ctl").addEventListener("click", (e) => { const b = e.target.closest("[data-ctl]"); if (!b) return; if (b.dataset.ctl === "apri") apriControlli(); else extraDaControlli(); });
     $("#fa-visibile").addEventListener("change", anteprima);
     F.addEventListener("input", aggiorna);
     F.addEventListener("change", aggiorna);
   }
   /* alla apertura del modulo: prev = auto che si modifica (o null) */
-  function apertura(a) { prev = a || null; $("#fa-visibile").checked = !(a && a.preparazione); aggiorna(); }
+  function apertura(a) { prev = a || null; bozza = null; $("#fa-visibile").checked = !(a && a.preparazione); aggiorna(); }
+  /* i controlli fatti su un'auto nuova, da salvare insieme all'auto */
+  const daSalvare = () => (prev || !bozza ? {} : Object.fromEntries(["checklist", "verifiche"].filter((k) => bozza[k]).map((k) => [k, bozza[k]])));
 
-  GT.Aggiungi = { init, apertura, aggiorna };
+  GT.Aggiungi = { init, apertura, aggiorna, daSalvare };
 })();

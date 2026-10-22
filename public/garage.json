@@ -31,25 +31,10 @@
     "maiuscoloTitoli": false,
     "scalaTitoli": "1",
     "raggio": 12,
-    "logo": "img/borzi-bianco.svg",
+    "logo": "img/borzi-nero.svg",
     "logoSuScuro": "img/borzi-bianco.svg",
-    "accentoLavoro": "#f5f5f7",
-    "accentoLavoro2": "#ffffff",
-    "lavoro": {
-      "sfondo": "#000000",
-      "superficie": "#111113",
-      "superficie2": "#1b1b1e",
-      "testo": "#f5f5f7",
-      "testoSoft": "#d2d2d7",
-      "testo2": "#a1a1a6",
-      "testo3": "#6e6e73",
-      "linea": "rgba(255,255,255,.14)",
-      "campo": "#0a0a0b",
-      "campo2": "#121214",
-      "campo3": "#18181b",
-      "raggio": 12,
-      "scalaTitoli": 1
-    }
+    "lavoroAuto": true,
+    "_nota_lavoroAuto": "L'area di lavoro (gestionale) segue il tema chiaro/scuro del dispositivo: i colori sono in css/base.css. Per tornare a una palette scura fissa togli lavoroAuto e aggiungi «lavoro» e «accentoLavoro»."
   },
   "contatti": {
     "ragioneSociale": "BORZI AUTO SRLS",

@@ -70,12 +70,27 @@
     $("#s-incolla").value = ""; $("#s-q").value = 50;
     $("#s-manuale").open = false; ST.manTocca = false;
     $("#d-stima").dataset.focus = ST.focus;
+    $("#s-ctl").hidden = ST.focus !== "compra"; ctlTesto();
     $("#s-acq-l").firstChild.nodeValue = ST.focus === "compra" ? "Prezzo che ti chiedono (€)" : "Prezzo di acquisto: pagato o richiesto (€)";
     caricaSalvati();
     modelliPer($("#s-marca").value);
     X.apri($("#d-stima"));
     cercaMercato();            // se c'è una fonte collegata la interroga; altrimenti resta la stima di riferimento
     aggiorna();
+  }
+  /* controlli all'acquisto: servono a capire quanto mettere nei costi extra, prima ancora di comprare (non salvano nessuna auto) */
+  function ctlTesto() {
+    const p = GT.Check.preventivo({ checklist: ST && ST.checklist });
+    $("#s-ctl-b").textContent = p.fatta ? "Rivedi i controlli" : "Fai i controlli";
+    $("#s-ctl-t").textContent = !p.fatta ? "Passa in rassegna l’auto: i lavori che servono ti dicono quanto mettere nei costi extra."
+      : p.daFare ? `${p.daFare} ${p.daFare === 1 ? "lavoro" : "lavori"} da fare, ${eur(p.totale)}: già nei costi extra.` : "Nessun lavoro da fare.";
+  }
+  function apriControlli() {
+    const a = leggiAuto();
+    GT.Check.apri({ id: "", marca: a.marca, modello: a.modello, anno: a.anno, km: a.km, checklist: ST.checklist || null, costi_extra: a.extra }, {
+      acquisto: true, senzaAuto: true,
+      dopo: (c) => { ST.checklist = c.checklist; $("#s-extra").value = c.costi_extra == null ? "" : c.costi_extra; $("#s-extra").dispatchEvent(new Event("input", { bubbles: true })); ctlTesto(); },
+    });
   }
   function caricaSalvati() {
     const a = leggiAuto(), s = salvati()[chiave(a.marca, a.modello)];
@@ -343,6 +358,7 @@
       if (["s-marca", "s-modello", "s-anno"].includes(id)) cerca();
       rid();
     }));
+    $("#s-ctl-b").onclick = apriControlli;
     $("#s-ricarica").onclick = () => { delete CACHE[chiaveFonte(leggiAuto())]; cercaMercato(true); };
     $("#s-manuale > summary").addEventListener("click", () => { if (ST) ST.manTocca = true; });
     const impCampi = [["s-trat", "trattativa"], ["s-cvend", "costi_vendita"], ["s-cgiorno", "costo_giorno"], ["s-mmin", "margine_min"]];

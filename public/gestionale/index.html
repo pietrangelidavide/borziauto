@@ -4,13 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Borzi Auto">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Gestionale auto · Borzi Auto</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../css/base.css">
@@ -23,12 +25,15 @@
   <a class="gt-brand" href="../" aria-label="Torna al sito" data-ap="logo" data-h="24"></a>
   <h1>Gestionale</h1>
   <button type="button" class="pill" id="sync" role="status" disabled></button>
-  <a class="btn btn-line sm" href="https://servizi.bluenext.it" id="b-fatture" target="_blank" rel="noopener noreferrer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/></svg>Fatture<span class="vh"> (si apre in una nuova scheda)</span></a>
-  <a class="btn btn-line sm" href="../" id="b-sito">Vai al sito</a>
+  <div class="gt-az" id="gt-az">
+    <a class="btn btn-line sm" href="https://servizi.bluenext.it" id="b-fatture" target="_blank" rel="noopener noreferrer" aria-label="Fatture (si apre in una nuova scheda)" title="Fatture"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/></svg><span class="lbl">Fatture</span></a>
+    <a class="btn btn-line sm" href="../" id="b-sito" aria-label="Vai al sito" title="Vai al sito"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span class="lbl">Vai al sito</span></a>
+  </div>
   <button type="button" class="btn btn-line sm" id="b-esci" hidden>Esci</button>
 </header>
 
 <main class="gt-main">
+  <div class="gt-side">
   <nav class="tabs" role="tablist" aria-label="Sezioni del gestionale">
     <button type="button" role="tab" id="tab-home" aria-selected="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h6V4H4zM14 20h6V11h-6zM14 4h6v4h-6zM4 17h6v3H4z"/></svg><span>Riepilogo</span></button>
     <button type="button" role="tab" id="tab-disp" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3l2-5h14l2 5v3M3 15h18M3 15v3h3v-3M18 15v3h3v-3M7 12h.01M17 12h.01"/></svg><span>In vendita</span> <b id="n-disp">0</b></button>
@@ -38,6 +43,8 @@
     <button type="button" role="tab" id="tab-ric" aria-selected="false" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V4h8l8 8-8 8zM8.5 8.5h.01"/></svg><span>Valutazioni</span> <b id="n-ric" hidden>0</b></button>
     <button type="button" role="tab" id="tab-flotta" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Flotta</span></button>
   </nav>
+  <div class="gt-ext" id="gt-ext"></div>
+  </div>
 
   <div class="gt-corpo">
   <section class="pubbar" id="pubbar" aria-label="Stato del sito">
@@ -206,7 +213,7 @@
 
 <!-- aggiungi / modifica -->
 <dialog id="d-form" aria-labelledby="f-titolo"><form class="gd gd-auto" method="dialog" id="form">
-  <header class="fa-head"><div><h2 id="f-titolo">Aggiungi auto</h2><p class="fa-aiuto">Quattro passi: foto, che auto è, anno e chilometri, prezzo. Il prezzo giusto te lo suggerisco io.</p></div><button type="button" class="fa-x" data-chiudi aria-label="Chiudi">×</button></header>
+  <header class="fa-head"><div><h2 id="f-titolo">Aggiungi auto</h2><p class="fa-aiuto">Cinque passi: foto, che auto è, anno e chilometri, acquisto e controlli, prezzo. Il prezzo giusto te lo suggerisco io.</p></div><button type="button" class="fa-x" data-chiudi aria-label="Chiudi">×</button></header>
   <div class="fa-cols">
     <div class="fa-main">
       <section class="fa-sez" aria-labelledby="fa-h1">
@@ -239,7 +246,18 @@
       </section>
 
       <section class="fa-sez" aria-labelledby="fa-h4">
-        <h3 id="fa-h4"><i>4</i>Prezzo</h3>
+        <h3 id="fa-h4"><i>4</i>Acquisto e controlli</h3>
+        <p class="fa-aiuto">Quanto l’hai pagata, o quanto stai per pagarla. Poi i controlli: i lavori che servono ti dicono quanto mettere nei costi extra. Sono dati riservati: non vanno mai sul sito.</p>
+        <div class="fa-acq">
+          <label class="fa-campo">Costo di acquisto (€)<input name="costo_acquisto" inputmode="numeric" placeholder="Es. 19500" autocomplete="off"></label>
+          <label class="fa-campo">Data di acquisto<input name="data_acquisto" type="date"></label>
+        </div>
+        <div class="fa-ctl" id="fa-ctl" aria-live="polite"></div>
+        <label class="fa-campo fa-extra">Costi extra, ricondizionamento (€)<input name="costi_extra" inputmode="numeric" placeholder="Es. 850" autocomplete="off"><small class="fa-aiuto">Qui vanno i lavori dei controlli, il passaggio di proprietà, il trasporto e il lavaggio.</small></label>
+      </section>
+
+      <section class="fa-sez" aria-labelledby="fa-h5">
+        <h3 id="fa-h5"><i>5</i>Prezzo</h3>
         <label class="fa-campo fa-prezzo-in">Prezzo in vetrina (€)<input name="prezzo" inputmode="numeric" placeholder="24900" autocomplete="off"></label>
         <div id="fa-prezzo" class="fa-prezzo" aria-live="polite"></div>
       </section>
@@ -261,9 +279,6 @@
         <div class="fg">
           <label>Targa<input name="targa" autocomplete="off"></label>
           <label>Telaio (VIN)<input name="telaio" autocomplete="off" maxlength="20" placeholder="17 caratteri, voce E del libretto"></label>
-          <label>Data di acquisto<input name="data_acquisto" type="date"></label>
-          <label>Costo di acquisto (€)<input name="costo_acquisto" inputmode="numeric"></label>
-          <label>Costi extra, ricondizionamento (€)<input name="costi_extra" inputmode="numeric"></label>
           <label>Revisione entro il<input name="scad_revisione" type="date"></label>
           <label>Prezzo di vendita finale (€)<input name="prezzo_vendita" inputmode="numeric"></label>
           <label class="w2">Note interne<textarea name="note_interne" rows="2"></textarea></label>
@@ -279,7 +294,6 @@
   <p class="gd-err" id="f-err" role="alert" hidden></p>
   <div class="gd-btns c-btns">
     <button type="button" class="btn btn-line sm" id="f-stima">Calcolo completo dei prezzi</button>
-    <button type="button" class="btn btn-line sm" id="f-check">Controlli prima della vendita</button>
     <button type="button" class="btn btn-line sm" id="f-verifica">Verifica storico e documenti</button><span class="grow"></span>
     <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva l’auto</button>
   </div>
@@ -484,6 +498,7 @@
   <div id="k-lista" class="ck-lista"></div>
   <div class="ck-nuova"><input id="k-nuova" placeholder="Aggiungi un’altra voce (es. Sostituire il paraurti)" autocomplete="off" aria-label="Altra voce"><button type="button" class="btn btn-line sm" id="k-add">Aggiungi</button></div>
   <p class="ck-sum" id="k-sum"></p>
+  <label class="ck-ex-r" id="k-extra-r" hidden><input type="checkbox" id="k-extra" checked> <span><b>Aggiungi ai costi extra</b> il costo dei lavori da fare (<b id="k-ex-n">0 €</b>): lo ritrovi nel passo «Acquisto e controlli» e non viene contato due volte nel margine</span></label>
   <fieldset class="modo ck-st">
     <label><input type="radio" name="k-st" value="pronta" checked> <span><b>Pronta per la vendita</b>: compare sul sito</span></label>
     <label><input type="radio" name="k-st" value="prep"> <span><b>In preparazione</b>: resta nascosta dal sito finché i lavori non sono fatti</span></label>
@@ -505,6 +520,7 @@
         <label>Cambio<select id="s-cambio"><option value="">Non so</option><option>Manuale</option><option>Automatico</option></select></label>
         <label id="s-acq-l">Prezzo di acquisto (€)<input id="s-acq" inputmode="numeric" placeholder="Se già lo sai"></label>
         <label id="s-extra-l">Costi extra (€)<input id="s-extra" inputmode="numeric"></label>
+        <div class="st-ctl" id="s-ctl" hidden><button type="button" class="btn btn-line sm" id="s-ctl-b">Fai i controlli</button><small class="muted" id="s-ctl-t"></small></div>
       </div>
       <div class="st-fonte" id="s-fonte" role="status" aria-live="polite"></div>
       <div class="st-az"><button type="button" class="btn btn-line sm" id="s-ricarica" hidden>Aggiorna i prezzi</button></div>
@@ -619,5 +635,6 @@
 <script src="flotta.js"></script>
 <script src="server.js"></script>
 <script src="gestionale.js"></script>
+<script src="posiziona.js"></script>
 </body>
 </html>

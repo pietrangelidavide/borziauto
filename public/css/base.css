@@ -5,20 +5,37 @@
 @font-face{font-family:"Inter";src:url("../fonts/inter-var.woff") format("woff");font-weight:100 900;font-style:normal;font-display:swap}
 
 :root{
-  /* area di lavoro del dealer (sempre scura) */
-  --night:#000; --garage:#121214; --garage-2:#1c1c1f;
-  --chrome:#f5f5f7; --fog:#a1a1a6; --fog-d:#6e6e73;
-  --line-d:rgba(255,255,255,.14);
-  /* sfumature usate dentro il gestionale (un garage può cambiarle con tema.lavoro) */
-  --night-rgb:0,0,0; --soft:#d2d2d7; --campo:#0a0a0b; --campo2:#121214; --campo3:#18181b; --r-btn:10px; --ds:1;
-  /* colori del garage: accento e testo sull'accento */
-  --xeno:#f5f5f7; --xeno-2:#ffffff; --ink:#0a0a0b;
-  --acc-rgb:245,245,247; --acc2-rgb:255,255,255;
-  /* colori di stato: uguali per tutti */
-  --tail:#ff4d5e; --ok:#59d49a;
+  /* Area di lavoro in stile Apple: chiara di giorno, scura di notte (segue il dispositivo).
+     Chiaro: sfondo grigio perla, pannelli bianchi, testo quasi nero. Scuro: nero, pannelli grigio antracite, testo quasi bianco.
+     Tutti i testi stanno ad almeno 4,5:1 di contrasto (secondari 5:1 o più) sullo sfondo dei pannelli. */
+  color-scheme:light dark;
+  --night:#f5f5f7; --garage:#ffffff; --garage-2:#ececf0; --night-rgb:245,245,247;
+  --chrome:#1d1d1f; --soft:#3a3a3c; --fog:#5b5b60; --fog-d:#6e6e73;
+  --line-d:rgba(0,0,0,.11);
+  --campo:#f5f5f7; --campo2:#f5f5f7; --campo3:#ececf0; --r-btn:980px; --ds:1;
+  /* accento: nero in chiaro, bianco in scuro (il colore lo mettono le auto); ink = testo sopra l'accento */
+  --xeno:#1d1d1f; --xeno-2:#000000; --ink:#ffffff;
+  --acc-rgb:29,29,31; --acc2-rgb:0,0,0;
+  /* colori di stato: rosso (da fare), verde (ok), ambra (attenzione); -rgb per le tinte trasparenti, -t per i testi */
+  --tail:#d70015; --tail-rgb:215,0,21; --late:#c1121f; --late-rgb:193,18,31;
+  --ok:#1f8a3b; --ok-rgb:31,138,59; --ok-t:#1b7a34; --on-ok:#ffffff; --on-tail:#ffffff;
+  --warn:#8a5a00; --warn-rgb:176,112,0;
   --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Arial,sans-serif;
   --text:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Helvetica Neue",Arial,sans-serif;
   --ease:cubic-bezier(.2,.7,.2,1);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --night:#000000; --garage:#1c1c1e; --garage-2:#2c2c2e; --night-rgb:0,0,0;
+    --chrome:#f5f5f7; --soft:#d1d1d6; --fog:#aeaeb2; --fog-d:#8e8e93;
+    --line-d:rgba(255,255,255,.14);
+    --campo:#000000; --campo2:#2c2c2e; --campo3:#3a3a3c;
+    --xeno:#f5f5f7; --xeno-2:#ffffff; --ink:#000000;
+    --acc-rgb:245,245,247; --acc2-rgb:255,255,255;
+    --tail:#ff6961; --tail-rgb:255,105,97; --late:#ff8a80; --late-rgb:255,138,128;
+    --ok:#30d158; --ok-rgb:48,209,88; --ok-t:#6ee08a; --on-ok:#000000; --on-tail:#000000;
+    --warn:#ffd60a; --warn-rgb:255,214,10;
+  }
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
