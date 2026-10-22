@@ -180,7 +180,7 @@ Se `moduli.vendi` è `false` in `garage.json` la sezione, la voce del menu e i c
 
 ## Instagram
 
-L'icona in alto accanto a «Chiama» e il link nei contatti portano a `CONFIG.instagram` (`js/sito.js`, oggi `https://www.instagram.com/borziauto/`). L'icona è una fotocamera generica, non il logo ufficiale: se vuoi quello, scaricalo dalle risorse per il marchio di Instagram e sostituisci l'`<svg class="ig-ic">` in `index.html`.
+L'icona in alto accanto a «Chiama» (sugli schermi larghi con la scritta «Instagram»), la voce del menu sul telefono e il link nei contatti portano a `CONFIG.instagram` (`js/sito.js`, oggi `https://www.instagram.com/borziauto/`). L'icona è una fotocamera generica, non il logo ufficiale: se vuoi quello, scaricalo dalle risorse per il marchio di Instagram e sostituisci l'`<svg class="ig-ic">` in `index.html`.
 
 ## Aspetto del gestionale
 

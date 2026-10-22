@@ -70,6 +70,11 @@ h3{font-size:21px;line-height:1.19;font-weight:600;letter-spacing:-.02em}
 .ig-btn{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;background:var(--fill);color:var(--fg);transition:background .2s,transform .2s}
 .ig-btn:hover{background:var(--fill-h)}
 .ig-btn:active{transform:scale(.94)}
+.ig-btn{text-decoration:none}
+.ig-t{display:none}
+@media (min-width:1241px){.ig-btn{display:inline-flex;gap:7px;width:auto;padding:0 .95em 0 .75em;border-radius:980px;font-size:13px;font-weight:600;white-space:nowrap}.ig-t{display:inline}}
+.menu nav a.ig-menu{display:flex;align-items:center;gap:12px}
+.menu nav a.ig-menu[hidden]{display:none}
 .links .ig-ic{width:1.05em;height:1.05em;margin-right:.5em;vertical-align:-.14em}
 .call-lbl{display:none}
 .menu{display:none;justify-self:end}

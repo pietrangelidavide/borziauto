@@ -64,7 +64,7 @@
   document.querySelectorAll("[data-se]").forEach((el) => { el.hidden = !V[el.dataset.se]; });
   document.querySelectorAll("[data-t]").forEach((el) => { if (el.dataset.t in V) el.textContent = V[el.dataset.t]; });
   document.querySelectorAll("[data-h]").forEach((el) => { if (HREF[el.dataset.h]) el.setAttribute("href", HREF[el.dataset.h]); });
-  document.querySelectorAll("[data-label]").forEach((el) => { if (V[el.dataset.label]) el.setAttribute("aria-label", V[el.dataset.label]); });
+  document.querySelectorAll("[data-label]").forEach((el) => { if (V[el.dataset.label]) { el.setAttribute("aria-label", V[el.dataset.label]); el.setAttribute("title", V[el.dataset.label]); } });
   if (CONFIG.orari.length) {
     $("#orari-dl").innerHTML = CONFIG.orari.map((o) => `<div data-g="${o.giorni.join(",")}"><dt>${TG.esc(o.nome)}</dt><dd>${TG.esc(o.fasce)}</dd></div>`).join("");
     $("#orari").hidden = false;
