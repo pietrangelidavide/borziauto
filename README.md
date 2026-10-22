@@ -6,7 +6,7 @@ Cloudflare pubblica la cartella `public/`. La grafica del sito è ispirata ai si
 
 ## Da compilare prima di andare online
 
-**I dati del sito stanno in un solo punto: l'oggetto `CONFIG` in cima a `public/js/sito.js`** (il gestionale ha i suoi in `public/garage.json`, vedi sotto). Quello che lasci vuoto non compare sul sito (nessun pulsante «Chiama» finto, nessun orario inventato). Oggi ci sono nome, telefono, sede, orari, link Google, il titolare (Flavio Borzi) e le auto vendute (5.000).
+**I dati del sito stanno in un solo punto: l'oggetto `CONFIG` in cima a `public/js/sito.js`** (il gestionale ha i suoi in `public/garage.json`, vedi sotto). Quello che lasci vuoto non compare sul sito (nessun pulsante «Chiama» finto, nessun orario inventato). Oggi ci sono nome, ragione sociale (BORZI AUTO SRLS), P.IVA, telefono, email (info@borziauto.com), Instagram (@borziauto), sede, orari, link Google, il titolare (Flavio Borzi) e le auto vendute (5.000).
 
 | Campo di `CONFIG` | Cosa mettere | Dove compare |
 |---|---|---|
@@ -22,7 +22,8 @@ Cloudflare pubblica la cartella `public/`. La grafica del sito è ispirata ai si
 | `venduteTotale` | numero di auto vendute (oggi 5000; `0` = il riquadro scompare) | contatore della prima schermata |
 
 Altre cose da sistemare:
-- **Dati legali**: ragione sociale esatta, sede legale e numero REA vanno nel piè di pagina (c'è un commento HTML in `index.html`).
+- **Dati legali**: ragione sociale e P.IVA sono già nel piè di pagina («© 2026 - Tutti i diritti riservati a BORZI AUTO SRLS - P.IVA 17496141007»); mancano sede legale e numero REA (c'è un commento HTML in `index.html`).
+- **Privacy**: `public/privacy.html` è un **modello** (titolare, email, tempi di conservazione si leggono da `garage.json` → `privacy`). Finché `privacy.verificata` è `false` la pagina mostra l'avviso «Questo testo è un modello»: fallo controllare da un consulente e poi metti `true`.
 - **Dominio**: quando c'è, aggiungi in `index.html` `og:url`, `og:image` (immagine 1200×630) e il link canonico, e la riga `Sitemap` in `robots.txt`.
 - **Titolare**: nome e ruolo stanno in `CONFIG.titolare` (il gestionale, se collegato, può sovrascriverli). Le foto di Flavio sono solo nella prima schermata; la sezione recensioni resta senza foto.
 - **Auto e recensioni di esempio**: `public/data/auto.json` (11 auto in vetrina, con le foto in `public/img/auto/`, più alcune vendute di esempio) e le schede di `public/data/recensioni.json` sono dati **di esempio**: modelli riconosciuti dalle foto, ma anno, chilometri, allestimento e prezzo sono inventati, e sul sito sono etichettati «Esempio». Il voto (5,0) e il numero di recensioni (364) vengono invece dal profilo Google e si aggiornano a mano in `recensioni.json` finché non si collega il Worker. Si sostituiscono con le auto vere dal gestionale e con le recensioni vere di Google.
@@ -89,7 +90,7 @@ Come si comporta:
 
 **Flotta.** Posti nel garage, giorni dall'acquisto alla vetrina e percentuale di riempimento desiderata: mostra la saturazione prevista nelle prossime 12 settimane, quante auto far entrare e uscire ogni settimana, le auto da spingere e i segmenti che rendono di più. Si basa sul **tuo storico** (auto vendute e import CSV/Excel dello storico vendite); i dati di esempio si tolgono con «Elimina i dati di esempio».
 
-**Visite.** Agenda degli appuntamenti in sede, con richiamo ai clienti. Il **modulo di prenotazione sul sito è spento** (`garage.json` → `moduli.visite: false`, e `moduli.vendi: false` per le richieste di valutazione): il sito oggi non ha pulsanti di prenotazione. L'agenda si usa comunque a mano.
+**Visite.** Agenda degli appuntamenti in sede, con richiamo ai clienti e orari delle visite modificabili. La **prenotazione dal sito è accesa** (`garage.json` → `moduli.visite: true`; `moduli.vendi: false` lascia spente le richieste di valutazione). Vedi «Prenotare una visita dal sito».
 
 **Contatti (CRM).** Pipeline (Nuovo → Contattato → Appuntamento → Trattativa → Venduto / Perso) o elenco; telefono/WhatsApp/email in un tocco, auto di interesse, budget, richiamo, storico attività.
 
@@ -139,3 +140,14 @@ Le foto del carosello sono le `<figure class="reel-slide">` dentro `<section id=
 - **Nome e numeri**: `CONFIG.titolare.nome` e `CONFIG.venduteTotale` in `public/js/sito.js`. Il voto e il numero di recensioni arrivano da `recensioni.json` (o da Google quando il Worker è attivo); le marche che scorrono in basso sono quelle delle auto in vetrina.
 - **Foto**: sostituisci i file in `public/img/flavio/` (stessi nomi; larghezze 640 e 1100, `.webp` e `.jpg`) e, se cambi i rapporti, le proporzioni in `public/index.html` (`flavio-1` 3:4, `flavio-2` 5:4) e in `style.css` (`.fr-a`, `.fr-b`). Le foto sono tagliate a parallelogramma con l'inclinazione degli slash del logo (12°).
 - **Frasi**: titolo e testo stanno in `public/index.html` dentro `<section id="hero">`.
+
+## Prenotare una visita dal sito
+
+Nel sito c'è la sezione **«Vieni a vedere l'auto di persona»** (menu «Prenota», pulsante in prima schermata e «Prenota una visita» nella scheda di ogni auto, che sceglie già quell'auto). Il cliente sceglie giorno e ora dal calendario, lascia nome e telefono (email e note facoltative), accetta la privacy e invia. Orari, durata (30 minuti), preavviso (3 ore) e giorni prenotabili (30) stanno in `garage.json` → `visite`; gli orari di partenza (lun–ven 10:00–19:00, sab 10:30–12:30) vanno controllati e poi si cambiano dal gestionale, scheda Visite.
+
+Funziona in **due modi, scelti da soli**:
+
+1. **Archivio online attivo** (database D1 e password, vedi «Attivare l'archivio online»): gli orari già presi spariscono dal calendario, la richiesta arriva nell'agenda del gestionale come «Da confermare» e il cliente riceve un codice per annullare. Il Worker ricontrolla tutto (orari, ferie, preavviso, privacy) e blocca i doppioni.
+2. **Archivio non attivo (oggi)**: il calendario mostra gli orari delle visite ma **non può sapere quali sono già occupati**, e la richiesta non arriva al gestionale: il cliente preme «Invia su WhatsApp» e parte un messaggio già scritto verso il numero di `CONFIG.whatsapp`. La visita è confermata solo quando Flavio risponde.
+
+Se `moduli.visite` è `false` la sezione, il menu e i pulsanti scompaiono. Il codice è in `public/js/prenota.js` (regole in `visite-core.js`, parte server in `src/visite.js`); la pagina `privacy.html` serve per il consenso.

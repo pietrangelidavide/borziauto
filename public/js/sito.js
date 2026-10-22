@@ -7,16 +7,16 @@
      e dati per Google si aggiornano da soli. */
   const CONFIG = {
     nome: "Borzi Auto",
-    ragioneSociale: "",            // es. "Borzi Auto S.r.l." (se vuoto, nel piè di pagina compare il nome)
+    ragioneSociale: "BORZI AUTO SRLS",   // nome legale nel piè di pagina e nei dati per Google (se vuoto compare il nome)
     tel: "+393398893539",          // numero da chiamare, con prefisso: "+390612345678"
     telVisibile: "339 889 3539",   // come lo leggono i clienti: "06 1234 5678" (se vuoto si usa tel)
     whatsapp: "393398893539",      // numero senza + e senza spazi: "393331234567"
-    email: "",
+    email: "info@borziauto.com",
     indirizzo: "Via dei Legatori, 74/76",   // via e numero civico: "Via Roma 1"
     cap: "00128", citta: "Roma", provincia: "RM",   // "00100", "Roma", "RM"
-    piva: "",                      // solo le cifre: "01234567890"
+    piva: "17496141007",           // solo le cifre: "01234567890"
     mappa: "",                     // facoltativo: link alla posizione su Google Maps (se vuoto si usa l'indirizzo)
-    instagram: "",                 // link completo: "https://www.instagram.com/nomepagina/"
+    instagram: "https://www.instagram.com/borziauto/",   // link completo: "https://www.instagram.com/nomepagina/"
     autoscout: "",                 // link alla pagina del concessionario su AutoScout24
     google: "https://share.google/WuTIHVY3SAZBkdLh1",   // link alla scheda Google (recensioni e indicazioni)
     orari: [                       // giorni: 0 = domenica … 6 = sabato. Nessuna riga = nessun orario sul sito.
@@ -239,7 +239,8 @@
     <dl>${righe}</dl>
     ${a.descrizione ? `<p class="sheet-text">${TG.esc(a.descrizione)}</p>` : ""}
     <div class="sheet-actions">
-      ${V.tel ? `<a class="btn btn-primary" href="${HREF.tel}">Chiama</a>` : ""}
+      ${window.AP && AP.Prenota && AP.Prenota.attiva() ? `<button type="button" class="btn btn-primary" data-prenota="${TG.esc(a.id)}">Prenota una visita</button>` : ""}
+      ${V.tel ? `<a class="btn ${window.AP && AP.Prenota && AP.Prenota.attiva() ? "btn-soft" : "btn-primary"}" href="${HREF.tel}">Chiama</a>` : ""}
       ${CONFIG.whatsapp ? `<a class="btn btn-soft" href="https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
       ${CONFIG.email ? `<a class="btn btn-soft" href="mailto:${CONFIG.email}?subject=${encodeURIComponent("Informazioni: " + titolo)}&body=${encodeURIComponent(msg)}">Email</a>` : ""}
       ${a.autoscout_url ? `<a class="txt" href="${TG.esc(a.autoscout_url)}" target="_blank" rel="noopener">Vedi su AutoScout24</a>` : ""}
@@ -251,6 +252,8 @@
   }
   dlg.addEventListener("click", (e) => {
     if (e.target === dlg || e.target.closest(".close")) return dlg.close();
+    const pr = e.target.closest("[data-prenota]");
+    if (pr) { const id = pr.dataset.prenota; dlg.close(); setTimeout(() => AP.Prenota.scegliAuto(id), 60); return; }
     const t = e.target.closest(".gal-t");
     if (t) {
       dlg.querySelector(".gal-main").src = t.dataset.src;
@@ -375,6 +378,17 @@
   if (CONFIG.google) { $("#g-link").href = CONFIG.google; $("#li-google").hidden = false; }
   aggiornaContatti();
 
+  /* prenotazione delle visite (js/prenota.js): le regole (orari, durata, preavviso) sono in garage.json; telefono, WhatsApp e indirizzo
+     valgono quelli di CONFIG, così il sito dice sempre le stesse cose. Se l'archivio online non è attivo la richiesta parte su WhatsApp. */
+  function avviaPrenota() {
+    if (!(window.AP && AP.Prenota)) return;
+    fetch("garage.json", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }).then((cfg) => {
+      cfg.nome = CONFIG.nome;
+      cfg.contatti = Object.assign({}, cfg.contatti, { telefono: V.tel, whatsapp: CONFIG.whatsapp, indirizzo: riga1, citta: riga2 });
+      return AP.Prenota.init(cfg, DISP);
+    }).then(() => { if (AP.Prenota.attiva()) $("#hero-tel").hidden = true; }).catch(() => { /* senza garage.json la sezione resta nascosta */ });
+  }
+
   /* le auto arrivano dall'archivio online (api/auto) se esiste; altrimenti dal file data/auto.json pubblicato a mano */
   TG.carica("api/auto").catch(() => TG.carica("data/auto.json")).then((d) => {
     if (d.titolare && (d.titolare.nome || d.titolare.foto.length)) mostraTitolare({ nome: d.titolare.nome, foto: d.titolare.foto.map((f) => TG.foto(f, "")) });
@@ -388,6 +402,7 @@
       renderGriglia();
     }
     renderVendute();
+    avviaPrenota();
     emit("auto", { n: DISP.length, marche: [...new Set(DISP.map((a) => a.marca))] });
   }).catch(() => {
     $("#griglia").innerHTML = `<p class="empty" style="grid-column:1/-1">Non riesco a caricare l’elenco delle auto.${V.tel ? ` Chiamaci al <a href="${HREF.tel}">${TG.esc(V.tel)}</a>.` : ""}</p>`;

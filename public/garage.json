@@ -4,7 +4,7 @@
   "nomeBreve": "Borzi Auto",
   "slogan": "Auto usate a Roma.",
   "fuso": "Europe/Rome",
-  "_da_controllare": "ragione sociale, P.IVA ed e-mail (oggi vuote), costi di vendita e margine minimo (valori di partenza), orari delle visite",
+  "_da_controllare": "costi di vendita e margine minimo (valori di partenza), orari delle visite, testo della privacy (modello da far controllare)",
   "tema": {
     "accento": "#f5f5f7",
     "accento2": "#ffffff",
@@ -52,18 +52,22 @@
     }
   },
   "contatti": {
-    "ragioneSociale": "Borzi Auto",
+    "ragioneSociale": "BORZI AUTO SRLS",
     "telefono": "339 889 3539",
     "whatsapp": "393398893539",
-    "email": "",
+    "email": "info@borziauto.com",
     "indirizzo": "Via dei Legatori, 74/76",
     "citta": "00128 Roma (RM)",
-    "piva": "",
+    "piva": "17496141007",
     "mappa": "",
     "link": [
       {
         "etichetta": "Google",
         "url": "https://share.google/WuTIHVY3SAZBkdLh1"
+      },
+      {
+        "etichetta": "Instagram",
+        "url": "https://www.instagram.com/borziauto/"
       }
     ]
   },
@@ -162,7 +166,7 @@
   },
   "moduli": {
     "vetrina": true,
-    "visite": false,
+    "visite": true,
     "recensioni": true,
     "flotta": true,
     "acquisto": true,
@@ -173,9 +177,9 @@
     "urlFeed": "../api/admin/mercato"
   },
   "privacy": {
-    "titolare": "Borzi Auto",
+    "titolare": "BORZI AUTO SRLS",
     "indirizzo": "Via dei Legatori, 74/76, 00128 Roma (RM)",
-    "email": "",
+    "email": "info@borziauto.com",
     "fornitore": "ENA ONE STUDIO",
     "responsabileDati": "",
     "conservazione": {

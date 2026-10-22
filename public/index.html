@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Borzi Auto · Auto usate a Roma</title>
-<meta name="description" content="Borzi Auto, auto usate a Roma (Selcetta, Via dei Legatori 74/76). Guarda le auto in vetrina con anno, chilometri, alimentazione e prezzo, poi vieni a vederle da vicino. Tel. 339 889 3539.">
+<meta name="description" content="Borzi Auto, auto usate a Roma (Selcetta, Via dei Legatori 74/76). Guarda le auto in vetrina con anno, chilometri, alimentazione e prezzo, prenota una visita e vieni a vederle da vicino. Tel. 339 889 3539.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -35,6 +35,7 @@
     <a href="#titolare">Recensioni</a>
     <a href="#salone">Il salone</a>
     <a href="#servizi">Servizi</a>
+    <a href="#prenota" data-modulo="visite" hidden>Prenota</a>
     <a href="#contatti">Contatti</a>
   </nav>
   <a class="btn btn-primary btn-call" data-se="tel" data-h="tel" href="#contatti" hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span class="call-num" data-t="tel"></span><span class="call-lbl">Chiama</span></a>
@@ -46,6 +47,7 @@
       <a href="#titolare">Recensioni</a>
       <a href="#salone">Il salone</a>
       <a href="#servizi">Servizi</a>
+      <a href="#prenota" data-modulo="visite" hidden>Prenota una visita</a>
       <a href="#contatti">Contatti</a>
     </nav>
   </details>
@@ -64,7 +66,8 @@
       <p class="lead"><span id="h-ruolo">Titolare</span> di <span data-t="nome">Borzi Auto</span><span data-se="citta" hidden> a <span data-t="citta"></span></span>. Guarda le auto in vetrina, poi vieni a vederle da vicino.</p>
       <p class="cta">
         <a class="btn btn-primary btn-lg" id="hero-cta" href="#auto">Guarda le auto</a>
-        <a class="link-arrow" data-se="tel" data-h="tel" href="#contatti" hidden>Chiamaci</a>
+        <a class="link-arrow" id="hero-pren" data-modulo="visite" href="#prenota" hidden>Prenota una visita</a>
+        <a class="link-arrow" id="hero-tel" data-se="tel" data-h="tel" href="#contatti" hidden>Chiamaci</a>
       </p>
     </div>
 
@@ -213,6 +216,43 @@
   </div>
 </section>
 
+<section class="prenota" id="prenota" aria-labelledby="t-prenota" data-modulo="visite" hidden>
+  <div class="wrap">
+    <div class="sec-head"><h2 id="t-prenota">Vieni a vedere l’auto di persona</h2><p>Scegli il giorno e l’ora in cui puoi passare. Non è un impegno: puoi cambiare idea o annullare quando vuoi.</p></div>
+    <div class="mia" id="mia" hidden></div>
+    <div class="pr-grid" id="pr-grid">
+      <div class="pr-cal">
+        <div class="pr-mese"><button type="button" id="pr-prec" aria-label="Mese precedente">‹</button><b id="pr-mese" aria-live="polite"></b><button type="button" id="pr-succ" aria-label="Mese successivo">›</button></div>
+        <div class="cal" id="pr-cal" role="group" aria-label="Giorni"></div>
+        <p class="pr-leg" id="pr-leg">Il puntino segna i giorni con orari liberi.</p>
+        <p class="pr-orari" id="pr-orari" hidden></p>
+        <h3 class="pr-ore-t" id="pr-ore-t" hidden>Scegli l’ora</h3>
+        <div class="pr-ore" id="pr-ore" role="group" aria-label="Orari liberi"></div>
+        <p class="pr-vuoto" id="pr-vuoto" hidden></p>
+      </div>
+      <form class="pr-form" id="pr-form" novalidate autocomplete="on">
+        <h3>I tuoi dati</h3>
+        <div class="pr-scelta vuota" id="pr-scelta" aria-live="polite">Scegli giorno e ora dal calendario</div>
+        <div class="due">
+          <label>Nome e cognome<input name="nome" autocomplete="name" required maxlength="80"></label>
+          <label>Telefono<input name="telefono" type="tel" inputmode="tel" autocomplete="tel" required maxlength="24"></label>
+        </div>
+        <label>Email <small>(facoltativa, per ricevere la conferma)</small><input name="email" type="email" autocomplete="email" maxlength="254"></label>
+        <label>Quale auto vuoi vedere? <select name="auto_id" id="pr-auto"><option value="">Non ho ancora scelto</option></select></label>
+        <label>Note <small>(facoltative)</small><textarea name="note" rows="2" maxlength="500" placeholder="Ad esempio: porto l’auto da dare in permuta"></textarea></label>
+        <div class="trappola" aria-hidden="true"><label>Non compilare questo campo<input name="sito" tabindex="-1" autocomplete="off"></label></div>
+        <label class="chk"><input type="checkbox" name="privacy" required><span>Ho letto l’<a href="privacy.html" target="_blank" rel="noopener">informativa sulla privacy</a>: usate i miei dati solo per organizzare la visita.</span></label>
+        <label class="chk"><input type="checkbox" name="marketing"><span>Voglio ricevere ogni tanto offerte e novità sulle auto. <small>(facoltativo: la visita si prenota anche senza)</small></span></label>
+        <p class="pr-err" id="pr-err" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary btn-lg" id="pr-invia">Richiedi la visita</button>
+        <p class="pr-nota">Ti confermiamo l’orario al numero o all’email che lasci. Finché non ricevi la conferma, la visita è una richiesta.</p>
+      </form>
+    </div>
+    <div class="pr-ok" id="pr-ok" hidden></div>
+    <div class="pr-chiuso" id="pr-chiuso" hidden></div>
+  </div>
+</section>
+
 <section class="contact" id="contatti" aria-labelledby="t-contatti">
   <div class="wrap">
     <h2 id="t-contatti">Vieni a trovarci</h2>
@@ -243,17 +283,19 @@
   <div class="wrap foot-in">
     <picture><source srcset="img/borzi-bianco.svg" media="(prefers-color-scheme: dark)"><img src="img/borzi-nero.svg" alt="Borzi Auto" width="92" height="9"></picture>
     <p class="foot-line">
-      <span>© <span data-t="anno">2026</span> <span data-t="ragioneSociale">Borzi Auto</span></span>
+      <span>© <span data-t="anno">2026</span> - Tutti i diritti riservati a <span data-t="ragioneSociale">BORZI AUTO SRLS</span><span data-se="piva" hidden> - P.IVA <span data-t="piva"></span></span></span>
       <span data-se="indirizzoCompleto" hidden data-t="indirizzoCompleto"></span>
-      <span data-se="piva" hidden>P.IVA <span data-t="piva"></span></span>
+      <a href="privacy.html">Privacy</a>
     </p>
-    <!-- DA AGGIUNGERE: ragione sociale esatta, sede legale e numero REA (la P.IVA si imposta in CONFIG), come richiesto per i siti commerciali. -->
+    <!-- DA AGGIUNGERE: sede legale e numero REA, come richiesto per i siti commerciali (ragione sociale e P.IVA si impostano in CONFIG). -->
   </div>
 </footer>
 
 <dialog id="scheda" aria-labelledby="scheda-titolo"></dialog>
 
 <script src="js/comune.js"></script>
+<script src="js/visite-core.js"></script>
+<script src="js/prenota.js"></script>
 <script src="js/sito.js"></script>
 <script src="js/salone.js"></script>
 <script src="js/hero.js"></script>
