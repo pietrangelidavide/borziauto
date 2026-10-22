@@ -72,7 +72,7 @@ h3{font-size:21px;line-height:1.19;font-weight:600;letter-spacing:-.02em}
 .ig-btn:active{transform:scale(.94)}
 .ig-btn{text-decoration:none}
 .ig-t{display:none}
-@media (min-width:1241px){.ig-btn{display:inline-flex;gap:7px;width:auto;padding:0 .95em 0 .75em;border-radius:980px;font-size:13px;font-weight:600;white-space:nowrap}.ig-t{display:inline}}
+@media (min-width:1480px){.ig-btn{display:inline-flex;gap:7px;width:auto;padding:0 .95em 0 .75em;border-radius:980px;font-size:13px;font-weight:600;white-space:nowrap}.ig-t{display:inline}}
 .menu nav a.ig-menu{display:flex;align-items:center;gap:12px}
 .menu nav a.ig-menu[hidden]{display:none}
 .links .ig-ic{width:1.05em;height:1.05em;margin-right:.5em;vertical-align:-.14em}
@@ -85,7 +85,7 @@ h3{font-size:21px;line-height:1.19;font-weight:600;letter-spacing:-.02em}
 .menu[open] summary span:last-child{transform:translateY(-3.75px) rotate(-45deg)}
 .menu nav{position:absolute;top:100%;left:0;right:0;height:calc(100dvh - var(--head));padding:16px clamp(20px,5vw,48px);background:var(--bg);display:flex;flex-direction:column;overflow:auto}
 .menu nav a{font-size:28px;font-weight:600;letter-spacing:-.02em;text-decoration:none;padding:14px 0;border-bottom:1px solid var(--line)}
-@media (max-width:1060px){
+@media (max-width:1100px){
   .top{grid-template-columns:1fr auto auto}
   .nav{display:none}
   .menu{display:block;grid-column:3}
@@ -566,7 +566,7 @@ dialog[open]{animation:pop .4s var(--ease)}
 @media (max-width:559px){.vd-panel h2{max-width:none}.vd-go{width:100%}}
 
 /* barra in alto sui computer stretti: con la voce «Vendi la tua auto» il menu è più largo, quindi il numero lascia il posto a «Chiama» */
-@media (min-width:1061px) and (max-width:1240px){
+@media (min-width:1101px) and (max-width:1240px){
   .call-num{display:none}
   .call-lbl{display:inline}
   .nav{gap:clamp(12px,1.5vw,20px)}
