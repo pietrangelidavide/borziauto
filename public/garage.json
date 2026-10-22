@@ -170,7 +170,7 @@
     "recensioni": true,
     "flotta": true,
     "acquisto": true,
-    "vendi": false
+    "vendi": true
   },
   "strumenti": {
     "_nota": "Collegamenti esterni del gestionale. Fatturazione: apre il tuo accesso Bluenext in una nuova scheda (se usi un altro indirizzo di accesso cambia «url»). Storico: apre carVertical, a pagamento.",

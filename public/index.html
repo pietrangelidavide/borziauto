@@ -32,18 +32,23 @@
   <nav class="nav" aria-label="Principale">
     <a href="#auto">Auto in vetrina</a>
     <a href="#vendute">Vendute</a>
+    <a class="nav-vendi" href="#vendi" data-modulo="vendi">Vendi la tua auto</a>
     <a href="#titolare">Recensioni</a>
     <a href="#salone">Il salone</a>
     <a href="#servizi">Servizi</a>
     <a href="#prenota" data-modulo="visite" hidden>Prenota</a>
     <a href="#contatti">Contatti</a>
   </nav>
-  <a class="btn btn-primary btn-call" data-se="tel" data-h="tel" href="#contatti" hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span class="call-num" data-t="tel"></span><span class="call-lbl">Chiama</span></a>
+  <div class="top-az">
+    <a class="ig-btn" data-se="instagram" data-h="instagram" data-label="instagramTesto" href="#contatti" target="_blank" rel="noopener" aria-label="Instagram" hidden><svg class="ig-ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.1-1.7A1.5 1.5 0 0 1 10.5 3.5h3a1.5 1.5 0 0 1 1.3.8L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a>
+    <a class="btn btn-primary btn-call" data-se="tel" data-h="tel" href="#contatti" hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span class="call-num" data-t="tel"></span><span class="call-lbl">Chiama</span></a>
+  </div>
   <details class="menu">
     <summary aria-label="Apri il menu"><span></span><span></span></summary>
     <nav aria-label="Menu mobile">
       <a href="#auto">Auto in vetrina</a>
       <a href="#vendute">Vendute</a>
+      <a class="nav-vendi" href="#vendi" data-modulo="vendi">Vendi la tua auto</a>
       <a href="#titolare">Recensioni</a>
       <a href="#salone">Il salone</a>
       <a href="#servizi">Servizi</a>
@@ -67,6 +72,7 @@
       <p class="cta">
         <a class="btn btn-primary btn-lg" id="hero-cta" href="#auto">Guarda le auto</a>
         <a class="link-arrow" id="hero-pren" data-modulo="visite" href="#prenota" hidden>Prenota una visita</a>
+        <a class="link-arrow" id="hero-vendi" href="#vendi" data-modulo="vendi">Vendi la tua auto</a>
         <a class="link-arrow" id="hero-tel" data-se="tel" data-h="tel" href="#contatti" hidden>Chiamaci</a>
       </p>
     </div>
@@ -136,6 +142,94 @@
     <p class="sold-lead" id="sold-lead">Auto che hanno già trovato un nuovo proprietario.</p>
   </div>
   <div class="rail" id="rail" tabindex="0" aria-label="Auto vendute"></div>
+</section>
+
+<section class="vendi" id="vendi" aria-labelledby="t-vendi" data-modulo="vendi">
+  <div class="wrap vd-grid">
+    <div class="vd-panel dark">
+      <h2 id="t-vendi">Vendi la tua auto a Borzi Auto.</h2>
+      <p class="vd-lead">Dicci che auto hai e mandaci qualche foto: ti rispondiamo con una valutazione. Senza impegno.</p>
+      <ol class="vd-steps">
+        <li><b>Racconta la tua auto</b><span>Marca, modello, anno e chilometri: bastano pochi minuti.</span></li>
+        <li><b>Ricevi la valutazione</b><span>Ti chiamiamo o ti scriviamo, come preferisci.</span></li>
+        <li><b>Ci vediamo in sede</b><span>Se la proposta ti va bene, ci mettiamo d’accordo.</span></li>
+      </ol>
+      <a class="btn btn-light btn-lg vd-go" href="#vd-form">Compila il modulo</a>
+      <p class="vd-alt" id="vd-alt" hidden>Preferisci parlarne a voce? <a id="vd-tel" href="#contatti" hidden>Chiamaci</a><span id="vd-o" hidden> o </span><a id="vd-wa" href="#contatti" target="_blank" rel="noopener" hidden>scrivici su WhatsApp</a>.</p>
+    </div>
+
+    <form class="pr-form vd-form" id="vd-form" novalidate autocomplete="on">
+      <div class="vd-gr" role="group" aria-labelledby="vd-g1">
+        <h3 id="vd-g1">La tua auto</h3>
+        <div class="due">
+          <label>Marca<input name="marca" required maxlength="40" placeholder="Ad esempio: Audi" autocomplete="off"></label>
+          <label>Modello<input name="modello" required maxlength="60" placeholder="Ad esempio: A3" autocomplete="off"></label>
+        </div>
+        <label>Versione o allestimento <small>(facoltativo)</small><input name="versione" maxlength="80" placeholder="Ad esempio: 2.0 TDI Business" autocomplete="off"></label>
+        <div class="due">
+          <label>Anno di immatricolazione<input name="anno" inputmode="numeric" required maxlength="4" placeholder="2019" autocomplete="off"></label>
+          <label>Chilometri<input name="km" inputmode="numeric" required maxlength="9" placeholder="85.000" autocomplete="off"></label>
+        </div>
+        <div class="due">
+          <label>Alimentazione<select name="alimentazione" required><option value="">Scegli</option></select></label>
+          <label>Cambio<select name="cambio" required><option value="">Scegli</option></select></label>
+        </div>
+        <label>Targa <small>(facoltativa)</small><input name="targa" maxlength="12" autocapitalize="characters" autocomplete="off"></label>
+      </div>
+
+      <div class="vd-gr" role="group" aria-labelledby="vd-g2">
+        <h3 id="vd-g2">Com’è messa</h3>
+        <label>Condizioni<select name="condizioni" required><option value="">Scegli</option></select></label>
+        <div class="due">
+          <label>Incidenti<select name="incidenti" required><option value="">Scegli</option></select></label>
+          <label>Tagliandi <small>(facoltativo)</small><select name="tagliandi"><option value="">Non so</option></select></label>
+        </div>
+        <label>L’auto è tutta tua?<select name="finanziata" required><option value="">Scegli</option></select></label>
+        <label>Difetti o lavori da fare <small>(facoltativo)</small><textarea name="difetti" rows="2" maxlength="1000" placeholder="Ad esempio: graffio sul paraurti, gomme da cambiare"></textarea></label>
+      </div>
+
+      <div class="vd-gr" role="group" aria-labelledby="vd-g3">
+        <h3 id="vd-g3">Cosa vuoi fare</h3>
+        <label>Scegli<select name="cosa" required><option value="">Scegli</option></select></label>
+        <div class="due">
+          <label>Prezzo che avevi in mente <small>(facoltativo, in €)</small><input name="prezzo" inputmode="numeric" maxlength="9" placeholder="12.000" autocomplete="off"></label>
+          <label>Quando <small>(facoltativo)</small><select name="quando"><option value="">Non importa</option></select></label>
+        </div>
+      </div>
+
+      <div class="vd-gr vd-fotos" role="group" aria-labelledby="vd-g4">
+        <h3 id="vd-g4">Le foto</h3>
+        <div class="vd-foto-box" id="vd-foto-box" tabindex="-1" hidden>
+          <p class="vd-aiuto">Servono almeno 4 foto: davanti, dietro, un lato, gli interni. Se puoi aggiungi anche il cruscotto con i chilometri.</p>
+          <label class="btn btn-soft vd-add" id="vd-add"><input type="file" id="vd-file" accept="image/*" multiple><span>Aggiungi foto</span></label>
+          <ul class="vd-thumbs" id="vd-thumbs" aria-label="Foto aggiunte"></ul>
+          <p class="vd-cnt" id="vd-cnt" aria-live="polite"></p>
+        </div>
+        <p class="vd-aiuto" id="vd-foto-nota" hidden>Le foto non si caricano da qui: dopo aver premuto il pulsante in fondo, mandacele nello stesso messaggio o subito dopo (davanti, dietro, un lato, gli interni e il cruscotto con i chilometri).</p>
+      </div>
+
+      <div class="vd-gr" role="group" aria-labelledby="vd-g5">
+        <h3 id="vd-g5">Come ti contattiamo</h3>
+        <div class="due">
+          <label>Nome e cognome<input name="nome" autocomplete="name" required maxlength="80"></label>
+          <label>Telefono<input name="telefono" type="tel" inputmode="tel" autocomplete="tel" required maxlength="24"></label>
+        </div>
+        <div class="due">
+          <label>Email <small>(facoltativa)</small><input name="email" type="email" autocomplete="email" maxlength="254"></label>
+          <label>Preferisci <small>(facoltativo)</small><select name="contatto_pref"><option value="">Come capita</option></select></label>
+        </div>
+        <label>Altro da dirci <small>(facoltativo)</small><textarea name="note" rows="2" maxlength="1000" placeholder="Ad esempio: gli orari in cui puoi rispondere"></textarea></label>
+      </div>
+
+      <div class="trappola" aria-hidden="true"><label>Non compilare questo campo<input name="sito" tabindex="-1" autocomplete="off"></label></div>
+      <label class="chk" id="vd-chk" hidden><input type="checkbox" name="privacy"><span>Ho letto l’<a href="privacy.html" target="_blank" rel="noopener">informativa sulla privacy</a>: usate i miei dati e le mie foto solo per valutare la mia auto e rispondermi.</span></label>
+      <p class="vd-aiuto" id="vd-priv" hidden>I dati che scrivi finiscono nel messaggio che invii tu: vedi l’<a href="privacy.html" target="_blank" rel="noopener">informativa sulla privacy</a>.</p>
+      <p class="pr-err" id="vd-err" role="alert" hidden></p>
+      <button type="submit" class="btn btn-primary btn-lg" id="vd-invia">Invia la richiesta</button>
+      <p class="pr-nota" id="vd-nota">La valutazione è senza impegno: ti contattiamo noi.</p>
+    </form>
+    <div class="vd-ok" id="vd-ok" hidden></div>
+  </div>
 </section>
 
 <section class="people no-foto" id="titolare" aria-labelledby="t-titolare">
@@ -210,7 +304,7 @@
     </div>
     <ul class="rows">
       <li><h3>Scegli qui, vieni a vedere dal vivo</h3><p>Ogni scheda riporta anno, chilometri, alimentazione e prezzo. Per tutto il resto contattaci o passa in sede<span data-se="indirizzoCompleto" hidden>: <span data-t="indirizzoCompleto"></span></span>.</p></li>
-      <li><h3>Hai un’auto da cambiare?</h3><p>Mandaci marca, modello, anno e chilometri: ti diciamo se possiamo valutarla.</p></li>
+      <li><h3>Hai un’auto da cambiare?</h3><p>Mandaci marca, modello, anno e chilometri: ti diciamo se possiamo valutarla. <a href="#vendi" data-modulo="vendi">Compila il modulo</a>.</p></li>
       <li><h3>Non trovi quello che cerchi?</h3><p>Dicci marca, modello e budget: sappiamo cosa cercare.</p></li>
     </ul>
   </div>
@@ -269,7 +363,7 @@
       </div>
       <ul class="card links" id="links">
         <li data-se="email" hidden><a data-h="mail" data-t="email" href="#contatti"></a></li>
-        <li data-se="instagram" hidden><a data-h="instagram" data-t="instagramTesto" href="#contatti" target="_blank" rel="noopener"></a></li>
+        <li data-se="instagram" hidden><a class="ig-link" data-h="instagram" href="#contatti" target="_blank" rel="noopener"><svg class="ig-ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.1-1.7A1.5 1.5 0 0 1 10.5 3.5h3a1.5 1.5 0 0 1 1.3.8L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span data-t="instagramTesto"></span></a></li>
         <li id="li-google" hidden><a id="g-link" href="#" target="_blank" rel="noopener">Borzi Auto su Google</a></li>
         <li id="li-as24" hidden><a id="as24" href="#" target="_blank" rel="noopener">Le nostre auto su AutoScout24</a></li>
       </ul>
@@ -296,6 +390,8 @@
 <script src="js/comune.js"></script>
 <script src="js/visite-core.js"></script>
 <script src="js/prenota.js"></script>
+<script src="js/richieste-core.js"></script>
+<script src="js/vendi.js"></script>
 <script src="js/sito.js"></script>
 <script src="js/salone.js"></script>
 <script src="js/hero.js"></script>

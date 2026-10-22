@@ -252,7 +252,7 @@
       const c0 = cfg.contatti || {};
       if (P.stato !== "ok" && String(c0.whatsapp || "").replace(/\D/g, "")) {        // niente archivio online: si prenota via WhatsApp
         P.wa = true; P.occ = []; P.adesso = V.adesso(P.cfg.fuso); P.stato = "ok";
-        const nota = $(".pr-nota"); if (nota) nota.textContent = "Scegli giorno e ora e invia la richiesta su WhatsApp. La visita è confermata solo quando ti rispondiamo.";
+        const nota = $("#pr-form .pr-nota"); if (nota) nota.textContent = "Scegli giorno e ora e invia la richiesta su WhatsApp. La visita è confermata solo quando ti rispondiamo.";
         const leg = $("#pr-leg"); if (leg) leg.textContent = "Il puntino segna i giorni in cui si visita.";
         const mk = document.querySelector("#pr-form input[name=marketing]"); if (mk) mk.closest("label").hidden = true;
       }
@@ -269,7 +269,7 @@
       const prima = Object.keys(P.giorni).sort().find((d) => P.giorni[d].liberi > 0) || P.adesso.data;
       P.mese = meseDi(prima);
       disegnaCal(); disegnaOre(); aggiornaScelta(); disegnaTagliando(); mostraMia(); disegnaOrari();
-      if (P.locale) { const n = $(".pr-nota"); if (n) n.insertAdjacentHTML("afterend", '<p class="pr-nota"><b>Demo:</b> gli orari già presi sono d’esempio; la richiesta resta in questo browser e compare nell’agenda del gestionale.</p>'); }
+      if (P.locale) { const n = $("#pr-form .pr-nota"); if (n) n.insertAdjacentHTML("afterend", '<p class="pr-nota"><b>Demo:</b> gli orari già presi sono d’esempio; la richiesta resta in questo browser e compare nell’agenda del gestionale.</p>'); }
       $("#pr-prec").onclick = () => { const [y, m] = P.mese.split("-").map(Number); P.mese = m === 1 ? `${y - 1}-12` : `${y}-${pad(m - 1)}`; disegnaCal(); };
       $("#pr-succ").onclick = () => { const [y, m] = P.mese.split("-").map(Number); P.mese = m === 12 ? `${y + 1}-01` : `${y}-${pad(m + 1)}`; disegnaCal(); };
       $("#pr-cal").addEventListener("click", (e) => { const b = e.target.closest(".cal-g"); if (b && !b.disabled) { P.giorno = b.dataset.d; P.ora = ""; disegnaCal(); disegnaOre(); aggiornaScelta(); } });

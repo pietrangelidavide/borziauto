@@ -38,9 +38,9 @@
   <section class="breve" aria-label="In breve">
     <h2>In breve</h2>
     <ul>
-      <li>Ci dai nome e telefono solo per prenotare una visita: li usiamo per quello.</li>
+      <li>Ci dai nome e telefono solo per prenotare una visita o farti valutare l’auto che vuoi vendere: li usiamo per quello.</li>
       <li>Non vendiamo i tuoi dati e non facciamo pubblicità mirata.</li>
-      <li>Cancelliamo le visite dopo <b data-p="visite_mesi"></b> mesi.</li>
+      <li>Cancelliamo le visite dopo <b data-p="visite_mesi"></b> mesi e le richieste di valutazione (con le foto) dopo <b data-p="richieste_mesi"></b> mesi.</li>
       <li>Puoi chiederci di vedere, correggere o cancellare i tuoi dati scrivendo a <b data-p="email"></b>.</li>
     </ul>
   </section>
@@ -51,7 +51,7 @@
   </section>
 
   <section><h2>Quali dati raccogliamo</h2>
-    <p>Quando prenoti una visita ci lasci: nome e cognome, numero di telefono, l’email (se vuoi), l’auto che vuoi vedere, giorno e ora, le note che scrivi e le tue scelte sulla privacy. Il giorno stesso della prenotazione conserviamo anche un codice ricavato dal tuo indirizzo IP (non l’indirizzo in sé), per al massimo due ore: serve solo a fermare chi invia richieste in massa.</p>
+    <p>Quando prenoti una visita ci lasci: nome e cognome, numero di telefono, l’email (se vuoi), l’auto che vuoi vedere, giorno e ora, le note che scrivi e le tue scelte sulla privacy. Se ci chiedi di valutare la tua auto (modulo «Vendi la tua auto») ci lasci anche: marca, modello, anno, chilometri e condizioni dell’auto, la targa (se vuoi), da 4 a 10 foto, quello che scrivi nelle note, nome, telefono, l’email (se vuoi) e come preferisci essere ricontattato. Il giorno stesso della richiesta conserviamo anche un codice ricavato dal tuo indirizzo IP (non l’indirizzo in sé), per al massimo due ore: serve solo a fermare chi invia richieste in massa.</p>
     <p>Non chiediamo documenti, dati di pagamento né dati sensibili. Se ne scrivi nelle note, non servono e ti chiediamo di non farlo.</p>
   </section>
 
@@ -60,6 +60,7 @@
       <thead><tr><th>Per cosa</th><th>Base giuridica</th><th>Se non li dai</th></tr></thead>
       <tbody>
         <tr><td>Organizzare la visita che hai chiesto, confermarla e avvisarti di cambiamenti</td><td>Misure precontrattuali prese su tua richiesta (art. 6, par. 1, lett. b, GDPR)</td><td>Non possiamo fissare la visita: nome, telefono, giorno e ora sono necessari</td></tr>
+        <tr><td>Valutare l’auto che vuoi vendere o dare in permuta e ricontattarti</td><td>Misure precontrattuali prese su tua richiesta (art. 6, par. 1, lett. b, GDPR)</td><td>Non possiamo valutare l’auto: i dati dell’auto, le foto, il nome e il telefono sono necessari</td></tr>
         <tr><td>Difendere il sito da richieste automatiche e abusi</td><td>Interesse legittimo del titolare (art. 6, par. 1, lett. f)</td><td>Non è un dato che dai tu</td></tr>
         <tr><td>Inviarti offerte e novità sulle auto</td><td>Il tuo consenso, facoltativo (art. 6, par. 1, lett. a)</td><td>Non cambia nulla: la visita si prenota lo stesso</td></tr>
       </tbody></table></div>
@@ -68,7 +69,7 @@
 
   <section><h2>Chi li vede</h2>
     <ul>
-      <li>Il personale di <b data-p="titolare"></b> che gestisce le visite.</li>
+      <li>Il personale di <b data-p="titolare"></b> che gestisce le visite e le valutazioni delle auto.</li>
       <li><b data-p="fornitore"></b>, che fornisce il programma di gestione e lo ospita per conto del garage (responsabile del trattamento).</li>
       <li>WhatsApp (Meta), se la prenotazione online non è attiva e la richiesta parte con un messaggio WhatsApp: il messaggio lo scrivi e lo invii tu dal tuo telefono e passa dai server di WhatsApp secondo le sue regole.</li>
       <li>Cloudflare, che ospita il sito e il database. Può trattare i dati fuori dall’Unione europea; in quel caso valgono le garanzie previste dal GDPR (artt. 44 e seguenti).</li>
@@ -79,6 +80,7 @@
   <section><h2>Per quanto tempo</h2>
     <ul>
       <li>Visite: <b data-p="visite_mesi"></b> mesi dalla data della visita, poi si cancellano.</li>
+      <li>Richieste di valutazione e relative foto: <b data-p="richieste_mesi"></b> mesi da quando arrivano, poi si cancellano o diventano anonime.</li>
       <li>Contatti commerciali: finché c’è una trattativa e comunque non oltre <b data-p="contatti_mesi"></b> mesi dall’ultimo contatto.</li>
       <li>Consenso alle offerte: finché non lo ritiri.</li>
       <li>Codice anti-abuso ricavato dall’IP: al massimo due ore.</li>
@@ -105,7 +107,7 @@
     var p = cfg.privacy || {}, c = cfg.contatti || {}, k = p.conservazione || {};
     var v = {
       titolare: p.titolare || c.ragioneSociale || cfg.nome || "", indirizzo: p.indirizzo || [c.indirizzo, c.citta].filter(Boolean).join(", "), email: p.email || c.email || "",
-      fornitore: p.fornitore || "il fornitore del programma", responsabileDati: p.responsabileDati || "", visite_mesi: k.visite_mesi || 12, contatti_mesi: k.contatti_mesi || 24,
+      fornitore: p.fornitore || "il fornitore del programma", responsabileDati: p.responsabileDati || "", visite_mesi: k.visite_mesi || 12, contatti_mesi: k.contatti_mesi || 24, richieste_mesi: k.richieste_mesi || 6,
       versione: window.AP && AP.Visite ? AP.Visite.VERSIONE_PRIVACY : "", aggiornata: p.aggiornata ? p.aggiornata.split("-").reverse().join("/") : ""
     };
     document.querySelectorAll("[data-p]").forEach(function (el) { el.textContent = v[el.getAttribute("data-p")]; });

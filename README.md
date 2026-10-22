@@ -166,3 +166,18 @@ Funziona in **due modi, scelti da soli**:
 2. **Archivio non attivo (oggi)**: il calendario mostra gli orari delle visite ma **non può sapere quali sono già occupati**, e la richiesta non arriva al gestionale: il cliente preme «Invia su WhatsApp» e parte un messaggio già scritto verso il numero di `CONFIG.whatsapp`. La visita è confermata solo quando Flavio risponde.
 
 Se `moduli.visite` è `false` la sezione, il menu e i pulsanti scompaiono. Il codice è in `public/js/prenota.js` (regole in `visite-core.js`, parte server in `src/visite.js`); la pagina `privacy.html` serve per il consenso.
+
+## Vendere la propria auto a Borzi Auto (dal sito)
+
+Il sito ha una sezione dedicata a chi vuole **vendere o dare in permuta** la propria auto: **«Vendi la tua auto a Borzi Auto»**, subito dopo «Già vendute». È messa in evidenza con un pannello nero e i tre passi, una voce a pillola nel menu, un link nella prima schermata e un rimando nei servizi. Il cliente compila marca, modello, anno, chilometri, alimentazione, cambio, condizioni, incidenti, se è finanziata, cosa vuole fare, nome e telefono (il resto è facoltativo).
+
+Come per le visite funziona in **due modi, scelti da soli**:
+
+1. **Archivio online attivo** (database D1 e password): il modulo chiede da 4 a 10 foto, le riduce nel browser (max 700 KB l'una) e invia tutto al Worker (`src/richieste.js`). La richiesta arriva nella scheda **Valutazioni** del gestionale, con le foto visibili solo da lì. Il cliente deve spuntare la privacy. Le richieste si cancellano dopo `privacy.conservazione.richieste_mesi` mesi (6).
+2. **Archivio non attivo (oggi)**: non si caricano foto; la richiesta diventa un messaggio **WhatsApp** (o un'email) già scritto con tutti i dati, e il cliente manda le foto nella stessa chat. Non arriva al gestionale.
+
+Se `moduli.vendi` è `false` in `garage.json` la sezione, la voce del menu e i collegamenti spariscono (oggi è `true`). I testi stanno in `public/index.html` (sezione `#vendi`), il codice in `public/js/vendi.js`, le regole in `public/js/richieste-core.js`. L'informativa `privacy.html` descrive anche questo trattamento: come il resto va fatta controllare da un consulente.
+
+## Instagram
+
+L'icona in alto accanto a «Chiama» e il link nei contatti portano a `CONFIG.instagram` (`js/sito.js`, oggi `https://www.instagram.com/borziauto/`). L'icona è una fotocamera generica, non il logo ufficiale: se vuoi quello, scaricalo dalle risorse per il marchio di Instagram e sostituisci l'`<svg class="ig-ic">` in `index.html`.

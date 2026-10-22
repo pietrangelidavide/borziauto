@@ -64,6 +64,7 @@
   document.querySelectorAll("[data-se]").forEach((el) => { el.hidden = !V[el.dataset.se]; });
   document.querySelectorAll("[data-t]").forEach((el) => { if (el.dataset.t in V) el.textContent = V[el.dataset.t]; });
   document.querySelectorAll("[data-h]").forEach((el) => { if (HREF[el.dataset.h]) el.setAttribute("href", HREF[el.dataset.h]); });
+  document.querySelectorAll("[data-label]").forEach((el) => { if (V[el.dataset.label]) el.setAttribute("aria-label", V[el.dataset.label]); });
   if (CONFIG.orari.length) {
     $("#orari-dl").innerHTML = CONFIG.orari.map((o) => `<div data-g="${o.giorni.join(",")}"><dt>${TG.esc(o.nome)}</dt><dd>${TG.esc(o.fasce)}</dd></div>`).join("");
     $("#orari").hidden = false;
@@ -377,6 +378,7 @@
   if (CONFIG.autoscout) { $("#as24").href = CONFIG.autoscout; $("#li-as24").hidden = false; $("#as24-top").href = CONFIG.autoscout; $("#as24-top").hidden = false; }
   if (CONFIG.google) { $("#g-link").href = CONFIG.google; $("#li-google").hidden = false; }
   aggiornaContatti();
+  if (window.AP && AP.Vendi) AP.Vendi.init({ nome: CONFIG.nome, tel: V.tel, whatsapp: CONFIG.whatsapp, email: CONFIG.email });   // «Vendi la tua auto» (js/vendi.js)
 
   /* prenotazione delle visite (js/prenota.js): le regole (orari, durata, preavviso) sono in garage.json; telefono, WhatsApp e indirizzo
      valgono quelli di CONFIG, così il sito dice sempre le stesse cose. Se l'archivio online non è attivo la richiesta parte su WhatsApp. */
