@@ -48,6 +48,7 @@
     n.pocheFoto = disp.filter((a) => { const k = GT.Foto.lista(a.foto).length; return k > 0 && k < 4 && a.preparazione !== true; });
     n.senzaPrezzo = disp.filter((a) => a.prezzo == null && a.preparazione !== true);
     n.inPrep = disp.filter((a) => a.preparazione === true);
+    n.verAtt = disp.filter((a) => GT.Verifica.riepilogo(a).att);
     n.posti = S.imp.posti;
     return n;
   }
@@ -63,6 +64,7 @@
     const scad = n.revisioni.filter((x) => Fl().revisione(x) < 0);
     if (scad.length) a.push({ t: "alto", ic: "doc", titolo: `Revisione scaduta: ${nomi(scad, T)}`, dett: "Non si può vendere con la revisione scaduta.", vai: "disponibile", cta: "Vai alle auto" });
     else if (n.revisioni.length) a.push({ t: "medio", ic: "doc", titolo: `Revisione in scadenza: ${nomi(n.revisioni, T)}`, dett: `Tra ${Fl().revisione(n.revisioni[0])} giorni la prima.`, vai: "disponibile", cta: "Vai alle auto" });
+    if (n.verAtt.length) a.push({ t: "alto", ic: "doc", titolo: `Verifica da guardare: ${nomi(n.verAtt, T)}`, dett: "Una voce di storico, assicurazione o documenti non torna: ricontrolla prima di vendere.", mod: n.verAtt[0].id, cta: "Apri l’auto" });
     if (n.lunghe.length) a.push({ t: "medio", ic: "clock", titolo: `${un(n.lunghe.length, "auto ferma", "auto ferme")} da più di 60 giorni`, dett: nomi(n.lunghe.sort((x, y) => y.g - x.g), (x) => `${T(x.a)} (${x.g} gg)`), vai: "flotta", cta: "Vedi cosa fare" });
     if (n.sopra.length) a.push({ t: "medio", ic: "prezzo", titolo: `${un(n.sopra.length, "auto è", "auto sono")} sopra il prezzo di mercato`, dett: nomi(n.sopra, (x) => `${T(x.a)} (+${Math.round(x.r.diff * 100)}%)`), stima: n.sopra[0].a.id, cta: "Rivedi il prezzo" });
     if (n.senzaPrezzo.length) a.push({ t: "medio", ic: "prezzo", titolo: `${un(n.senzaPrezzo.length, "auto", "auto")} senza prezzo`, dett: "Sul sito compare «Su richiesta»: chi cerca un prezzo passa oltre.", stima: n.senzaPrezzo[0].id, cta: "Calcola il prezzo" });

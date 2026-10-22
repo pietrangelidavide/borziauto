@@ -518,3 +518,29 @@ body.bloccato .gt-main{visibility:hidden}
   .vr{grid-template-columns:64px minmax(0,1fr)}.vr-th{width:64px;height:46px}.vr-a{grid-column:1/-1;justify-items:start;text-align:left;grid-auto-flow:column;gap:12px}
 }
 .ag h3 small,.ag h3 span{text-transform:none}
+
+/* ---------- verifica dell'auto + fattura ---------- */
+.vf-dati{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.vf-dati input{text-transform:uppercase}
+.vf-vin{margin:0;padding:10px 14px;background:var(--campo2);border-left:3px solid var(--fog);color:var(--chrome)}
+.vf-vin.no{border-left-color:var(--tail)}
+.vf-lista{display:grid;gap:0;margin:0;padding:0;list-style:none}
+.vf-r{display:grid;gap:8px;padding:14px 0;border-bottom:1px solid rgba(var(--acc-rgb),.09)}
+.vf-r:first-child{border-top:1px solid rgba(var(--acc-rgb),.09)}
+.vf-t{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+.vf-t b{font-weight:650}
+.vf-dove{color:var(--fog);font-size:.85rem}
+.vf-costo{margin-left:auto;font-size:.72rem;padding:0 .55em;border:1px solid rgba(127,224,178,.5);color:#7fe0b2}
+.vf-costo.pag{border-color:var(--line-d);color:var(--fog)}
+.vf-c{margin:0;color:var(--fog);font-size:.88rem;max-width:68ch}
+.vf-az{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between}
+.vf-r.s-ok .ck-seg [data-s="ok"][aria-pressed="true"]{box-shadow:inset 0 -2px 0 #59d49a}
+.vf-r.s-att .ck-seg [data-s="att"][aria-pressed="true"]{box-shadow:inset 0 -2px 0 var(--tail)}
+.gd .vf-n{max-width:520px}
+.v-fatt{display:grid;gap:10px;padding:14px;background:var(--campo2);border-left:3px solid var(--fog)}
+.v-fatt p{margin:0}
+.v-fatt-b{display:flex;flex-wrap:wrap;gap:10px}
+.ck-tools{flex-wrap:wrap;align-items:center}
+.ck-tools small{margin-left:4px}
+#b-fatture .ic{width:16px;height:16px;margin-right:6px;vertical-align:-3px}
+@media (max-width:560px){.vf-az{align-items:stretch}.vf-az .btn{flex:1 1 100%;justify-content:center}.vf-az .ck-seg{width:100%;display:grid;grid-template-columns:repeat(2,1fr)}.vf-costo{margin-left:0}}

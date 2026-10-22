@@ -130,10 +130,14 @@
     const s = stato();
     const pronta = c ? a.preparazione !== true : s.bloccanti === 0;
     document.querySelector(`input[name="k-st"][value="${pronta ? "pronta" : "prep"}"]`).checked = true;
-    disegnaLista();
+    disegnaLista(); verSum();
     X.apri($("#d-check"));
   }
 
+  function verSum() {
+    const r = GT.Verifica.riepilogo(A || {});
+    $("#k-ver-sum").textContent = r.fatte ? `${r.fatte} su ${r.totale} fatte${r.att ? " · " + r.att + " da guardare" : ""}` : "";
+  }
   function suggerisciStato() {
     const s = stato();
     document.querySelector(`input[name="k-st"][value="${s.bloccanti ? "prep" : "pronta"}"]`).checked = true;
@@ -165,6 +169,14 @@
       v.s = e.target.checked ? "fatto" : "da_fare";
       suggerisciStato(); disegnaLista();
     });
+    $("#k-verifica").onclick = () => {
+      if (!A) return;
+      GT.Verifica.apri(A, { dopo: (x) => {                                  // se i controlli lavorano su una copia, targa, telaio e verifiche vanno anche sull'auto vera
+        const o = opz.originale; if (o && o !== x) { o.targa = x.targa; o.telaio = x.telaio; o.verifiche = x.verifiche; }
+        if (opz.dopoVerifica) opz.dopoVerifica(x);
+        verSum();
+      } });
+    };
     $("#k-tutto").onclick = () => {
       GRUPPI.forEach(([, tv]) => tv.forEach(([k]) => { if (!vocePer(k)) voci.push({ k, s: "ok", costo: null, nota: "", addebitato: 0 }); }));
       suggerisciStato(); disegnaLista();

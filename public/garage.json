@@ -172,6 +172,19 @@
     "acquisto": true,
     "vendi": false
   },
+  "strumenti": {
+    "_nota": "Collegamenti esterni del gestionale. Fatturazione: apre il tuo accesso Bluenext in una nuova scheda (se usi un altro indirizzo di accesso cambia «url»). Storico: apre carVertical, a pagamento.",
+    "fatturazione": {
+      "nome": "Bluenext",
+      "url": "https://servizi.bluenext.it",
+      "info": "https://www.bluenext.it/it/software/fatture-online/"
+    },
+    "storico": {
+      "nome": "carVertical",
+      "url": "https://www.carvertical.com/it",
+      "azienda": "https://www.carvertical.com/it/business"
+    }
+  },
   "mercato": {
     "fonte": "auto",
     "urlFeed": "../api/admin/mercato"

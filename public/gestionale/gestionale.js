@@ -15,7 +15,7 @@ AP.pronto.then(function () {
     { k: "alimentazione", t: "Alimentazione", w: 15 }, { k: "cambio", t: "Cambio", w: 13 }, { k: "cv", t: "CV", type: "int", w: 7 },
     { k: "colore", t: "Colore", w: 13 }, { k: "carrozzeria", t: "Carrozzeria", w: 15 }, { k: "prezzo", t: "Prezzo", type: "money", w: 12 },
     { k: "data_vendita", t: "Data vendita", type: "date", w: 14 }, { k: "prezzo_vendita", t: "Prezzo vendita", type: "money", w: 15 },
-    { k: "targa", t: "Targa", w: 11 }, { k: "data_acquisto", t: "Data acquisto", type: "date", w: 14 }, { k: "costo_acquisto", t: "Costo acquisto", type: "money", w: 15 },
+    { k: "targa", t: "Targa", w: 11 }, { k: "telaio", t: "Telaio", w: 20 }, { k: "data_acquisto", t: "Data acquisto", type: "date", w: 14 }, { k: "costo_acquisto", t: "Costo acquisto", type: "money", w: 15 },
     { k: "costi_extra", t: "Costi extra", type: "money", w: 12 }, { k: "scad_revisione", t: "Scadenza revisione", type: "date", w: 18 },
     { k: "foto", t: "Foto", w: 22 }, { k: "descrizione", t: "Descrizione", w: 40 },
     { k: "autoscout_url", t: "Link AutoScout24", w: 30 }, { k: "note_interne", t: "Note interne", w: 30 },
@@ -42,6 +42,7 @@ AP.pronto.then(function () {
   alias("data_vendita", "data_vendita", "data_di_vendita", "venduta_il", "venduto_il", "data_consegna", "data_vendita_auto");
   alias("prezzo_vendita", "prezzo_vendita", "prezzo_di_vendita", "prezzo_finale", "incasso", "venduta_a", "venduto_a");
   alias("targa", "targa", "plate");
+  alias("telaio", "telaio", "vin", "numero_telaio", "n_telaio", "numero_di_telaio");
   alias("data_acquisto", "data_acquisto", "data_di_acquisto", "acquistata_il", "acquisto_il", "data_ingresso", "ingresso");
   alias("costo_acquisto", "costo_acquisto", "costo_di_acquisto", "prezzo_acquisto", "prezzo_di_acquisto", "acquisto", "costo");
   alias("costi_extra", "costi_extra", "costi_aggiuntivi", "ricondizionamento", "costi_ricondizionamento", "spese", "extra");
@@ -117,6 +118,8 @@ AP.pronto.then(function () {
     r.id = String(r.id || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64) || nuovoId();
     r.prezzo_vendita = numero(a.prezzo_vendita);
     r.targa = String(a.targa || "").trim().toUpperCase();
+    r.telaio = GT.Verifica.pulisciVin(a.telaio);                 // riservato: numero di telaio (VIN)
+    r.verifiche = GT.Verifica.norm(a.verifiche);                 // riservato: risultati di storico, furto, assicurazione…
     r.note_interne = String(a.note_interne || "").trim();
     r.data_acquisto = String(a.data_acquisto || "").trim();
     r.costo_acquisto = numero(a.costo_acquisto);
@@ -281,6 +284,7 @@ AP.pronto.then(function () {
       const mr = a.stato === "disponibile" ? GT.Stima.riferimento(a) : null;
       if (mr && mr.stato === "sopra") t.push(`<span class="tag warn">Sopra il mercato</span>`);
       const k = GT.Check.riepilogo(a);
+      if (GT.Verifica.riepilogo(a).att) t.push(`<span class="tag warn">Verifica da guardare</span>`);
       if (a.preparazione) t.push(`<span class="tag warn">In preparazione${k.daFare ? " · " + k.daFare + (k.daFare === 1 ? " lavoro" : " lavori") : ""}</span>`);
       else if (k.daFare) t.push(`<span class="tag warn">${k.daFare} ${k.daFare === 1 ? "lavoro" : "lavori"} da fare</span>`);
       return t.join("");
@@ -298,7 +302,7 @@ AP.pronto.then(function () {
       mer: (() => { const r = GT.Stima.riferimento(a); return r && r.diff != null ? `<td class="num"><span class="vm vm-${r.stato.replace(" ", "")}" title="Valore di riferimento ${TG.esc(TG.euro(Math.round(r.valore)))}">${r.diff > 0 ? "+" : r.diff < 0 ? "−" : ""}${Math.abs(Math.round(r.diff * 100))}%</span></td>` : '<td class="num"><span class="muted">–</span></td>'; })(),
       sito: `<td class="num sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra ${TG.esc(titolo(a))} sul sito"><i></i></button></td>`,
     }[k]);
-    $("#tabella tbody").innerHTML = l.map((a) => `<tr data-id="${TG.esc(a.id)}">${cols.map((c) => cell(a, c[0])).join("")}<td class="act"><span class="act-1"><button type="button" class="lnk" data-az="modifica">Modifica</button>${sold ? '<button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : '<button type="button" class="lnk" data-az="venduta">Venduta</button>'}</span><span class="act-2">${sold ? "" : '<button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="stima">Prezzi</button>'}<button type="button" class="lnk d" data-az="elimina">Elimina</button></span></td></tr>`).join("");
+    $("#tabella tbody").innerHTML = l.map((a) => `<tr data-id="${TG.esc(a.id)}">${cols.map((c) => cell(a, c[0])).join("")}<td class="act"><span class="act-1"><button type="button" class="lnk" data-az="modifica">Modifica</button>${sold ? '<button type="button" class="lnk" data-az="fattura">Dati fattura</button><button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : '<button type="button" class="lnk" data-az="venduta">Venduta</button>'}</span><span class="act-2">${sold ? "" : '<button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="verifica">Verifica</button><button type="button" class="lnk" data-az="stima">Prezzi</button>'}<button type="button" class="lnk d" data-az="elimina">Elimina</button></span></td></tr>`).join("");
     $("#cards").innerHTML = l.map((a) => scheda(a, sold, avvisi, euroC)).join("");
     const v = $("#vuoto");
     v.hidden = l.length > 0;
@@ -314,7 +318,7 @@ AP.pronto.then(function () {
     const extra = [g != null && !sold ? g + " giorni in stock" : "", m != null ? "margine " + euroC(m) : ""].filter(Boolean).join(" · ");
     return `<li class="card-auto" data-id="${TG.esc(a.id)}">
   <button type="button" class="ca-main" data-az="modifica" aria-label="Modifica ${TG.esc(titolo(a))}">${miniatura(a)}<span class="ca-t"><b>${TG.esc(titolo(a))}${a.demo ? '<span class="tag">Esempio</span>' : ""}</b><small>${TG.esc(a.allestimento)}</small><span class="ca-d">${dati.filter(Boolean).map(TG.esc).join(" · ")}</span>${extra ? `<span class="ca-e ${m != null && m < 0 ? "late" : ""}">${TG.esc(extra)}</span>` : ""}${sold ? "" : `<span class="ca-tag">${avvisi(a)}</span>`}</span></button>
-  <div class="ca-az">${sold ? '<button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : `<label class="ca-sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra sul sito"><i></i></button>Sul sito</label><button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="stima">Prezzi</button><button type="button" class="lnk" data-az="venduta">Venduta</button>`}<button type="button" class="lnk d" data-az="elimina">Elimina</button></div>
+  <div class="ca-az">${sold ? '<button type="button" class="lnk" data-az="fattura">Dati fattura</button><button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : `<label class="ca-sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra sul sito"><i></i></button>Sul sito</label><button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="verifica">Verifica</button><button type="button" class="lnk" data-az="stima">Prezzi</button><button type="button" class="lnk" data-az="venduta">Venduta</button>`}<button type="button" class="lnk d" data-az="elimina">Elimina</button></div>
 </li>`;
   }
 
@@ -344,6 +348,7 @@ AP.pronto.then(function () {
     fotoEd.carica(v.foto || "");
     GT.Aggiungi.apertura(a);
     $("#f-check").hidden = !a || a.stato === "venduta";
+    $("#f-verifica").hidden = !a;
     apri($("#d-form"));
   }
   /* stima del prezzo con i dati che sono nel modulo (anche se l'auto non è ancora salvata) */
@@ -359,8 +364,14 @@ AP.pronto.then(function () {
   $("#f-check").onclick = () => {
     const prev = editId ? S.auto.find((x) => x.id === editId) : null; if (!prev) return;
     const copia = JSON.parse(JSON.stringify(prev)); copia.costi_extra = numero(F.elements.costi_extra.value);
-    GT.Check.apri(copia, { dopo: (c) => { prev.checklist = c.checklist; prev.preparazione = c.preparazione; prev.costi_extra = c.costi_extra; F.elements.costi_extra.value = c.costi_extra == null ? "" : c.costi_extra; $("#fa-visibile").checked = !c.preparazione; GT.Aggiungi.aggiorna(); salva(); disegna(); } });
+    GT.Check.apri(copia, { originale: prev, dopoVerifica: (x) => { F.elements.targa.value = x.targa || ""; F.elements.telaio.value = x.telaio || ""; }, dopo: (c) => { prev.checklist = c.checklist; prev.preparazione = c.preparazione; prev.costi_extra = c.costi_extra; F.elements.costi_extra.value = c.costi_extra == null ? "" : c.costi_extra; $("#fa-visibile").checked = !c.preparazione; GT.Aggiungi.aggiorna(); salva(); disegna(); } });
   };
+  /* verifica storico e documenti dell'auto che stai modificando: usa la targa e il telaio scritti nel modulo, anche se non ancora salvati */
+  $("#f-verifica").onclick = () => {
+    const prev = editId ? S.auto.find((x) => x.id === editId) : null; if (!prev) return;
+    GT.Verifica.apri(prev, { targa: F.elements.targa.value, telaio: F.elements.telaio.value, dopo: (x) => { F.elements.targa.value = x.targa || ""; F.elements.telaio.value = x.telaio || ""; } });
+  };
+  $("#b-verifica").onclick = () => GT.Verifica.apri(null, {});
   function apriStima(a) {
     GT.Stima.apri({ id: a.id, valori: a, lavori: GT.Calc.lavoriDaFare(a), onUsa: (p) => { a.prezzo = p; salva(); disegna(); } });
   }
@@ -398,6 +409,7 @@ AP.pronto.then(function () {
   let vendId = null;
   function apriVenduta(a) {
     vendId = a.id;
+    $("#form-v").dataset.auto = a.id;
     $("#v-auto").textContent = titolo(a) + (a.allestimento ? " · " + a.allestimento : "");
     $("#form-v").data_vendita.value = oggi();
     $("#form-v").prezzo_vendita.value = a.prezzo_vendita != null ? a.prezzo_vendita : "";
@@ -422,6 +434,8 @@ AP.pronto.then(function () {
     else if (b.dataset.az === "vis") { a.preparazione = a.preparazione !== true; salva(); disegna(); toast(a.preparazione ? titolo(a) + ": nascosta dal sito (dopo «Pubblica sul sito»)." : titolo(a) + ": tornerà visibile sul sito (dopo «Pubblica sul sito»)."); }
     else if (b.dataset.az === "venduta") apriVenduta(a);
     else if (b.dataset.az === "controlli") GT.Check.apri(a, {});
+    else if (b.dataset.az === "verifica") GT.Verifica.apri(a, {});
+    else if (b.dataset.az === "fattura") GT.Verifica.copia(GT.Verifica.datiFattura(a, a.prezzo_vendita, a.data_vendita)).then((ok) => toast(ok ? "Dati copiati: incollali nella fattura su " + GT.Verifica.strumenti().fatturazione.nome + "." : "Non riesco a copiare in questo browser."));
     else if (b.dataset.az === "stima") apriStima(a);
     else if (b.dataset.az === "riporta") { a.stato = "disponibile"; a.data_vendita = ""; a.prezzo_vendita = null; salva(); disegna(); toast("Rimessa in vendita."); }
     else if (b.dataset.az === "elimina" && confirm("Eliminare " + titolo(a) + "?")) { S.auto = S.auto.filter((x) => x !== a); salva(); disegna(); toast("Auto eliminata."); }
@@ -540,7 +554,7 @@ AP.pronto.then(function () {
     if (r.cv == null && raw.kw != null) { const kw = numero(raw.kw); if (kw != null) r.cv = Math.round(kw * 1.35962); }
     r.alimentazione = alimCanon(raw.alimentazione); r.cambio = cambioCanon(raw.cambio);
     r.colore = String(raw.colore || "").trim(); r.carrozzeria = String(raw.carrozzeria || "").trim();
-    r.targa = String(raw.targa || "").trim().toUpperCase(); r.foto = String(raw.foto || "").trim();
+    r.targa = String(raw.targa || "").trim().toUpperCase(); r.telaio = GT.Verifica.pulisciVin(raw.telaio); r.foto = String(raw.foto || "").trim();
     r.data_acquisto = ""; if (raw.data_acquisto != null) { const da = dataIso(raw.data_acquisto); if (da == null) prob.push({ m: `${dove}: data di acquisto «${raw.data_acquisto}» non riconosciuta.` }); else r.data_acquisto = da; }
     r.scad_revisione = ""; if (raw.scad_revisione != null) { const dr = dataIso(raw.scad_revisione); if (dr == null) prob.push({ m: `${dove}: scadenza revisione «${raw.scad_revisione}» non riconosciuta.` }); else r.scad_revisione = dr; }
     r.costo_acquisto = n("costo_acquisto", "il costo di acquisto"); r.costi_extra = n("costi_extra", "i costi extra");
@@ -766,6 +780,7 @@ AP.pronto.then(function () {
   GT.Agenda.init(ctx);
   GT.Richieste.init(ctx);
   GT.Check.init(ctx);
+  GT.Verifica.init(ctx);
   GT.Stima.init(ctx);
   GT.Garage.init(ctx);
   GT.Aggiungi.init(ctx, F);

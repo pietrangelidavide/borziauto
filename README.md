@@ -42,7 +42,7 @@ Altre cose da sistemare:
 | `public/img/salone/` | Le foto del carosello, ognuna in due ritagli: `nome-w.jpg` (orizzontale 16:10, schermi larghi) e `nome-t.jpg` (verticale 4:5, telefono) |
 | `public/style.css` | Tutto lo stile del sito (in cima i colori dei due temi) |
 | `public/js/sito.js` | `CONFIG` con i dati dell'azienda, vetrina, filtri, scheda auto, recensioni, dati per Google |
-| `public/gestionale/` | Pagina riservata (non linkata, `noindex`, esclusa da `robots.txt`): **Riepilogo**, **Aggiungi auto guidato**, auto, foto, contatti/CRM, **Visite**, **Flotta**, **Stima del prezzo**, **Controlli prima della vendita**. Stile in `gestionale.css` + `design.css`; `borzi.css` arrotonda gli angoli per allinearli al sito |
+| `public/gestionale/` | Pagina riservata (non linkata, `noindex`, esclusa da `robots.txt`): **Riepilogo**, **Aggiungi auto guidato**, auto, foto, contatti/CRM, **Visite**, **Flotta**, **Stima del prezzo**, **Controlli prima della vendita**, **Verifica dell'auto**. Stile in `gestionale.css` + `design.css`; `borzi.css` arrotonda gli angoli per allinearli al sito |
 | `public/garage.json`, `public/js/ap-config.js` | Dati e tema del gestionale (nome, contatti, orari, colori, regole di calcolo, moduli attivi) |
 | `public/js/catalogo.js`, `public/img/marche/` | Catalogo marche/modelli per la selezione guidata dell'auto e i loghi delle marche |
 | `public/data/auto.json` | Le auto del sito quando l'archivio online non è attivo (ora: esempi) |
@@ -85,6 +85,21 @@ Come si comporta:
 **Auto.** Aggiungi, modifica, «Venduta» (data e prezzo), «Rimetti in vendita», elimina. In cima le cifre della flotta (auto in vetrina e valore, giorni medi in stock, margine potenziale, trattative aperte, contatti da richiamare). Dal telefono l'elenco diventa una lista di schede e c'è il pulsante fisso «+ Aggiungi auto»; nelle foto compare anche «+ Scatta» (fotocamera).
 
 **Controlli prima della vendita.** Quando salvi una **nuova** auto si apre una checklist (documenti, sicurezza e meccanica, elettronica e interni, carrozzeria, preparazione per la vendita). Per ogni voce: ok / da fare / non serve, con costo stimato e nota. Se una voce indispensabile è «da fare» l'auto va **in preparazione**: resta nascosta dal sito finché non segni i lavori come fatti. Si riapre da «Controlli» in riga.
+
+**Verifica dell'auto (storico, furti, documenti).** Dal bottone «Verifica» in riga, da «Verifica storico e documenti» nella scheda dell'auto, dai Controlli prima della vendita o da «Verifica un'auto» (per un'auto che stai solo valutando, non salva niente). Scrivi targa e telaio (VIN, voce E del libretto): il gestionale controlla il formato del telaio e il costruttore (segnala se non corrisponde alla marca scritta) e propone sei controlli. Ogni voce apre il sito giusto in una nuova scheda e **copia targa o telaio** negli appunti; guardi il risultato sul sito e lo segni qui («A posto» / «Da guardare» + nota). Se una voce è «Da guardare» compare un'etichetta sull'auto e un avviso nel Riepilogo.
+
+| Controllo | Dove | Costo |
+|---|---|---|
+| Storico completo (km, incidenti, furti, proprietari) | carVertical | a pagamento |
+| Revisioni e chilometri registrati | Portale dell'Automobilista (MIT) | gratis |
+| Assicurazione RC | Portale dell'Automobilista | gratis |
+| Furto o smarrimento | Crimnet, Ministero dell'Interno | gratis |
+| Classe ambientale | Portale dell'Automobilista | gratis |
+| Proprietà, fermi, ipoteche (visura PRA) | ACI Visurenet (SPID o CIE) | a pagamento |
+
+Limiti, detti chiaramente: i siti ufficiali usano il captcha e non offrono un accesso automatico, quindi il gestionale **non legge i risultati da solo**; carVertical non ha un accesso libero (per i rivenditori offre un'API a pagamento, su richiesta: https://www.carvertical.com/it/business). Quello che si può avere gratis sono i siti ufficiali qui sopra. Telaio e risultati sono dati riservati: non finiscono mai in `data/auto.json` né sul sito. Gli indirizzi dei portali possono cambiare: se un link non si apre, cerca il servizio sul sito indicato.
+
+**Fatturazione online (Bluenext).** In alto c'è il pulsante **Fatture** che apre Bluenext in una nuova scheda (di partenza `https://servizi.bluenext.it`, il Portale dei Servizi dove si accede ai servizi Bluenext; se il tuo accesso a Fatture Online ha un altro indirizzo, cambia `strumenti.fatturazione.url` in `public/garage.json`). Quando segni un'auto come **Venduta**, e poi dalla scheda Vendute con «Dati fattura», puoi **copiare i dati dell'auto** (descrizione, anno, km, targa, telaio, data, prezzo) da incollare nella fattura. Non c'è un collegamento automatico con Bluenext: per quello Bluenext offre API e Web Services, da concordare con loro. Il tipo di IVA da applicare (ordinaria o regime del margine per i beni usati) va deciso con il commercialista.
 
 **Stima del prezzo** (modulo `mercato.js`/`stima.js`, anche nel passo finale di «Aggiungi auto»). Dalla riga o dal modulo: «Stima il prezzo». Il sistema **non può leggere AutoScout24 da solo** (non offre un accesso per i prezzi, e copiare le pagine in automatico non è consentito), quindi parte da annunci che **incolli** o importi. Filtra per anno, toglie gli annunci anomali, corregge per i chilometri e propone un range per tre approcci (vendere in fretta, equilibrato, massimo margine), con costi, guadagno ipotetico e prezzo minimo per non perdere. L'affidabilità è «alta» da 12 annunci utili, «media» da 6; sotto i 6 è solo indicativa.
 
