@@ -380,72 +380,36 @@ dialog[open]{animation:pop .4s var(--ease)}
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 
-/* ---------- il nostro salone: carosello a scorrimento ---------- */
+/* ---------- il nostro salone: fascia di foto a tutta larghezza ---------- */
 .salone{position:relative;isolation:isolate;overflow:hidden;background:var(--bg);color:var(--fg);padding-block:clamp(64px,10vw,128px)}
 .salone-lead{max-width:34ch;color:var(--fg2);font-size:19px;line-height:1.3;letter-spacing:-.02em}
-.salone-glow{position:absolute;z-index:-1;left:50%;top:calc(var(--w) * var(--r) / 2);width:calc(var(--w) * 1.05);height:calc(var(--w) * var(--r) * 1.22);translate:-50% -50%;pointer-events:none}
-.salone-glow i{position:absolute;inset:0;border-radius:50%;background:center/cover no-repeat;filter:blur(80px) saturate(1.5);opacity:0;transition:opacity 1.4s ease}
-.salone-glow i.on{opacity:.4}
 
-.reel{--gap:clamp(12px,2vw,24px);--w:min(74vw,1160px);--r:.625;position:relative;margin-top:clamp(8px,2vw,24px)}
-.reel-view{position:relative;height:calc(var(--w) * var(--r));touch-action:pan-y;cursor:grab;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.reel-view.drag{cursor:grabbing}
-.reel-slide{position:absolute;top:0;left:50%;width:var(--w);height:100%;margin:0 0 0 calc(var(--w) / -2);overflow:hidden;border-radius:clamp(18px,2.6vw,34px);background:var(--card);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
-  transform:translate3d(calc(var(--o,0) * (100% + var(--gap)) + var(--drag,0px)),0,0) scale(calc(1 - var(--a,0) * .09));
-  opacity:calc(1 - var(--a,0) * .64);
-  transition:transform 1s var(--ease),opacity .9s ease;will-change:transform,opacity;-webkit-user-select:none;user-select:none}
-.reel-slide.far{pointer-events:none}
-.reel-slide:not(.on){cursor:pointer}
-.reel-slide.jump{transition:none!important;opacity:0}
-.reel-view.drag .reel-slide{transition:none}
-.reel-ph{position:absolute;inset:-1px;overflow:hidden;transform:scale(1.02);transition:transform 1.4s var(--ease)}
-.reel-slide.on .reel-ph{transform:scale(1.07);transition:transform 9s linear}
-.reel-ph picture{display:block;width:108%;height:100%;margin-left:-4%}
-.reel-ph img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;-webkit-user-drag:none;transform:translate3d(calc(var(--o,0) * -3.5%),0,0);transition:transform 1s var(--ease)}
-.reel-view.drag .reel-ph img{transition:none}
-.reel-slide::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.2) 50%,transparent 62%);transform:translateX(-130%)}
-.reel-slide.on::after{animation:reel-glint 1.5s .4s var(--ease) 1 both}
-@keyframes reel-glint{to{transform:translateX(130%)}}
+/* la fascia scorre da sola, rallenta col mouse sopra e si trascina col dito o col mouse; con «riduci animazioni» (o senza JavaScript) resta una fila da far scorrere a mano */
+.reel{--rh:clamp(210px,32vw,470px);--gap:clamp(10px,1.6vw,20px);margin-top:clamp(28px,5vw,56px);overflow-x:auto;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.reel::-webkit-scrollbar{display:none}
+.reel:focus-visible{outline:2px solid var(--link);outline-offset:-2px}
+.reel-track{display:flex;gap:var(--gap);width:max-content;padding-inline:clamp(20px,5vw,48px);margin:0;list-style:none;will-change:transform}
+.frame{flex:none;height:var(--rh);margin:0;overflow:hidden;border-radius:clamp(16px,2.2vw,30px);background:var(--card);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);-webkit-user-select:none;user-select:none}
+.frame.wide{aspect-ratio:16 / 10}
+.frame.tall{aspect-ratio:4 / 5}
+.frame img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;-webkit-user-drag:none;user-select:none}
+.reel.is-live{overflow:hidden;cursor:grab;touch-action:pan-y;clip-path:inset(0 100% 0 0)}
+.reel.is-live.drag{cursor:grabbing}
+.reel.is-live.in{clip-path:inset(0);transition:clip-path 1.3s var(--ease)}
 
-/* ingresso: le foto partono impilate e si aprono a ventaglio */
-.reel.live:not(.in) .reel-slide{opacity:0;transform:translate3d(0,0,0) scale(.86)}
-.reel.intro .reel-slide{transition-delay:calc(var(--a,0) * .16s);transition-duration:1.3s}
-
-/* comandi */
-.reel-bar{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:clamp(20px,3vw,32px)}
+/* pausa (per chi non vuole la fascia in movimento) */
+.reel-bar{display:flex;justify-content:center;margin-top:clamp(18px,3vw,28px)}
 .reel-btn{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--fill);color:var(--fg);cursor:pointer;transition:background .2s,transform .2s var(--ease)}
 .reel-btn:hover{background:var(--fill-h)}
 .reel-btn:active{transform:scale(.92)}
-.reel-play{margin-left:8px}
-.reel-play .i-play{display:none}
-.reel-play[aria-pressed="true"] .i-play{display:block}
-.reel-play[aria-pressed="true"] .i-pause{display:none}
-.reel-pills{display:flex;align-items:center;gap:10px;padding-inline:6px}
-.pill{position:relative;flex:none;width:8px;height:8px;padding:0;border:0;border-radius:99px;background:var(--fill-h);cursor:pointer;transition:width .6s var(--ease),background .3s}
-.pill::before{content:"";position:absolute;inset:-18px -5px}
-.pill i{position:absolute;inset:0;border-radius:99px;background:var(--fg);transform:scaleX(0);transform-origin:left}
-.pill[aria-current="true"]{width:52px}
-.pill[aria-current="true"] i{animation:reel-fill 5.4s linear forwards}
-.reel.hold .pill[aria-current="true"] i{animation-play-state:paused}
-.reel.still .pill[aria-current="true"] i{animation:none;transform:scaleX(1)}
-@keyframes reel-fill{to{transform:scaleX(1)}}
-
-/* senza JavaScript: una fila da far scorrere con il dito */
-.reel:not(.live) .reel-view{display:flex;gap:var(--gap);height:auto;overflow-x:auto;scroll-snap-type:x mandatory;padding-inline:calc((100% - var(--w)) / 2);-webkit-mask-image:none;mask-image:none;cursor:auto}
-.reel:not(.live) .reel-slide{position:relative;left:auto;flex:0 0 var(--w);height:calc(var(--w) * var(--r));margin:0;transform:none;opacity:1;scroll-snap-align:center}
-.reel:not(.live) .reel-ph{transform:none}
+.reel-btn .i-play{display:none}
+.reel-btn[aria-pressed="true"] .i-play{display:block}
+.reel-btn[aria-pressed="true"] .i-pause{display:none}
 
 @media (max-width:700px){
-  .reel{--w:82vw;--r:1.25}
-  .salone-glow i{filter:blur(48px) saturate(1.4)}
+  .reel{--rh:clamp(230px,62vw,330px)}
   .reel-btn{width:42px;height:42px}
-}
-@media (prefers-reduced-motion:reduce){
-  .reel-slide,.reel-ph,.reel-ph img,.salone-glow i{transition-duration:.01ms!important;transition-delay:0s!important}
-  .reel-slide.on::after{animation:none}
-  .reel-slide.on .reel-ph{transform:scale(1.02)}
 }
 
 /* ---------- prenota una visita ---------- */

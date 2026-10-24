@@ -35,11 +35,11 @@ Altre cose da sistemare:
 
 | Percorso | Cosa fa |
 |---|---|
-| `public/index.html` | Il sito: **prima schermata con Flavio Borzi**, vetrina auto, «Già vendute», recensioni Google, **Il nostro salone** (carosello di foto), servizi, contatti, orari |
+| `public/index.html` | Il sito: **prima schermata con Flavio Borzi**, vetrina auto, «Già vendute», recensioni Google, **Il nostro salone** (fascia di foto a tutta larghezza), servizi, contatti, orari |
 | `public/js/hero.js` | Movimento e dati della prima schermata: contatore delle auto vendute, stelle, marche che scorrono, «Aperto ora» (orari letti da `CONFIG`, ora italiana), luce che segue il mouse, inclinazione delle foto, parallasse allo scroll. Con «riduci animazioni» non parte niente e la sezione è già nel suo stato finale |
 | `public/img/flavio/` | Le due foto di Flavio (`flavio-1` appoggiato all'auto, `flavio-2` dal finestrino), ognuna in WebP e JPEG a 640 e 1100 px. Sono ingrandite con intelligenza artificiale da fotogrammi di un video a bassa risoluzione: i volti sono nitidi ma non è una foto da reflex |
-| `public/js/salone.js` | Il carosello del salone: scorre da solo, si ferma al passaggio del mouse o fuori schermo, si comanda con frecce, pallini, tastiera e swipe; con «riduci animazioni» non parte da solo |
-| `public/img/salone/` | Le foto del carosello, ognuna in due ritagli: `nome-w.jpg` (orizzontale 16:10, schermi larghi) e `nome-t.jpg` (verticale 4:5, telefono) |
+| `public/js/salone.js` | La fascia di foto del salone: scorre da sola, rallenta col mouse sopra, si trascina col dito o col mouse, si sposta con le frecce della tastiera e si può mettere in pausa; si ferma quando non si vede; con «riduci animazioni» (o senza JavaScript) resta una fila da far scorrere a mano |
+| `public/img/salone/` | Le foto della fascia, ognuna in due ritagli: `nome-w.jpg` (orizzontale 16:10) e `nome-t.jpg` (verticale 4:5); la fascia alterna foto larghe e verticali |
 | `public/style.css` | Tutto lo stile del sito (in cima i colori dei due temi) |
 | `public/js/sito.js` | `CONFIG` con i dati dell'azienda, vetrina, filtri, scheda auto, recensioni, dati per Google |
 | `public/gestionale/` | Pagina riservata (non linkata, `noindex`, esclusa da `robots.txt`): **Riepilogo**, **Aggiungi auto guidato**, auto, foto, contatti/CRM, **Visite**, **Flotta**, **Stima del prezzo**, **Controlli prima della vendita**, **Verifica dell'auto**. Stile: `css/base.css` (colori chiari e scuri, seguono il telefono o il computer), `gestionale.css` + `design.css` (struttura) e `borzi.css` (la «pelle» in stile Apple: angoli arrotondati, pulsanti a pillola, niente luci né barre colorate; la prima schermata del Riepilogo resta scura) |
@@ -148,7 +148,7 @@ Il repository è già collegato al progetto `autoprofit-borziauto` (stesso `name
 
 ## Cambiare le foto del salone
 
-Le foto del carosello sono le `<figure class="reel-slide">` dentro `<section id="salone">` in `public/index.html`: per ognuna servono due file in `public/img/salone/` (`nome-w.jpg` 1320×825 e `nome-t.jpg` 960×1200). Per aggiungerne una, copia una `<figure>` intera, cambia i nomi dei file, il testo `alt` e «N di M» in `aria-label`. Il carosello si adatta da solo al numero di foto (minimo 3).
+La fascia è la lista `<ul class="reel-track">` dentro `<section id="salone">` in `public/index.html`: ogni foto è un `<li class="frame wide">` (orizzontale, file `nome-w.jpg` 1320×825) oppure `<li class="frame tall">` (verticale, file `nome-t.jpg` 960×1200), da mettere in `public/img/salone/`. Per aggiungerne una, copia un `<li>` intero, cambia il nome del file, il testo `alt` e le misure `width`/`height`; conviene alternare foto larghe e verticali. Il numero di foto è libero (minimo 2): la fascia si ripete da sola finché copre lo schermo, e le copie sono nascoste a chi usa lo screen reader. La velocità è `BASE` (pixel al secondo) in `public/js/salone.js`, l'altezza delle foto è `--rh` in `public/style.css`.
 
 ## Cambiare la prima schermata (Flavio Borzi)
 
