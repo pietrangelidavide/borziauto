@@ -95,6 +95,7 @@
     const el = $("#pr-scelta"), ok = P.giorno && P.ora;
     el.classList.toggle("vuota", !ok);
     el.textContent = ok ? quando(P.giorno, P.ora) : "Scegli giorno e ora dal calendario";
+    if (ok) apriDati(true);
   }
   function vai(data, ora, scorri) {
     if (!P.giorni[data]) return;
@@ -135,10 +136,24 @@
   }
 
   /* ---------- modulo ---------- */
+  /* «I tuoi dati» espandibile dove le colonne si impilano (telefono e tablet): chiuso all'inizio, si apre da solo quando scegli l'ora.
+     Sul computer il titolo resta un titolo e i campi sono sempre visibili. */
+  const mqDati = matchMedia("(max-width: 899px)");
+  function syncDati() {
+    const f = $("#pr-form"), h = f && f.querySelector("h3"); if (!h) return;
+    const coll = mqDati.matches, on = f.classList.contains("aperto");
+    f.classList.toggle("coll", coll);
+    if (coll) {
+      if (!h.querySelector("button")) h.innerHTML = '<button type="button" class="pr-tgl" aria-controls="pr-corpo"><span class="pr-tgl-t">I tuoi dati</span><span class="pr-tgl-s">Nome e telefono per confermare la visita</span></button>';
+      h.querySelector("button").setAttribute("aria-expanded", String(on));
+    } else if (h.querySelector("button")) h.textContent = "I tuoi dati";
+  }
+  function apriDati(on) { $("#pr-form").classList.toggle("aperto", on); syncDati(); }
+
   function errore(msg, campo) {
     const e = $("#pr-err"); e.textContent = msg; e.hidden = !msg;
     document.querySelectorAll("#pr-form [aria-invalid]").forEach((x) => x.removeAttribute("aria-invalid"));
-    if (campo) { const c = $("#pr-form").elements[campo]; if (c) { c.setAttribute("aria-invalid", "true"); c.focus(); } }
+    if (campo) { const c = $("#pr-form").elements[campo]; if (c) { apriDati(true); c.setAttribute("aria-invalid", "true"); c.focus(); } }
   }
   const CAMPO = { nome: "nome", telefono: "telefono", email: "email", consenso: "privacy", orario: null, auto: null };
   function riempiAuto() {
@@ -187,7 +202,7 @@
     if (!m.wa) scrivi(MIA, { id: m.id, codice: m.codice, data: m.data, ora: m.ora, durata: m.durata, auto_testo: m.auto_testo || "" });
     if (!P.wa) caricaOccupate().then(() => { ricalcola(); disegnaCal(); disegnaOre(); disegnaTagliando(); });
     mostraConferma();
-    $("#pr-form").reset(); P.ora = ""; aggiornaScelta();
+    $("#pr-form").reset(); P.ora = ""; aggiornaScelta(); apriDati(false);
   }
   function mostraConferma() {
     const m = P.conferma, g = P.cfg.contatti || {}, box = $("#pr-ok");
@@ -280,6 +295,8 @@
         if (e.target.closest("#tg-tutti")) { const s2 = $("#prenota"); s2.scrollIntoView({ behavior: "smooth", block: "start" }); }
       });
       $("#pr-form").addEventListener("submit", invia);
+      mqDati.addEventListener("change", syncDati); syncDati();
+      $("#pr-form").addEventListener("click", (e) => { if (e.target.closest(".pr-tgl")) apriDati(!$("#pr-form").classList.contains("aperto")); });
       $("#pr-ok").addEventListener("click", (e) => {
         const id = e.target.id;
         if (id === "ok-wa") return;                                 // il collegamento a WhatsApp si apre da solo

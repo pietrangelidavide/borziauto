@@ -37,7 +37,7 @@ Altre cose da sistemare:
 |---|---|
 | `public/index.html` | Il sito: **prima schermata con Flavio Borzi**, vetrina auto, «Già vendute», recensioni Google, **Il nostro salone** (fascia di foto a tutta larghezza), servizi, contatti, orari |
 | `public/js/hero.js` | Movimento e dati della prima schermata: contatore delle auto vendute, stelle, marche che scorrono, «Aperto ora» (orari letti da `CONFIG`, ora italiana), luce che segue il mouse, inclinazione delle foto, parallasse allo scroll. Con «riduci animazioni» non parte niente e la sezione è già nel suo stato finale |
-| `public/img/flavio/` | Le due foto di Flavio (`flavio-1` appoggiato all'auto, `flavio-2` dal finestrino), ognuna in WebP e JPEG a 640 e 1100 px. Sono ingrandite con intelligenza artificiale da fotogrammi di un video a bassa risoluzione e poi **trasformate in stile cartone animato** (filtro automatico, non un'illustrazione disegnata a mano). Le foto originali restano nella cronologia di git |
+| `public/img/flavio/` | I due riquadri della prima schermata: **ora sono segnaposto** (`flavio-1` bianco, `flavio-2` nero) in attesa delle foto vere, ognuno in WebP e JPEG a 640 e 1100 px. Le versioni «cartone animato» fatte il 24 ottobre e le foto originali restano nella cronologia di git |
 | `public/js/salone.js` | La fascia di foto del salone: scorre da sola, rallenta col mouse sopra, si trascina col dito o col mouse, si sposta con le frecce della tastiera e si può mettere in pausa; si ferma quando non si vede; con «riduci animazioni» (o senza JavaScript) resta una fila da far scorrere a mano |
 | `public/img/salone/` | Le foto della fascia, ognuna in due ritagli: `nome-w.jpg` (orizzontale 16:10) e `nome-t.jpg` (verticale 4:5); la fascia alterna foto larghe e verticali |
 | `public/style.css` | Tutto lo stile del sito (in cima i colori dei due temi) |
@@ -164,7 +164,7 @@ La fascia è la lista `<ul class="reel-track">` dentro `<section id="salone">` i
 ## Cambiare la prima schermata (Flavio Borzi)
 
 - **Nome e numeri**: `CONFIG.titolare.nome` e `CONFIG.venduteTotale` in `public/js/sito.js`. Il voto e il numero di recensioni arrivano da `recensioni.json` (o da Google quando il Worker è attivo); le marche che scorrono in basso sono quelle delle auto in vetrina.
-- **Stile cartone**: le due foto attuali sono versioni «cartone animato» delle foto di Flavio (stessi personaggi, colori caldi, contorni sottili). Sono fatte con un filtro automatico, quindi qualche dettaglio (capelli, denti) è più semplificato che in un disegno vero; per un'illustrazione fatta a mano serve un illustratore. Per tornare alle foto vere basta ripristinare i file di `public/img/flavio/` dalla cronologia di git (commit prima di «cartone»).
+- **Segnaposto**: al momento `flavio-1` è tutto bianco e `flavio-2` tutto nero, per inserire le foto vere. Le versioni «cartone animato» (filtro automatico, non disegnate a mano) e le foto originali si recuperano dalla cronologia di git (commit `8f91251` e precedenti).
 - **Foto**: sostituisci i file in `public/img/flavio/` (stessi nomi; larghezze 640 e 1100, `.webp` e `.jpg`) e, se cambi i rapporti, le proporzioni in `public/index.html` (`flavio-1` 3:4, `flavio-2` 5:4) e in `style.css` (`.fr-a`, `.fr-b`). Le foto sono tagliate a parallelogramma con l'inclinazione degli slash del logo (12°).
 - **Frasi**: titolo e testo stanno in `public/index.html` dentro `<section id="hero">`.
 
@@ -184,6 +184,12 @@ Se `moduli.visite` è `false` la sezione, il menu e i pulsanti scompaiono. Il co
 - **Elenco auto**: sotto i 600 px di larghezza (telefono) le auto stanno su **due colonne** con schede compatte (foto, marca e modello, allestimento su una riga, anno e chilometri, prezzo). Con circa 30 auto sono 15 righe invece di 30. Tutta la scheda è il tasto che apre i dettagli. Su tablet e computer non cambia nulla. Le regole sono in `public/style.css`, sotto «schede auto» (`#griglia`).
 - **Vendi la tua auto**: dove le due colonne si impilano (sotto i 960 px: telefono e tablet) il modulo parte **chiuso**; il pannello nero con i tre passi resta visibile e il pulsante «Compila il modulo» apre il modulo (poi diventa «Chiudi il modulo»). Chi non è interessato scorre oltre. Sul computer il modulo resta sempre aperto accanto al pannello. Il codice è in `public/js/vendi.js` (classi `coll` e `aperto` sulla sezione).
 - **Recensioni**: sotto i 900 px restano visibili titolo, voto e numero di recensioni; l'elenco (titolare e recensioni) si apre con «Leggi le recensioni». Il pulsante compare solo se ci sono recensioni da mostrare (`public/js/sito.js`). Sul computer l'elenco è sempre visibile.
+
+- **Prenota una visita, «I tuoi dati»**: sotto i 900 px il titolo diventa un pulsante («I tuoi dati · Nome e telefono per confermare la visita») e i campi sono chiusi; si aprono da soli appena scegli giorno e ora, o toccando il titolo, e anche se c'è un errore da correggere. Sul computer i campi sono sempre visibili accanto al calendario (`public/js/prenota.js`).
+
+## Mappa in «Vieni a trovarci»
+
+Sotto i recapiti c'è una **mappa di Google Maps** incorporata, ricavata da nome e indirizzo in `CONFIG` (`public/js/sito.js`). Per mostrare esattamente la scheda dell'attività (con foto del locale), apri la scheda su Google Maps › Condividi › Incorpora una mappa, copia l'indirizzo che compare dopo `src="` e incollalo in `CONFIG.mappaIncorporata`. La mappa si carica solo quando la pagina arriva lì (`loading="lazy"`). Poiché il browser si collega a Google, l'informativa (`public/privacy.html`) lo dice; se vuoi essere ancora più prudente, la mappa si può mettere dietro un pulsante «Mostra la mappa». **Non verificato:** da qui non raggiungo Google, quindi come appare la mappa si vede solo sul sito pubblicato.
 
 ## Vendere la propria auto a Borzi Auto (dal sito)
 

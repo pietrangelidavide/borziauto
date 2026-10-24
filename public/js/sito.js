@@ -16,6 +16,7 @@
     cap: "00128", citta: "Roma", provincia: "RM",   // "00100", "Roma", "RM"
     piva: "17496141007",           // solo le cifre: "01234567890"
     mappa: "",                     // facoltativo: link alla posizione su Google Maps (se vuoto si usa l'indirizzo)
+    mappaIncorporata: "",          // facoltativo: indirizzo (src) della mappa da Google Maps › Condividi › Incorpora una mappa; se vuoto la mappa si ricava dall'indirizzo
     instagram: "https://www.instagram.com/borziauto/",   // link completo: "https://www.instagram.com/nomepagina/"
     autoscout: "",                 // link alla pagina del concessionario su AutoScout24
     google: "https://share.google/WuTIHVY3SAZBkdLh1",   // link alla scheda Google (recensioni e indicazioni)
@@ -64,6 +65,9 @@
   document.querySelectorAll("[data-se]").forEach((el) => { el.hidden = !V[el.dataset.se]; });
   document.querySelectorAll("[data-t]").forEach((el) => { if (el.dataset.t in V) el.textContent = V[el.dataset.t]; });
   document.querySelectorAll("[data-h]").forEach((el) => { if (HREF[el.dataset.h]) el.setAttribute("href", HREF[el.dataset.h]); });
+  // mappa di Google nella sezione «Vieni a trovarci» (si carica quando ci si avvicina: loading="lazy")
+  const mappaFr = document.getElementById("mappa-fr");
+  if (mappaFr && (CONFIG.mappaIncorporata || completo)) mappaFr.src = CONFIG.mappaIncorporata || "https://www.google.com/maps?q=" + encodeURIComponent(CONFIG.nome + ", " + completo) + "&output=embed&hl=it";
   document.querySelectorAll("[data-label]").forEach((el) => { if (V[el.dataset.label]) { el.setAttribute("aria-label", V[el.dataset.label]); el.setAttribute("title", V[el.dataset.label]); } });
   if (CONFIG.orari.length) {
     $("#orari-dl").innerHTML = CONFIG.orari.map((o) => `<div data-g="${o.giorni.join(",")}"><dt>${TG.esc(o.nome)}</dt><dd>${TG.esc(o.fasce)}</dd></div>`).join("");

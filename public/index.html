@@ -83,13 +83,13 @@
       <figure class="fr fr-a">
         <div class="fr-in"><picture>
           <source type="image/webp" srcset="img/flavio/flavio-1-640.webp 640w, img/flavio/flavio-1-1100.webp 1100w" sizes="(max-width:719px) 74vw, 400px">
-          <img id="ph-a" src="img/flavio/flavio-1-1100.jpg" srcset="img/flavio/flavio-1-640.jpg 640w, img/flavio/flavio-1-1100.jpg 1100w" sizes="(max-width:719px) 74vw, 400px" width="1100" height="1470" alt="Illustrazione in stile cartone di Flavio Borzi, titolare di Borzi Auto, appoggiato a un’auto sportiva gialla" fetchpriority="high" decoding="async">
+          <img id="ph-a" src="img/flavio/flavio-1-1100.jpg" srcset="img/flavio/flavio-1-640.jpg 640w, img/flavio/flavio-1-1100.jpg 1100w" sizes="(max-width:719px) 74vw, 400px" width="1100" height="1470" alt="Flavio Borzi, titolare di Borzi Auto" fetchpriority="high" decoding="async">
         </picture><i class="glint" aria-hidden="true"></i></div>
       </figure>
       <figure class="fr fr-b">
         <div class="fr-in"><picture>
           <source type="image/webp" srcset="img/flavio/flavio-2-640.webp 640w, img/flavio/flavio-2-1100.webp 1100w" sizes="(max-width:719px) 62vw, 340px">
-          <img id="ph-b" src="img/flavio/flavio-2-1100.jpg" srcset="img/flavio/flavio-2-640.jpg 640w, img/flavio/flavio-2-1100.jpg 1100w" sizes="(max-width:719px) 62vw, 340px" width="1100" height="880" alt="Illustrazione in stile cartone di Flavio Borzi che sorride dal finestrino di un’auto sportiva gialla" decoding="async">
+          <img id="ph-b" src="img/flavio/flavio-2-1100.jpg" srcset="img/flavio/flavio-2-640.jpg 640w, img/flavio/flavio-2-1100.jpg 1100w" sizes="(max-width:719px) 62vw, 340px" width="1100" height="880" alt="Flavio Borzi sorride dal finestrino di un’auto" decoding="async">
         </picture><i class="glint" aria-hidden="true"></i></div>
       </figure>
       <div class="hchip hchip-sold" id="chip-sold" role="img" aria-label="Più di 5.000 auto vendute">
@@ -321,6 +321,7 @@
       </div>
       <form class="pr-form" id="pr-form" novalidate autocomplete="on">
         <h3>I tuoi dati</h3>
+        <div class="pr-corpo" id="pr-corpo">
         <div class="pr-scelta vuota" id="pr-scelta" aria-live="polite">Scegli giorno e ora dal calendario</div>
         <div class="due">
           <label>Nome e cognome<input name="nome" autocomplete="name" required maxlength="80"></label>
@@ -335,6 +336,7 @@
         <p class="pr-err" id="pr-err" role="alert" hidden></p>
         <button type="submit" class="btn btn-primary btn-lg" id="pr-invia">Richiedi la visita</button>
         <p class="pr-nota">Ti confermiamo l’orario al numero o all’email che lasci. Finché non ricevi la conferma, la visita è una richiesta.</p>
+        </div>
       </form>
     </div>
     <div class="pr-ok" id="pr-ok" hidden></div>
@@ -362,6 +364,9 @@
         <li id="li-google" hidden><a id="g-link" href="#" target="_blank" rel="noopener">Borzi Auto su Google</a></li>
         <li id="li-as24" hidden><a id="as24" href="#" target="_blank" rel="noopener">Le nostre auto su AutoScout24</a></li>
       </ul>
+    </div>
+    <div class="mappa" id="mappa" data-se="indirizzoCompleto" hidden>
+      <iframe id="mappa-fr" title="Mappa con la posizione di Borzi Auto" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     </div>
     <p class="muted contact-vuoto" id="contatti-vuoto" hidden>I recapiti saranno disponibili a breve.</p>
   </div>
