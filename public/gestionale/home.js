@@ -34,6 +34,7 @@
     n.tempoVendita = GT.Calc.giacenza(st);
     const ap = GT.Crm.aperti();
     n.aperti = ap; n.daRichiamare = ap.filter((c) => c.prossimo && c.prossimo <= oggi);
+    n.richiami = GT.Richiami.dovuti();   // clienti che hanno comprato: da sentire dopo la vendita
     n.fasi = GT.Crm.STATI.map(([k, t]) => ({ k, t, n: S.contatti.filter((c) => c.stato === k).length }));
     const att = S.visite.filter((v) => AP.Visite.ATTIVE.includes(v.stato)), lun = AP.Visite.piu(oggi, -((AP.Visite.giornoSett(oggi) + 6) % 7)), dom = AP.Visite.piu(lun, 6);
     n.visiteOggi = att.filter((v) => v.data === oggi).sort((a, b) => (a.ora > b.ora ? 1 : -1));
@@ -61,6 +62,7 @@
     if (n.daConfermare) a.push({ t: "alto", ic: "cal", titolo: `${un(n.daConfermare, "visita", "visite")} da confermare`, dett: "Il cliente aspetta una risposta: confermare o proporre un altro orario.", vai: "visite", cta: "Conferma" });
     if (n.ricNuove) a.push({ t: "alto", ic: "tag", titolo: `${n.ricNuove === 1 ? "Una nuova valutazione" : n.ricNuove + " nuove valutazioni"} dal sito`, dett: "Qualcuno vuole vendere la sua auto: più rispondi in fretta, più è facile comprarla.", vai: "valutazioni", cta: "Guarda" });
     if (n.daRichiamare.length) a.push({ t: "alto", ic: "tel", titolo: `${un(n.daRichiamare.length, "contatto", "contatti")} da richiamare`, dett: nomi(n.daRichiamare, (c) => c.nome), vai: "crm", cta: "Apri i contatti" });
+    if (n.richiami.length) a.push({ t: "medio", ic: "tel", titolo: `${un(n.richiami.length, "richiamo", "richiami")} dopo la vendita`, dett: nomi(n.richiami, (x) => `${x.c.nome} (${GT.Richiami.nomeTipo(x.r.tipo).toLowerCase()})`), vai: "crm", post: 1, cta: "Apri i richiami" });
     const scad = n.revisioni.filter((x) => Fl().revisione(x) < 0);
     if (scad.length) a.push({ t: "alto", ic: "doc", titolo: `Revisione scaduta: ${nomi(scad, T)}`, dett: "Non si può vendere con la revisione scaduta.", vai: "disponibile", cta: "Vai alle auto" });
     else if (n.revisioni.length) a.push({ t: "medio", ic: "doc", titolo: `Revisione in scadenza: ${nomi(n.revisioni, T)}`, dett: `Tra ${Fl().revisione(n.revisioni[0])} giorni la prima.`, vai: "disponibile", cta: "Vai alle auto" });
@@ -155,7 +157,7 @@ ${n.posti || n.ricNuove || GT.Richieste.attiva() ? (GT.Richieste.attiva() ? kpi(
 </div>
 <div class="hm-cols">
 <section class="hm-box hm-todo" aria-labelledby="hm-h-todo"><h3 id="hm-h-todo">Cosa fare ora</h3>
-${az.length ? `<ul class="hm-az">${az.map((x, i) => `<li class="t-${x.t}"><span class="hm-ico">${ico(x.ic)}</span><div><b>${esc(x.titolo)}</b><small>${esc(x.dett)}</small></div><button type="button" class="btn btn-line sm" ${x.vai ? `data-go="${esc(x.vai)}"` : x.stima ? `data-stima="${esc(x.stima)}"` : `data-mod="${esc(x.mod)}"`}>${esc(x.cta)}</button></li>`).join("")}</ul>` : `<p class="hm-ok">${ico("ok")}<span>Niente di urgente. Le visite sono a posto, nessuno da richiamare, le auto hanno foto e prezzo.</span></p>`}
+${az.length ? `<ul class="hm-az">${az.map((x, i) => `<li class="t-${x.t}"><span class="hm-ico">${ico(x.ic)}</span><div><b>${esc(x.titolo)}</b><small>${esc(x.dett)}</small></div><button type="button" class="btn btn-line sm" ${x.vai ? `data-go="${esc(x.vai)}"${x.post ? ' data-post="1"' : ""}` : x.stima ? `data-stima="${esc(x.stima)}"` : `data-mod="${esc(x.mod)}"`}>${esc(x.cta)}</button></li>`).join("")}</ul>` : `<p class="hm-ok">${ico("ok")}<span>Niente di urgente. Le visite sono a posto, nessuno da richiamare, le auto hanno foto e prezzo.</span></p>`}
 </section>
 <div class="hm-col">
 <section class="hm-box" aria-labelledby="hm-h-vend"><h3 id="hm-h-vend">Vendite negli ultimi 6 mesi</h3><div class="hm-graf">${graficoVendite(n)}</div></section>
@@ -180,7 +182,7 @@ ${az.length ? `<ul class="hm-az">${az.map((x, i) => `<li class="t-${x.t}"><span 
   function init(ctx) {
     X = ctx;
     $("#home").addEventListener("click", (e) => {
-      const g = e.target.closest("[data-go]"); if (g) return X.vai(g.dataset.go);
+      const g = e.target.closest("[data-go]"); if (g) { if (g.dataset.post) GT.Crm.vistaFiltro.vista = "post"; return X.vai(g.dataset.go); }
       const s = e.target.closest("[data-stima]"); if (s) { const a = X.S.auto.find((x) => x.id === s.dataset.stima); if (a) X.stima(a); return; }
       const m = e.target.closest("[data-mod]"); if (m) { const a = X.S.auto.find((x) => x.id === m.dataset.mod); if (a) X.modifica(a); }
     });

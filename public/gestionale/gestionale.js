@@ -302,7 +302,7 @@ AP.pronto.then(function () {
       mer: (() => { const r = GT.Stima.riferimento(a); return r && r.diff != null ? `<td class="num"><span class="vm vm-${r.stato.replace(" ", "")}" title="Valore di riferimento ${TG.esc(TG.euro(Math.round(r.valore)))}">${r.diff > 0 ? "+" : r.diff < 0 ? "−" : ""}${Math.abs(Math.round(r.diff * 100))}%</span></td>` : '<td class="num"><span class="muted">–</span></td>'; })(),
       sito: `<td class="num sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra ${TG.esc(titolo(a))} sul sito"><i></i></button></td>`,
     }[k]);
-    $("#tabella tbody").innerHTML = l.map((a) => `<tr data-id="${TG.esc(a.id)}">${cols.map((c) => cell(a, c[0])).join("")}<td class="act"><span class="act-1"><button type="button" class="lnk" data-az="modifica">Modifica</button>${sold ? '<button type="button" class="lnk" data-az="fattura">Dati fattura</button><button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : '<button type="button" class="lnk" data-az="venduta">Venduta</button>'}</span><span class="act-2">${sold ? "" : '<button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="verifica">Verifica</button><button type="button" class="lnk" data-az="stima">Prezzi</button>'}<button type="button" class="lnk d" data-az="elimina">Elimina</button></span></td></tr>`).join("");
+    $("#tabella tbody").innerHTML = l.map((a) => `<tr data-id="${TG.esc(a.id)}">${cols.map((c) => cell(a, c[0])).join("")}<td class="act"><span class="act-1"><button type="button" class="lnk" data-az="modifica">Modifica</button>${sold ? '<button type="button" class="lnk" data-az="fattura">Dati fattura</button><button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : '<button type="button" class="lnk" data-az="venduta">Venduta</button>'}</span><span class="act-2">${sold ? "" : '<button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="verifica">Verifica</button><button type="button" class="lnk" data-az="stima">Prezzi</button><button type="button" class="lnk" data-az="annuncio">Annuncio</button>'}<button type="button" class="lnk d" data-az="elimina">Elimina</button></span></td></tr>`).join("");
     $("#cards").innerHTML = l.map((a) => scheda(a, sold, avvisi, euroC)).join("");
     const v = $("#vuoto");
     v.hidden = l.length > 0;
@@ -318,7 +318,7 @@ AP.pronto.then(function () {
     const extra = [g != null && !sold ? g + " giorni in stock" : "", m != null ? "margine " + euroC(m) : ""].filter(Boolean).join(" · ");
     return `<li class="card-auto" data-id="${TG.esc(a.id)}">
   <button type="button" class="ca-main" data-az="modifica" aria-label="Modifica ${TG.esc(titolo(a))}">${miniatura(a)}<span class="ca-t"><b>${TG.esc(titolo(a))}${a.demo ? '<span class="tag">Esempio</span>' : ""}</b><small>${TG.esc(a.allestimento)}</small><span class="ca-d">${dati.filter(Boolean).map(TG.esc).join(" · ")}</span>${extra ? `<span class="ca-e ${m != null && m < 0 ? "late" : ""}">${TG.esc(extra)}</span>` : ""}${sold ? "" : `<span class="ca-tag">${avvisi(a)}</span>`}</span></button>
-  <div class="ca-az">${sold ? '<button type="button" class="lnk" data-az="fattura">Dati fattura</button><button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : `<label class="ca-sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra sul sito"><i></i></button>Sul sito</label><button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="verifica">Verifica</button><button type="button" class="lnk" data-az="stima">Prezzi</button><button type="button" class="lnk" data-az="venduta">Venduta</button>`}<button type="button" class="lnk d" data-az="elimina">Elimina</button></div>
+  <div class="ca-az">${sold ? '<button type="button" class="lnk" data-az="fattura">Dati fattura</button><button type="button" class="lnk" data-az="riporta">Rimetti in vendita</button>' : `<label class="ca-sito"><button type="button" class="sw" role="switch" aria-checked="${a.preparazione !== true}" data-az="vis" aria-label="Mostra sul sito"><i></i></button>Sul sito</label><button type="button" class="lnk" data-az="controlli">Controlli</button><button type="button" class="lnk" data-az="verifica">Verifica</button><button type="button" class="lnk" data-az="stima">Prezzi</button><button type="button" class="lnk" data-az="annuncio">Annuncio</button><button type="button" class="lnk" data-az="venduta">Venduta</button>`}<button type="button" class="lnk d" data-az="elimina">Elimina</button></div>
 </li>`;
   }
 
@@ -399,13 +399,19 @@ AP.pronto.then(function () {
   });
 
   /* segna come venduta */
-  let vendId = null;
-  function apriVenduta(a) {
-    vendId = a.id;
-    $("#form-v").dataset.auto = a.id;
+  let vendId = null, vendContatto = null;
+  /* contatto = chi ha comprato, se la vendita parte da una trattativa del CRM: nome e telefono arrivano già scritti */
+  function apriVenduta(a, contatto) {
+    vendId = a.id; vendContatto = contatto ? contatto.id : null;
+    const f = $("#form-v");
+    f.dataset.auto = a.id;
     $("#v-auto").textContent = titolo(a) + (a.allestimento ? " · " + a.allestimento : "");
-    $("#form-v").data_vendita.value = oggi();
-    $("#form-v").prezzo_vendita.value = a.prezzo_vendita != null ? a.prezzo_vendita : "";
+    f.data_vendita.value = oggi();
+    f.prezzo_vendita.value = a.prezzo_vendita != null ? a.prezzo_vendita : "";
+    f.acq_nome.value = contatto ? contatto.nome : ""; f.acq_tel.value = contatto ? contatto.telefono : ""; f.acq_ok.checked = !!(contatto && contatto.consenso_richiami);
+    // i nomi suggeriti: prima chi era interessato a questa auto
+    const nomi = S.contatti.slice().sort((x, y) => (y.auto_id === a.id) - (x.auto_id === a.id)).map((c) => c.nome).filter((n, i, l) => n && l.indexOf(n) === i).slice(0, 300);
+    $("#l-acq").innerHTML = nomi.map((n) => `<option value="${TG.esc(n)}"></option>`).join("");
     apri($("#d-venduta"));
   }
   $("#form-v").addEventListener("submit", (e) => {
@@ -413,7 +419,10 @@ AP.pronto.then(function () {
     const a = S.auto.find((x) => x.id === vendId); if (!a) return;
     const f = e.target;
     a.stato = "venduta"; a.data_vendita = f.data_vendita.value || oggi(); a.prezzo_vendita = numero(f.prezzo_vendita.value);
-    salva(); disegna(); $("#d-venduta").close(); toast("Segnata come venduta.");
+    const c = GT.Crm.registraAcquirente(a, { nome: f.acq_nome.value, telefono: f.acq_tel.value, ok: f.acq_ok.checked, data: a.data_vendita, contattoId: vendContatto });
+    const r = c && GT.Richiami.elenco().find((x) => x.c === c);
+    salva(); disegna(); $("#d-venduta").close();
+    toast(r ? "Segnata come venduta. Primo richiamo a " + c.nome.split(/\s+/)[0] + " il " + r.r.data.split("-").reverse().join("/") + "." : "Segnata come venduta.");
   });
 
   /* azioni nella tabella */
@@ -430,9 +439,11 @@ AP.pronto.then(function () {
     else if (b.dataset.az === "verifica") GT.Verifica.apri(a, {});
     else if (b.dataset.az === "fattura") GT.Verifica.copia(GT.Verifica.datiFattura(a, a.prezzo_vendita, a.data_vendita)).then((ok) => toast(ok ? "Dati copiati: incollali nella fattura su " + GT.Verifica.strumenti().fatturazione.nome + "." : "Non riesco a copiare in questo browser."));
     else if (b.dataset.az === "stima") apriStima(a);
-    else if (b.dataset.az === "riporta") { a.stato = "disponibile"; a.data_vendita = ""; a.prezzo_vendita = null; salva(); disegna(); toast("Rimessa in vendita."); }
+    else if (b.dataset.az === "riporta") { a.stato = "disponibile"; a.data_vendita = ""; a.prezzo_vendita = null; GT.Crm.annullaVendita(a); salva(); disegna(); toast("Rimessa in vendita."); }
+    else if (b.dataset.az === "annuncio") GT.Desc.apri(a, { usa: (t) => { a.descrizione = t; salva(); disegna(); toast("Descrizione del sito aggiornata: arriva online con «Pubblica sul sito»."); } });
     else if (b.dataset.az === "elimina" && confirm("Eliminare " + titolo(a) + "?")) { S.auto = S.auto.filter((x) => x !== a); salva(); disegna(); toast("Auto eliminata."); }
   };
+  $("#f-annuncio").onclick = () => GT.Desc.dalModulo(F, editId ? S.auto.find((x) => x.id === editId) : null);
   $("#tabella").addEventListener("click", azioneAuto);
   $("#cards").addEventListener("click", azioneAuto);
   $("#fab").onclick = () => (S.tab === "crm" ? GT.Crm.nuovo() : S.tab === "visite" ? GT.Agenda.nuova() : apriForm(null));
@@ -769,7 +780,9 @@ AP.pronto.then(function () {
   };
   const vai = (t) => { S.tab = t; disegna(); window.scrollTo(0, 0); };
   const ctx = { S, salva, ridisegna: disegna, toast, apri, numero, dataIso, oggi, titolo, q: () => S.q, apriVenduta, stima: apriStima, modifica: apriForm, applicaImp, vai, pubblica: () => $("#b-pubblica").click() };
+  GT.Richiami.init(ctx);
   GT.Crm.init(ctx);
+  GT.Desc.init(ctx);
   GT.Agenda.init(ctx);
   GT.Richieste.init(ctx);
   GT.Check.init(ctx);

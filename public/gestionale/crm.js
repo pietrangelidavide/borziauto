@@ -37,7 +37,11 @@
     stato: STATI.some((s) => s[0] === c.stato) ? c.stato : "nuovo", budget: c.budget == null || c.budget === "" ? null : Math.round(+c.budget) || null,
     prossimo: String(c.prossimo || ""), note: String(c.note || "").trim(), creato: String(c.creato || "") || X.oggi(),
     attivita: Array.isArray(c.attivita) ? c.attivita.map((a) => ({ d: String(a.d || ""), t: String(a.t || "nota"), x: String(a.x || "") })) : [], demo: !!c.demo,
+    /* dopo la vendita: il giorno, se il cliente ha acconsentito ai messaggi a 11 e 23 mesi (con la data del consenso) e i richiami in programma */
+    venduta_il: DATA.test(c.venduta_il || "") ? c.venduta_il : "", consenso_richiami: DATA.test(c.consenso_richiami || "") ? c.consenso_richiami : "",
+    richiami: GT.Richiami ? GT.Richiami.normLista(c.richiami) : [],
   });
+  const DATA = /^\d{4}-\d{2}-\d{2}$/;
   const apertoC = (c) => APERTI.includes(c.stato);
   const autoDi = (c) => (c.auto_id ? X.S.auto.find((a) => a.id === c.auto_id) : null);
   const descAuto = (c) => { const a = autoDi(c); return a ? [X.titolo(a), a.allestimento].filter(Boolean).join(" · ") : c.auto_testo || ""; };
@@ -54,6 +58,7 @@
       sel($("#c-tipo"), ATT);
       $("#cv-pipe").onclick = () => { V.vista = "pipe"; this.disegna(); };
       $("#cv-list").onclick = () => { V.vista = "list"; this.disegna(); };
+      $("#cv-post").onclick = () => { V.vista = "post"; this.disegna(); };
       $("#crm-auto").onchange = (e) => { V.auto = e.target.value; this.disegna(); };
       $("#crm-chiusi").onchange = (e) => { V.chiusi = e.target.checked; this.disegna(); };
       $("#board").addEventListener("click", (e) => {
@@ -81,6 +86,31 @@
       initDialogo();
     },
     nuovo: () => apriContatto(null),
+    apriId(id) { const c = X.S.contatti.find((x) => x.id === id); if (c) apriContatto(c); },
+    /* chi ha comprato un’auto: lo cerco tra i contatti (per nome o telefono) o ne creo uno nuovo, e lo metto tra i clienti da seguire dopo la vendita.
+       d = { nome, telefono, ok (ha acconsentito ai messaggi a 11 e 23 mesi), data (giorno della vendita), contattoId (se arriva da un contatto) } */
+    registraAcquirente(a, d) {
+      const nome = String(d.nome || "").trim(); if (!nome) return null;
+      const tel = String(d.telefono || "").trim(), t9 = tel9(tel), n = TG.norm(nome), oggi = X.oggi();
+      const sono = (c) => TG.norm(c.nome) === n || (t9.length >= 7 && tel9(c.telefono) === t9);
+      let c = (d.contattoId && X.S.contatti.find((x) => x.id === d.contattoId)) || null;
+      if (!c) { const l = X.S.contatti.filter(sono); c = l.find((x) => x.auto_id === a.id) || l[0] || null; }
+      if (!c) { c = norm({ nome, telefono: tel, stato: "venduto", creato: oggi, fonte: "" }); X.S.contatti.push(c); c.attivita.push({ d: adesso(), t: "stato", x: "Fase: Venduto" }); }
+      else if (c.stato !== "venduto") { c.stato = "venduto"; c.prossimo = ""; c.attivita.push({ d: adesso(), t: "stato", x: "Fase: Venduto" }); }
+      if (!c.telefono && tel) c.telefono = tel;
+      c.auto_id = a.id; c.auto_testo = ""; c.venduta_il = DATA.test(d.data || "") ? d.data : oggi;
+      c.consenso_richiami = d.ok ? (c.consenso_richiami || oggi) : "";
+      c.demo = false;
+      GT.Richiami.sincronizza(c);
+      return c;
+    },
+    /* un’auto torna in vendita: i richiami ancora da fare di chi l’aveva comprata non servono più */
+    annullaVendita(a) {
+      X.S.contatti.filter((c) => c.auto_id === a.id && c.stato === "venduto" && c.venduta_il).forEach((c) => {
+        c.venduta_il = ""; c.consenso_richiami = ""; GT.Richiami.sincronizza(c);
+        c.attivita.push({ d: adesso(), t: "nota", x: "Vendita annullata: l’auto è tornata in vendita." });
+      });
+    },
     /* contatti aperti collegati a una certa auto */
     interessati: (autoId) => X.S.contatti.filter((c) => c.auto_id === autoId && apertoC(c)).length,
     aperti: () => X.S.contatti.filter(apertoC),
@@ -128,11 +158,16 @@
       const scelte = [["", "Tutte le auto"], ["_nessuna", "Senza auto precisa"]].concat(S.auto.filter((a) => a.stato === "disponibile" || S.contatti.some((c) => c.auto_id === a.id)).map((a) => [a.id, X.titolo(a) + (a.allestimento ? " · " + a.allestimento : "") + (a.stato === "venduta" ? " (venduta)" : "")]));
       sa.innerHTML = scelte.map((o) => `<option value="${esc(o[0])}">${esc(o[1])}</option>`).join(""); sa.value = scelte.some((o) => o[0] === V.auto) ? V.auto : "";
       $("#cv-pipe").setAttribute("aria-pressed", String(V.vista === "pipe")); $("#cv-list").setAttribute("aria-pressed", String(V.vista === "list"));
+      $("#cv-post").setAttribute("aria-pressed", String(V.vista === "post"));
+      const dov = GT.Richiami.dovuti().length;
+      $("#cv-post").textContent = dov ? `Dopo la vendita · ${dov}` : "Dopo la vendita";
       $("#crm-chiusi").closest("label").hidden = V.vista !== "list";
-      $("#board").hidden = V.vista !== "pipe"; $("#crm-list").hidden = V.vista !== "list";
+      $("#crm-auto").closest("label").hidden = V.vista === "post";
+      $("#board").hidden = V.vista !== "pipe"; $("#crm-list").hidden = V.vista !== "list"; $("#crm-post-w").hidden = V.vista !== "post";
       const vuoto = $("#crm-vuoto"); vuoto.hidden = lista.length > 0;
       if (!lista.length) vuoto.textContent = S.contatti.length ? "Nessun contatto corrisponde ai filtri." : "Ancora nessun contatto. Aggiungi chi ti ha chiamato o scritto: così non ti scordi di richiamarlo e sai chi è interessato a quale auto.";
-      if (V.vista === "pipe") {
+      if (V.vista === "post") GT.Richiami.disegna($("#crm-post"), q, vuoto);
+      else if (V.vista === "pipe") {
         const ord = (a, b) => (a.prossimo || "9999") > (b.prossimo || "9999") ? 1 : -1;
         $("#board").innerHTML = STATI.map(([s, n]) => {
           const l = lista.filter((c) => c.stato === s).sort(ord);
@@ -156,7 +191,7 @@
       const car = (i) => d[i % d.length].id;
       const mk = (nome, tel, fonte, ai, stato, budget, pr, note, att) => ({ id: nuovoId(), nome, telefono: tel, email: "", fonte, auto_id: ai ? car(ai - 1) : "", auto_testo: ai ? "" : "SUV diesel, usato recente", stato, budget, prossimo: pr == null ? "" : aggiungiGiorni(oggi, pr), note, creato: aggiungiGiorni(oggi, -(att[0] ? att[0][0] : 3)), demo: true,
         attivita: att.map((a) => ({ d: aggiungiGiorni(oggi, -a[0]) + "T1" + (a[0] % 9) + ":30", t: a[1], x: a[2] })) });
-      return [
+      const lista = [
         mk("Mario Rossi", "333 000 0001", "WhatsApp", 1, "nuovo", 18000, 0, "Chiede se è trattabile.", [[0, "whatsapp", "Messaggio ricevuto: chiede il prezzo e se si può vedere."]]),
         mk("Giulia Bianchi", "333 000 0002", "AutoScout24", 2, "contattato", 16000, -2, "", [[4, "chiamata", "Prima chiamata: interessata, richiamare dopo il lavoro."], [2, "whatsapp", "Inviate altre foto."]]),
         mk("Luca Ferrari", "333 000 0003", "TikTok", 3, "appuntamento", 26000, 1, "Viene sabato con la moglie.", [[3, "chiamata", "Fissato appuntamento per sabato mattina."]]),
@@ -165,6 +200,10 @@
         mk("Elena Russo", "333 000 0006", "Sito", 5, "venduto", 15000, null, "", [[9, "chiamata", "Contatto dal sito."], [2, "offerta", "Accettata l’offerta."]]),
         mk("Davide Greco", "333 000 0007", "Instagram", 2, "perso", 20000, null, "Ha scelto un’altra concessionaria.", [[12, "whatsapp", "Chiede informazioni."], [8, "nota", "Ha comprato altrove."]]),
       ];
+      // chi ha comprato una settimana fa: così nel Riepilogo si vede anche un richiamo dopo la vendita
+      const comp = lista.find((c) => c.nome === "Elena Russo"); comp.venduta_il = aggiungiGiorni(oggi, -8); comp.consenso_richiami = aggiungiGiorni(oggi, -8);
+      GT.Richiami.sincronizza(comp);
+      return lista;
     },
   });
 
@@ -189,12 +228,20 @@
     c.stato = stato;
     c.attivita.push({ d: adesso(), t: "stato", x: `Fase: ${nomeStato(stato)}` });
     if (!apertoC(c)) c.prossimo = "";
+    aggiornaVendita(c, true);
     X.salva(); X.ridisegna();
     chiediVendita(c);
   }
   function chiediVendita(c) {
     const a = autoDi(c);
-    if (c.stato === "venduto" && a && a.stato === "disponibile" && confirm(`Segnare come venduta anche «${X.titolo(a)}»?`)) X.apriVenduta(a);
+    if (c.stato === "venduto" && a && a.stato === "disponibile" && confirm(`Segnare come venduta anche «${X.titolo(a)}»?`)) X.apriVenduta(a, c);
+  }
+  /* un contatto diventa «venduto» (o smette di esserlo): si aggiornano giorno della vendita, consenso e richiami.
+     Il giorno di oggi si mette da solo solo quando la fase è appena cambiata: un cliente già «venduto» da prima, senza data, resta com’è finché non la scrivi tu. */
+  function aggiornaVendita(c, cambiata) {
+    if (c.stato === "venduto") { if (!c.venduta_il && cambiata) c.venduta_il = X.oggi(); }
+    else { c.venduta_il = ""; c.consenso_richiami = ""; }
+    GT.Richiami.sincronizza(c);
   }
 
   /* ---------- finestra del contatto ---------- */
@@ -227,11 +274,25 @@
     if (CUR.fonte && !FONTI.includes(CUR.fonte)) f.fonte.add(new Option(CUR.fonte, CUR.fonte)), (f.fonte.value = CUR.fonte);
     f.budget.value = CUR.budget != null ? CUR.budget : "";
     $("#c-att-x").value = ""; disegnaAtt(); aggiornaLink();
+    f.venduta_il.value = CUR.venduta_il || ""; f.consenso_richiami.checked = !!CUR.consenso_richiami;
+    disegnaRichiami();
     X.apri($("#d-contatto"));
+  }
+  /* pannello «Dopo la vendita»: compare solo per chi ha comprato; l’elenco è un’anteprima di cosa verrà programmato con i valori scritti qui */
+  function disegnaRichiami() {
+    const f = F(), venduto = f.stato.value === "venduto";
+    $("#c-ric-box").hidden = !venduto;
+    if (!venduto) return;
+    const sim = { stato: "venduto", venduta_il: f.venduta_il.value, consenso_richiami: f.consenso_richiami.checked ? CUR.consenso_richiami || X.oggi() : "", richiami: JSON.parse(JSON.stringify(CUR.richiami || [])) };
+    GT.Richiami.sincronizza(sim);
+    $("#c-ric").innerHTML = GT.Richiami.elencoHtml(sim);
+    $("#c-ric-n").textContent = f.consenso_richiami.checked && CUR.consenso_richiami ? `Consenso registrato il ${CUR.consenso_richiami.split("-").reverse().join("/")}.` : f.consenso_richiami.checked ? "Il consenso verrà registrato con la data di oggi." : "";
   }
   function initDialogo() {
     const f = F();
     f.telefono.addEventListener("input", aggiornaLink); f.email.addEventListener("input", aggiornaLink);
+    f.stato.addEventListener("change", () => { if (f.stato.value === "venduto" && !f.venduta_il.value) f.venduta_il.value = X.oggi(); disegnaRichiami(); });
+    f.venduta_il.addEventListener("input", disegnaRichiami); f.consenso_richiami.addEventListener("change", disegnaRichiami);
     document.querySelectorAll("[data-fu]").forEach((b) => (b.onclick = () => { f.prossimo.value = b.dataset.fu === "0" ? "" : aggiungiGiorni(X.oggi(), +b.dataset.fu); }));
     $("#c-att-add").onclick = () => {
       const x = $("#c-att-x").value.trim(); if (!x) return $("#c-att-x").focus();
@@ -247,9 +308,11 @@
       if (b && bn == null) return err("Il budget deve essere un numero.");
       const prima = nuovoC ? null : X.S.contatti.find((c) => c.id === CUR.id);
       const fase0 = prima ? prima.stato : null;
-      Object.assign(CUR, { nome: f.nome.value.trim(), telefono: f.telefono.value.trim(), email: f.email.value.trim(), fonte: f.fonte.value, auto_id: f.auto_id.value, auto_testo: f.auto_testo.value.trim(), stato: f.stato.value, budget: bn == null ? null : Math.round(bn), prossimo: f.prossimo.value, note: f.note.value.trim() });
+      Object.assign(CUR, { nome: f.nome.value.trim(), telefono: f.telefono.value.trim(), email: f.email.value.trim(), fonte: f.fonte.value, auto_id: f.auto_id.value, auto_testo: f.auto_testo.value.trim(), stato: f.stato.value, budget: bn == null ? null : Math.round(bn), prossimo: f.prossimo.value, note: f.note.value.trim(),
+        venduta_il: f.stato.value === "venduto" ? f.venduta_il.value : "", consenso_richiami: f.stato.value === "venduto" && f.consenso_richiami.checked ? CUR.consenso_richiami || X.oggi() : "" });
       if (fase0 && fase0 !== CUR.stato) CUR.attivita.push({ d: adesso(), t: "stato", x: `Fase: ${nomeStato(CUR.stato)}` });
       if (!apertoC(CUR)) CUR.prossimo = "";
+      aggiornaVendita(CUR, fase0 !== CUR.stato);
       const rec = norm(CUR);
       if (prima) X.S.contatti[X.S.contatti.indexOf(prima)] = rec; else X.S.contatti.push(rec);
       X.salva(); $("#d-contatto").close(); X.ridisegna(); X.toast(prima ? "Contatto aggiornato." : "Contatto aggiunto.");
@@ -263,6 +326,7 @@
     { k: "stato", t: "Fase", w: 14 }, { k: "auto_id", t: "Auto ID", w: 14 }, { k: "auto_desc", t: "Auto", w: 30 }, { k: "auto_testo", t: "Cosa cerca", w: 28 },
     { k: "budget", t: "Budget", type: "money", w: 12 }, { k: "prossimo", t: "Ricontattare il", type: "date", w: 16 }, { k: "creato", t: "Creato il", type: "date", w: 13 },
     { k: "note", t: "Note", w: 34 }, { k: "storico", t: "Storico", w: 60 },
+    { k: "venduta_il", t: "Venduta il", type: "date", w: 13 }, { k: "consenso_richiami", t: "Consenso ai richiami dal", type: "date", w: 20 },
   ].map((c) => Object.assign({ type: "text" }, c));
   Crm.riga = (c) => Crm.COLS.map((col) => col.k === "stato" ? nomeStato(c.stato) : col.k === "auto_desc" ? descAuto(c) : col.k === "creato" ? c.creato.slice(0, 10) : col.k === "storico" ? c.attivita.slice().sort((a, b) => (a.d > b.d ? 1 : -1)).map((a) => `${a.d.slice(0, 10)} ${a.t}: ${a.x}`).join("\n") : c[col.k] == null ? "" : c[col.k]);
   Crm.foglio = (lista) => ({ name: "Contatti", cols: Crm.COLS.map((c) => ({ title: c.t, type: c.type, width: c.w })), rows: lista.map(Crm.riga) });
@@ -273,6 +337,7 @@
   al("email", "email", "e_mail", "mail", "posta"); al("fonte", "fonte", "provenienza", "canale", "origine", "source", "come_ci_ha_trovato"); al("stato", "fase", "stato", "status", "stadio");
   al("auto_id", "auto_id", "id_auto", "codice_auto"); al("auto_desc", "auto", "auto_di_interesse", "interesse", "veicolo", "modello_di_interesse"); al("auto_testo", "cosa_cerca", "cerca", "richiesta", "ricerca");
   al("budget", "budget", "importo", "cifra", "offerta"); al("prossimo", "ricontattare_il", "prossimo_contatto", "follow_up", "followup", "prossimo", "richiamare_il", "ricontatto");
+  al("venduta_il", "venduta_il", "data_vendita", "acquistata_il"); al("consenso_richiami", "consenso_ai_richiami_dal", "consenso_richiami", "consenso_ai_richiami");
   al("note", "note", "annotazioni", "commenti"); al("creato", "creato_il", "creato", "data_creazione", "inserito_il", "data"); al("storico", "storico", "attivita", "cronologia", "log");
   const hn = (h) => TG.norm(h).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
   const faseDa = (v) => { const n = TG.norm(v); if (!n) return "nuovo"; if (/vend|acquist|chius.*ok|firmat/.test(n)) return "venduto"; if (/pers|annull|non inter|chius/.test(n)) return "perso"; if (/trattativ|offert|negozi|preventiv/.test(n)) return "trattativa"; if (/appunt|visita|prova/.test(n)) return "appuntamento"; if (/contattat|chiamat|rispost|richiam/.test(n)) return "contattato"; return "nuovo"; };
@@ -302,6 +367,7 @@
       if (raw.budget != null) { const b = X.numero(raw.budget); if (b == null) out.problemi.push({ m: `${dove}: «${raw.budget}» non è un numero valido per il budget.` }); else c.budget = Math.round(b); }
       if (raw.prossimo != null) { const d = X.dataIso(raw.prossimo); if (d == null) out.problemi.push({ m: `${dove}: data «${raw.prossimo}» non riconosciuta (usa 15/10/2026).` }); else c.prossimo = d; }
       if (raw.creato != null) { const d = X.dataIso(raw.creato); if (d) c.creato = d; }
+      ["venduta_il", "consenso_richiami"].forEach((k) => { if (raw[k] != null) { const d = X.dataIso(raw[k]); if (d) c[k] = d; else out.problemi.push({ m: `${dove}: data «${raw[k]}» non riconosciuta (usa 15/10/2026).` }); } });
       // auto: l'ID se esiste, altrimenti cerco per nome tra le auto della flotta
       if (c.auto_id && !X.S.auto.some((a) => a.id === c.auto_id)) c.auto_id = "";
       if (!c.auto_id && raw.auto_desc) {
@@ -329,10 +395,10 @@
       const ex = Crm.trova(c, S.contatti);
       if (ex) {
         agg++;
-        ["nome", "telefono", "email", "fonte", "stato", "auto_id", "auto_testo", "budget", "prossimo", "note", "creato"].forEach((k) => { if (c[k] !== "" && c[k] != null && !(k === "stato" && c.stato === "nuovo" && ex.stato !== "nuovo")) ex[k] = c[k]; });
+        ["nome", "telefono", "email", "fonte", "stato", "auto_id", "auto_testo", "budget", "prossimo", "note", "creato", "venduta_il", "consenso_richiami"].forEach((k) => { if (c[k] !== "" && c[k] != null && !(k === "stato" && c.stato === "nuovo" && ex.stato !== "nuovo")) ex[k] = c[k]; });
         c.attivita.forEach((a) => { if (!ex.attivita.some((y) => y.d === a.d && y.x === a.x)) ex.attivita.push(a); });
-        ex.demo = false;
-      } else { nuovi++; S.contatti.push(norm(Object.assign({}, c, { demo: false }))); }
+        ex.demo = false; if (ex.stato === "venduto") GT.Richiami.sincronizza(ex);
+      } else { nuovi++; const r = norm(Object.assign({}, c, { demo: false })); if (r.stato === "venduto") GT.Richiami.sincronizza(r); S.contatti.push(r); }
     });
     return { nuovi, agg };
   };

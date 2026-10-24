@@ -90,12 +90,14 @@
       <div class="seg" role="group" aria-label="Vista">
         <button type="button" id="cv-pipe" aria-pressed="true">Pipeline</button>
         <button type="button" id="cv-list" aria-pressed="false">Elenco</button>
+        <button type="button" id="cv-post" aria-pressed="false">Dopo la vendita</button>
       </div>
       <label class="inl">Auto <select id="crm-auto"></select></label>
       <label class="inl chk" hidden><input type="checkbox" id="crm-chiusi"> Mostra anche i chiusi</label>
     </div>
     <div class="board" id="board"></div>
     <div class="tbl-wrap" id="crm-list" hidden><table id="crm-tab"></table></div>
+    <div id="crm-post-w" hidden><div class="rc-grid" id="crm-post"></div></div>
     <p class="gt-empty" id="crm-vuoto" hidden></p>
   </section>
 
@@ -294,7 +296,8 @@
   <p class="gd-err" id="f-err" role="alert" hidden></p>
   <div class="gd-btns c-btns">
     <button type="button" class="btn btn-line sm" id="f-stima">Calcolo completo dei prezzi</button>
-    <button type="button" class="btn btn-line sm" id="f-verifica">Verifica storico e documenti</button><span class="grow"></span>
+    <button type="button" class="btn btn-line sm" id="f-verifica">Verifica storico e documenti</button>
+    <button type="button" class="btn btn-line sm" id="f-annuncio">Testo dell’annuncio</button><span class="grow"></span>
     <button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Salva l’auto</button>
   </div>
 </form></dialog>
@@ -316,6 +319,14 @@
     <div class="fu-q"><button type="button" class="lnk" data-fu="1">domani</button><button type="button" class="lnk" data-fu="3">tra 3 giorni</button><button type="button" class="lnk" data-fu="7">tra una settimana</button><button type="button" class="lnk" data-fu="0">nessuna data</button></div>
     <label class="w2">Note<textarea name="note" rows="2"></textarea></label>
   </div>
+  <fieldset class="priv ric" id="c-ric-box" hidden><legend>Dopo la vendita</legend>
+    <div class="fg">
+      <label>Venduta il<input name="venduta_il" type="date"></label>
+      <label class="ric-ok w2"><input type="checkbox" name="consenso_richiami"><span>Ha detto di sì a un messaggio dopo 11 e 23 mesi (tagliando, cambio auto). Spunta solo se te l’ha detto lui.</span></label>
+    </div>
+    <p class="small muted" id="c-ric-n"></p>
+    <ul id="c-ric"></ul>
+  </fieldset>
   <fieldset class="priv att"><legend>Storico dei contatti</legend>
     <div class="att-add"><select id="c-tipo" aria-label="Tipo"></select><input id="c-att-x" placeholder="Cosa vi siete detti" autocomplete="off"><button type="button" class="btn btn-line sm" id="c-att-add">Aggiungi</button></div>
     <ul id="c-att"></ul>
@@ -416,12 +427,49 @@
     <label>Data di vendita<input name="data_vendita" type="date" required></label>
     <label>Prezzo di vendita (€), riservato<input name="prezzo_vendita" inputmode="numeric"></label>
   </div>
+  <fieldset class="priv ric v-acq"><legend>Chi l’ha comprata (facoltativo)</legend>
+    <div class="fg">
+      <label>Nome<input name="acq_nome" list="l-acq" autocomplete="off" placeholder="Nome e cognome"></label>
+      <label>Telefono<input name="acq_tel" inputmode="tel" autocomplete="off"></label>
+      <label class="ric-ok w2"><input type="checkbox" name="acq_ok"><span>Ha detto di sì a un messaggio dopo 11 e 23 mesi (tagliando, cambio auto). Spunta solo se te l’ha detto lui.</span></label>
+    </div>
+    <p class="small muted">Dopo una settimana ti ricordo di chiedergli se va tutto bene. Gli altri due richiami partono solo con il suo sì. Lo trovi in Contatti → Dopo la vendita.</p>
+    <datalist id="l-acq"></datalist>
+  </fieldset>
   <div class="v-fatt">
     <p class="small muted"><b>Fattura.</b> Copia i dati dell’auto e incollali nella fattura su <span data-fatt-nome>Bluenext</span>. Il tipo di IVA da applicare chiedilo al commercialista.</p>
     <div class="v-fatt-b"><button type="button" class="btn btn-line sm" id="v-copia">Copia i dati per la fattura</button><a class="btn btn-line sm" id="v-fattura" href="https://servizi.bluenext.it" target="_blank" rel="noopener noreferrer"><span>Apri <span data-fatt-nome>Bluenext</span></span><span class="vh"> (si apre in una nuova scheda)</span></a></div>
   </div>
   <div class="gd-btns"><button type="button" class="btn btn-line" data-chiudi>Annulla</button><button type="submit" class="btn btn-light">Segna come venduta</button></div>
 </form></dialog>
+
+<!-- testo dell'annuncio -->
+<dialog id="d-desc" aria-labelledby="ds-titolo"><div class="gd" id="ds">
+  <h2 id="ds-titolo">Testo dell’annuncio</h2>
+  <p id="ds-auto" class="muted"></p>
+  <div class="seg" role="group" aria-label="Dove lo pubblichi" id="ds-tab"></div>
+  <div class="ds-corpo">
+    <div class="ds-opz">
+      <label>Punti di forza, uno per riga<textarea id="ds-forza" rows="4" placeholder="Es. Unico proprietario&#10;Tagliandi in regola&#10;Gomme nuove"></textarea></label>
+      <label>Garanzia, se la dai<input id="ds-garanzia" autocomplete="off" placeholder="Es. Garanzia legale di 12 mesi"></label>
+      <label>Altre righe da aggiungere<textarea id="ds-extra" rows="2" placeholder="Es. Possibilità di permuta"></textarea></label>
+      <label class="ric-ok"><input type="checkbox" id="ds-ctl" checked><span>Scrivi i controlli che hai segnato «a posto»</span></label>
+      <label class="ric-ok"><input type="checkbox" id="ds-prezzo" checked><span>Scrivi il prezzo</span></label>
+    </div>
+    <div class="ds-testo">
+      <label for="ds-out" class="ds-l"><span id="ds-nome">Testo</span><small id="ds-conta"></small></label>
+      <textarea id="ds-out" rows="12"></textarea>
+      <p class="small muted" id="ds-nota"></p>
+      <p class="gd-nota" id="ds-mod" hidden>Hai cambiato il testo a mano. <button type="button" class="lnk" id="ds-rigenera">Rifallo da capo con queste opzioni</button></p>
+    </div>
+  </div>
+  <p class="small muted">Il testo usa solo i dati che hai scritto nella scheda dell’auto. Rileggilo prima di pubblicarlo: garanzie, finanziamenti e controlli li scrivi tu.</p>
+  <div class="gd-btns c-btns">
+    <button type="button" class="btn btn-line" data-chiudi>Chiudi</button><span class="grow"></span>
+    <button type="button" class="btn btn-line sm" id="ds-usa" hidden>Usa come descrizione del sito</button>
+    <button type="button" class="btn btn-light" id="ds-copia">Copia il testo</button>
+  </div>
+</div></dialog>
 
 <!-- importa -->
 <dialog id="d-importa" aria-labelledby="i-titolo"><div class="gd" id="imp">
@@ -619,6 +667,7 @@
 <script src="../js/comune.js"></script>
 <script src="../js/tabelle.js"></script>
 <script src="foto.js"></script>
+<script src="richiami.js"></script>
 <script src="crm.js"></script>
 <script src="agenda.js"></script>
 <script src="richieste.js"></script>
@@ -628,6 +677,7 @@
 <script src="mercato.js"></script>
 <script src="checklist.js"></script>
 <script src="verifica.js"></script>
+<script src="descrizioni.js"></script>
 <script src="stima.js"></script>
 <script src="aggiungi.js"></script>
 <script src="../js/neon.js"></script>
