@@ -244,6 +244,23 @@ h3{font-size:21px;line-height:1.19;font-weight:600;letter-spacing:-.02em}
 .eur{margin-right:.08em;font-weight:500}
 .more{color:var(--link);font-size:15px}
 .more::after{content:" ›"}
+/* telefono: due auto per riga, scheda compatta (foto, nome, anno e km, prezzo). Con ~30 auto sono 15 righe invece di 30. Tutta la scheda resta il tasto «Dettagli». */
+@media (max-width:599px){
+  #griglia{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  #griglia .car{border-radius:18px}
+  #griglia .car:hover,#griglia .car:focus-within{transform:none}
+  #griglia .stage{aspect-ratio:5/4}
+  #griglia .tag-demo{top:6px;left:6px;padding:2px 8px;font-size:10.5px}
+  #griglia .car-body{gap:6px;padding:10px 12px 12px}
+  #griglia .car h3{font-size:15.5px;line-height:1.2;letter-spacing:-.015em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #griglia .trim{margin-top:2px;font-size:12.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #griglia .specs{font-size:12.5px;line-height:1.3}
+  #griglia .specs li:nth-child(n+3){display:none}
+  #griglia .specs li+li::before{margin:0 .4em}
+  #griglia .buy{padding-top:0}
+  #griglia .price{font-size:18px}
+  #griglia .more{display:none}
+}
 
 /* ---------- vendute ---------- */
 .sold{padding-inline:0;overflow:hidden}
@@ -298,6 +315,13 @@ h3{font-size:21px;line-height:1.19;font-weight:600;letter-spacing:-.02em}
 .rev-by span:last-child{display:flex;flex-direction:column;min-width:0}
 .rev-by a,.rev-by b{font-weight:600;text-decoration:none}
 .rev-by a:hover{text-decoration:underline}
+/* recensioni: sul telefono e sul tablet restano visibili titolo e voto, l'elenco si apre da un pulsante (la classe .coll la mette sito.js solo se ci sono recensioni) */
+.rev-toggle{display:none}
+@media (max-width:899px){
+  .people.coll .rev-toggle{display:inline-flex;margin-top:22px}
+  .people.coll:not(.aperta) .people-grid,.people.coll:not(.aperta) .rev-foot{display:none}
+  .people.coll .people-grid{margin-top:22px}
+}
 .rev-by small{color:var(--fg2);font-size:13px}
 .av{display:grid;place-items:center;flex:none;width:38px;height:38px;overflow:hidden;border-radius:50%;background:var(--fill);font-weight:600}
 .av img{width:100%;height:100%;object-fit:cover}
@@ -494,7 +518,7 @@ dialog[open]{animation:pop .4s var(--ease)}
 @media (prefers-color-scheme:dark){.vd-panel{background:linear-gradient(155deg,#303034 0%,#0c0c0d 72%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}}
 .vd-panel h2{max-width:11ch;font-size:clamp(38px,5.4vw,68px);line-height:.98;font-weight:800;letter-spacing:-.04em}
 .vd-lead{max-width:30ch;margin-top:18px;font-size:clamp(19px,2.2vw,24px);line-height:1.25;letter-spacing:-.02em;color:#a1a1a6}
-.vd-steps{counter-reset:vd;display:grid;gap:20px;margin:clamp(26px,3.4vw,40px) 0}
+.vd-steps{counter-reset:vd;display:grid;gap:20px;padding:0;list-style:none;margin:clamp(26px,3.4vw,40px) 0}
 .vd-steps li{counter-increment:vd;display:grid;grid-template-columns:38px 1fr;column-gap:16px;align-items:start}
 .vd-steps li::before{content:counter(vd);grid-row:span 2;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--silver);color:#000;font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
 .vd-steps b{font-size:19px;font-weight:600;letter-spacing:-.02em;color:#f5f5f7}
@@ -528,6 +552,11 @@ dialog[open]{animation:pop .4s var(--ease)}
 .vd-az{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
 .vd-ok .pr-nota{margin-top:16px}
 @media (max-width:559px){.vd-panel h2{max-width:none}.vd-go{width:100%}}
+/* modulo espandibile quando le due colonne si impilano (telefono e tablet): chiuso all'inizio, si apre da «Compila il modulo» */
+.vd-form{scroll-margin-top:calc(var(--head) + 16px)}
+.vendi.coll:not(.aperto) .vd-form{display:none}
+@media (prefers-reduced-motion:no-preference){.vendi.coll.aperto .vd-form{animation:vd-apri .38s var(--ease)}}
+@keyframes vd-apri{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 
 /* barra in alto sui computer stretti: con la voce «Vendi la tua auto» il menu è più largo, quindi il numero lascia il posto a «Chiama» */
 @media (min-width:1101px) and (max-width:1240px){

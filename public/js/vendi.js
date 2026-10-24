@@ -196,6 +196,24 @@
         const id = e.target.id;
         if (id === "vd-indietro" || id === "vd-altra") { $("#vd-ok").hidden = true; form().hidden = false; form().scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
       });
+      /* modulo espandibile dove le colonne si impilano (telefono e tablet): chiuso all'inizio, lo apre «Compila il modulo». Sul computer resta sempre aperto. */
+      const sez = $("#vendi"), vai = $(".vd-go"), mq = matchMedia("(max-width: 959px)");
+      const aperto = () => sez.classList.contains("aperto");
+      const sync = () => {
+        sez.classList.toggle("coll", mq.matches);
+        if (mq.matches) { vai.setAttribute("role", "button"); vai.setAttribute("aria-controls", "vd-form"); vai.setAttribute("aria-expanded", String(aperto())); }
+        else { vai.removeAttribute("role"); vai.removeAttribute("aria-controls"); vai.removeAttribute("aria-expanded"); }
+        vai.textContent = mq.matches && aperto() ? "Chiudi il modulo" : "Compila il modulo";
+      };
+      const apri = (on) => {
+        sez.classList.toggle("aperto", on); sync();
+        if (on) f.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+      };
+      vai.addEventListener("click", (e) => { if (!mq.matches) return; e.preventDefault(); apri(!aperto()); });
+      mq.addEventListener("change", sync);
+      addEventListener("hashchange", () => { if (location.hash === "#vd-form" && mq.matches && !aperto()) apri(true); });
+      sync();
+      if (location.hash === "#vd-form" && mq.matches) apri(true);
       mostra(true);
     },
     senzaServer: () => !S.online,

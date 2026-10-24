@@ -358,6 +358,16 @@
     const demo = !!d.demo;
     $("#revs").innerHTML = lista.map((r) => cardRecensione(r, demo)).join("");
     $("#people-grid").style.setProperty("--rows", Math.ceil(lista.length / 2));
+    if (lista.length) {                                  // telefono e tablet: l'elenco si apre da un pulsante (vedi style.css › .rev-toggle)
+      const sez = $("#titolare"), tasto = $("#rev-toggle");
+      sez.classList.add("coll");
+      tasto.addEventListener("click", () => {
+        const on = !sez.classList.contains("aperta");
+        sez.classList.toggle("aperta", on);
+        tasto.setAttribute("aria-expanded", String(on));
+        tasto.textContent = on ? "Nascondi le recensioni" : "Leggi le recensioni";
+      });
+    }
     if (+d.voto > 0) {
       $("#rate-n").textContent = voto1(+d.voto);
       const st = $("#rate-stars");
